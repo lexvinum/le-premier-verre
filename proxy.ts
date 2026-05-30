@@ -18,7 +18,8 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/images") ||
     pathname.startsWith("/favicon.ico") ||
-    pathname.startsWith("/api/admin");
+    pathname.startsWith("/api/admin") ||
+    pathname.startsWith("/api/newsletter");
 
   if (isPublicPath || isAllowedPath) {
     return NextResponse.next();
@@ -31,11 +32,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Sinon → redirection vers landing publique
-  const url = request.nextUrl.clone();
-  url.pathname = "/disponible-bientot";
-  return NextResponse.redirect(url);
-}
+  // laisser passer tout le monde
+  return NextResponse.next();
+  }
 
 export const config = {
   matcher: ["/((?!.*\\..*).*)"],
