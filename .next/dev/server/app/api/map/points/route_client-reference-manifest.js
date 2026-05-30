@@ -1,1 +1,0 @@
-globalThis.__RSC_MANIFEST=(globalThis.__RSC_MANIFEST||{});globalThis.__RSC_MANIFEST["/api/map/points/route"]={"moduleLoading":{"prefix":"/_next/"},"ssrModuleMapping":{},"edgeSSRModuleMapping":{},"clientModules":{},"entryCSSFiles":{"/Users/laurieannebiron/Projects/lex-vinum-premium-clean/app/api/map/points/route":[]},"rscModuleMapping":{},"edgeRscModuleMapping":{}};
