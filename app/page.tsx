@@ -16,9 +16,7 @@ export default function Home() {
     try {
       const response = await fetch("/api/newsletter", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
@@ -89,25 +87,7 @@ export default function Home() {
                   value={email ?? ""}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="votre@email.com"
-                  className="
-                    min-h-[62px]
-                    flex-1
-                    rounded-full
-                    border border-[#c8a97a]
-                    bg-[#fffdfa]
-                    px-7
-                    text-[15px]
-                    !text-[#102016]
-                    outline-none
-                    shadow-[inset_0_1px_0_rgba(255,255,255,0.98)]
-                    transition-all
-                    duration-300
-                    placeholder:!text-[#102016]
-                    placeholder:!opacity-100
-                    focus:border-[#b88a55]
-                    focus:bg-white
-                    focus:shadow-[0_0_0_4px_rgba(184,138,85,0.12)]
-                  "
+                  className="min-h-[62px] flex-1 rounded-full border border-[#c8a97a] bg-[#fffdfa] px-7 text-[15px] !text-[#102016] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.98)] transition-all duration-300 placeholder:!text-[#102016] placeholder:!opacity-100 focus:border-[#b88a55] focus:bg-white focus:shadow-[0_0_0_4px_rgba(184,138,85,0.12)]"
                 />
 
                 <button
@@ -115,9 +95,7 @@ export default function Home() {
                   disabled={status === "loading"}
                   className="min-h-[58px] rounded-full bg-[#0d2015] px-10 text-sm uppercase tracking-[0.22em] text-[#f7efe4] shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:bg-[#173223] disabled:opacity-60"
                 >
-                  {status === "loading"
-                    ? "Inscription..."
-                    : "S'inscrire"}
+                  {status === "loading" ? "Inscription..." : "S'inscrire"}
                 </button>
               </form>
 

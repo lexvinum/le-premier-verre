@@ -1,79 +1,124 @@
-import Link from "next/link";
+"use client";
 
-export default function DisponibleBientotPage() {
+import Image from "next/image";
+import { useState } from "react";
+
+type Status = "idle" | "loading" | "success" | "error";
+
+export default function Home() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<Status>("idle");
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus("loading");
+
+    try {
+      const response = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) throw new Error();
+
+      setStatus("success");
+      setEmail("");
+    } catch {
+      setStatus("error");
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-[#efe9dd] text-[#221c18]">
-      <section className="px-4 pb-4 pt-4 md:px-6 md:pb-6 md:pt-6">
-        <div className="relative min-h-[92vh] overflow-hidden rounded-[28px] border border-[#d8d1c5] bg-[radial-gradient(circle_at_top,rgba(95,109,85,0.18),transparent_30%),linear-gradient(180deg,#e7e0d4_0%,#efe9dd_55%,#f5f1ea_100%)]">
-          
-          {/* texture */}
-          <div className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-soft-light premium-page-texture" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,252,248,0.40),rgba(239,233,221,0.88))]" />
+    <main className="min-h-screen bg-[#141f17] text-[#f6efe6]">
+      <section className="flex min-h-screen items-center justify-center px-0 py-0">
+        <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#102016] px-6 py-14">
 
-          {/* header */}
-          <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-6 py-6 md:px-10">
-            <p className="text-[11px] uppercase tracking-[0.34em] text-[#5f6d55]">
-              Lex Vinum Premium
-            </p>
-            <p className="hidden text-[11px] uppercase tracking-[0.28em] text-[#8a7f73] md:block">
-              Disponible bientôt
-            </p>
-          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(28,47,35,0.18),transparent_58%),linear-gradient(180deg,#112016_0%,#07110c_100%)]" />
 
-          {/* contenu principal */}
-          <div className="relative z-10 flex min-h-[92vh] items-center justify-center px-6 py-16 md:px-10">
-            <div className="max-w-4xl text-center">
-              
-              <p className="text-[11px] uppercase tracking-[0.34em] text-[#6f8f7a]">
-                Édition numérique du vin
+          <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center text-center">
+
+            <Image
+              src="/logo-lex-vinum-new.png"
+              alt="Lex Vinum"
+              width={520}
+              height={520}
+              priority
+              className="h-auto w-[132px] opacity-[0.20] brightness-0 invert contrast-110 md:w-[175px]"
+            />
+
+            <p className="mt-10 text-[10px] uppercase tracking-[0.34em] text-[#c7b897]/72">
+              Maison numérique du vin · Digital wine house
+            </p>
+
+            <h1 className="mt-7 font-serif text-[3.15rem] leading-[0.98] tracking-[-0.06em] text-[#f8f1e7] md:text-[4.8rem] lg:text-[5.4rem]">
+              Disponible
+              <span className="block italic font-light text-[#d8c8aa]">
+                bientôt.
+              </span>
+            </h1>
+
+            <p className="mt-7 max-w-lg text-[14px] leading-[2.05] text-[#d8cebf]/76 md:text-[14.5px]">
+              Une expérience éditoriale raffinée pour découvrir le vin avec
+              plus de justesse, de curiosité et d’élégance.
+            </p>
+
+            <p className="mt-3 max-w-xl text-sm italic leading-7 text-[#c6bba9]/68">
+              A refined digital wine experience — curated, intuitive and quietly elegant.
+            </p>
+
+            <section className="mt-12 w-full max-w-2xl overflow-hidden rounded-[34px] bg-[linear-gradient(180deg,#f9f4ec_0%,#f3eadc_100%)] p-8 shadow-[0_28px_80px_rgba(0,0,0,0.18)] md:p-10">
+
+              <p className="text-[10px] uppercase tracking-[0.34em] text-[#b88a55]">
+                Courrier Lex Vinum
               </p>
 
-              <h1 className="mt-5 font-serif text-5xl leading-[0.95] text-[#231d19] md:text-7xl xl:text-[7.2rem]">
-                Disponible
-                <span className="block italic font-light text-[#5f6d55]">
-                  bientôt.
-                </span>
-              </h1>
+              <h2 className="mt-4 font-serif text-[1.95rem] leading-[1.02] tracking-[-0.045em] text-[#241c17] md:text-[2.45rem]">
+                Recevoir la première invitation.
+              </h2>
 
-              <p className="mx-auto mt-6 max-w-2xl text-sm leading-8 text-[#5a534b] md:text-base">
-                Une expérience éditoriale et premium autour du vin est en préparation.
-                Scan de cartes, recommandations raffinées, répertoire intelligent et
-                découverte du Québec dans une esthétique calme, élégante et assumée.
+              <form
+                onSubmit={handleSubmit}
+                className="mt-7 flex flex-col gap-4 sm:flex-row"
+              >
+                <input
+                  type="email"
+                  required
+                  value={email ?? ""}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="votre@email.com"
+                  className="min-h-[62px] flex-1 rounded-full border border-[#c8a97a] bg-[#fffdfa] px-7 text-[15px] !text-[#102016] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.98)] transition-all duration-300 placeholder:!text-[#102016] placeholder:!opacity-100 focus:border-[#b88a55] focus:bg-white focus:shadow-[0_0_0_4px_rgba(184,138,85,0.12)]"
+                />
+
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="min-h-[58px] rounded-full bg-[#0d2015] px-10 text-sm uppercase tracking-[0.22em] text-[#f7efe4] shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:bg-[#173223] disabled:opacity-60"
+                >
+                  {status === "loading" ? "Inscription..." : "S'inscrire"}
+                </button>
+              </form>
+
+              <p className="mt-7 text-sm leading-7 text-[#756555]">
+                Aucun bruit. Seulement les nouvelles importantes.
+                <span className="block italic text-[#8b7967]">
+                  No noise. Only meaningful updates.
+                </span>
               </p>
 
-              {/* tags */}
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                <span className="rounded-full border border-[#d4cbbb] bg-white/60 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-[#6c6258]">
-                  Scan
-                </span>
-                <span className="rounded-full border border-[#d4cbbb] bg-white/60 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-[#6c6258]">
-                  Répertoire
-                </span>
-                <span className="rounded-full border border-[#d4cbbb] bg-white/60 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-[#6c6258]">
-                  Recommandation
-                </span>
-              </div>
+              {status === "success" && (
+                <p className="mt-4 text-sm text-[#102116]">
+                  Merci — votre adresse a bien été inscrite.
+                </p>
+              )}
 
-              {/* actions */}
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-                
-                <Link
-                  href="mailto:bonjour@lexvinum.com"
-                  className="inline-flex items-center rounded-full bg-[#1f1a17] px-6 py-3 text-sm font-medium text-[#f6efe7] transition hover:opacity-90"
-                >
-                  Être informé du lancement
-                </Link>
+              {status === "error" && (
+                <p className="mt-4 text-sm text-[#9a544a]">
+                  L’inscription n’est pas encore connectée à Beehiiv.
+                </p>
+              )}
+            </section>
 
-                <Link
-                  href="/admin-acces"
-                  className="inline-flex items-center rounded-full border border-[#b79a72]/30 bg-white/40 px-6 py-3 text-xs uppercase tracking-[0.24em] text-[#6c5a47] transition hover:bg-white/60"
-                >
-                  Accès privé
-                </Link>
-
-              </div>
-
-            </div>
           </div>
         </div>
       </section>
