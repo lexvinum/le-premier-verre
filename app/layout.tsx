@@ -1,8 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
-import Sidebar from "@/components/Sidebar";
-import SiteHeader from "@/components/layout/SiteHeader";
 
 const display = Playfair_Display({
   subsets: ["latin"],
@@ -28,8 +26,6 @@ export default function RootLayout({
   return (
     <html lang="fr" data-scroll-behavior="smooth">
       <body className={`${display.variable} ${bodyFont.variable} antialiased`}>
-        <Sidebar />
-        <SiteHeader />
         {children}
       </body>
     </html>
