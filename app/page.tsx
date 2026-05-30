@@ -17,14 +17,19 @@ export default function Home() {
       const response = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: email.trim() }),
       });
 
-      if (!response.ok) throw new Error();
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Erreur inscription");
+      }
 
       setStatus("success");
       setEmail("");
-    } catch {
+    } catch (error) {
+      console.error("Newsletter error:", error);
       setStatus("error");
     }
   }
@@ -33,11 +38,9 @@ export default function Home() {
     <main className="min-h-screen bg-[#141f17] text-[#f6efe6]">
       <section className="flex min-h-screen items-center justify-center px-0 py-0">
         <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#102016] px-6 py-14">
-
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(28,47,35,0.18),transparent_58%),linear-gradient(180deg,#112016_0%,#07110c_100%)]" />
 
           <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center text-center">
-
             <Image
               src="/logo-lex-vinum-new.png"
               alt="Lex Vinum"
@@ -68,7 +71,6 @@ export default function Home() {
             </p>
 
             <section className="mt-12 w-full max-w-2xl overflow-hidden rounded-[34px] bg-[linear-gradient(180deg,#f9f4ec_0%,#f3eadc_100%)] p-8 shadow-[0_28px_80px_rgba(0,0,0,0.18)] md:p-10">
-
               <p className="text-[10px] uppercase tracking-[0.34em] text-[#b88a55]">
                 Courrier Lex Vinum
               </p>
@@ -114,11 +116,10 @@ export default function Home() {
 
               {status === "error" && (
                 <p className="mt-4 text-sm text-[#9a544a]">
-                  L’inscription n’est pas encore connectée à Beehiiv.
+                  L’inscription n’a pas fonctionné. Réessayez dans un instant.
                 </p>
               )}
             </section>
-
           </div>
         </div>
       </section>
