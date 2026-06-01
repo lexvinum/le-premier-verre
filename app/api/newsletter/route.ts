@@ -33,6 +33,7 @@ export async function POST(request: Request) {
           email,
           reactivate_existing: false,
           send_welcome_email: true,
+          double_opt_override: "off",
           utm_source: "lexvinum.com",
           utm_medium: "coming_soon_page",
           utm_campaign: "prelaunch",
