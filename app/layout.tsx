@@ -23,6 +23,10 @@ export const metadata: Metadata = {
   description:
     "Une maison éditoriale dédiée au vin, aux vignobles, aux bars à vin et aux découvertes soigneusement choisies.",
 
+  verification: {
+    google: "-ZkGDMvO096Fv0c2_Vb71lbrue-NOCRrWBpkSP6qdzo",
+  },
+
   openGraph: {
     title: "Maison Lex Vinum",
     description:
