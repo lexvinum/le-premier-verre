@@ -30,3 +30,26 @@ export async function addBottleToCellar(
     },
   });
 }
+export async function createCellarBottle(
+  userId: string,
+  data: {
+    wineId: string;
+    quantity: number;
+    purchasePrice: number | null;
+    purchaseDate: Date | null;
+    location: string | null;
+    drinkingWindow: string | null;
+    personalNote: string | null;
+    rating: number | null;
+  }
+) {
+  return prisma.cellarBottle.create({
+    data: {
+      userId,
+      ...data,
+    },
+    include: {
+      wine: true,
+    },
+  });
+}

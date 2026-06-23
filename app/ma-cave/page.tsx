@@ -1,4 +1,6 @@
-import { getAllWines, getCellarItems } from "@/lib/wines";
+import { requireUser } from "@/lib/auth/require-user";
+import { getCellarByUser } from "@/lib/db/cellar";
+import { getAllWines } from "@/lib/db/wines";
 import MaCaveClient from "./ma-cave-client";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +34,12 @@ function parseStringArray(value: unknown): string[] {
 }
 
 export default async function MaCavePage() {
-  const [items, wines] = await Promise.all([getCellarItems(), getAllWines()]);
+  const user = await requireUser();
+
+  const [items, wines] = await Promise.all([
+    getCellarByUser(user.id),
+    getAllWines(),
+  ]);
 
   const normalizedItems = items.map((item: any) => ({
     ...item,
@@ -55,10 +62,5 @@ export default async function MaCavePage() {
         : parseStringArray(wine.tagsJson),
   }));
 
-  return (
-    <MaCaveClient
-      initialItems={normalizedItems}
-      wines={normalizedWines}
-    />
-  );
+  return <MaCaveClient initialItems={normalizedItems} wines={normalizedWines} />;
 }
