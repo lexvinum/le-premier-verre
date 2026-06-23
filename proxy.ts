@@ -1,41 +1,24 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const COOKIE_NAME = process.env.ADMIN_COOKIE_NAME || "lexvinum_admin";
+const isProtectedRoute = createRouteMatcher([
+  "/ma-cave(.*)",
+  "/favoris(.*)",
+  "/panier(.*)",
+]);
 
-const PUBLIC_PATHS = ["/disponible-bientot", "/admin-acces"];
+const isAdminRoute = createRouteMatcher([
+  "/admin(.*)",
+]);
 
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Autoriser pages publiques
-  const isPublicPath = PUBLIC_PATHS.some(
-    (path) => pathname === path || pathname.startsWith(`${path}/`)
-  );
-
-  // Autoriser assets + API admin
-  const isAllowedPath =
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/images") ||
-    pathname.startsWith("/favicon.ico") ||
-    pathname.startsWith("/api/admin") ||
-    pathname.startsWith("/api/newsletter");
-
-  if (isPublicPath || isAllowedPath) {
-    return NextResponse.next();
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req) || isAdminRoute(req)) {
+    await auth.protect();
   }
-
-  // Vérifier cookie admin
-  const adminCookie = request.cookies.get(COOKIE_NAME)?.value;
-
-  if (adminCookie === "granted") {
-    return NextResponse.next();
-  }
-
-  // laisser passer tout le monde
-  return NextResponse.next();
-  }
+});
 
 export const config = {
-  matcher: ["/((?!.*\\..*).*)"],
+  matcher: [
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
+  ],
 };
