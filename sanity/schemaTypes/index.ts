@@ -1,3 +1,4 @@
+import { appellation } from "./appellation";
 import { article } from "./article";
 import { country } from "./country";
 import { grape } from "./grape";
@@ -11,5 +12,6 @@ export const schemaTypes = [
   grape,
   region,
   producer,
+  appellation,
   wine,
 ];

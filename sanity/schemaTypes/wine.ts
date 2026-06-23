@@ -103,8 +103,9 @@ export const wine = defineType({
     defineField({
       name: "appellation",
       title: "Appellation",
-      type: "string",
+      type: "reference",
       group: "origin",
+      to: [{ type: "appellation" }],
     }),
 
     defineField({
