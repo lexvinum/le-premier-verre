@@ -16,11 +16,14 @@ model User {
   role      String   @default("user")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  cellarBottles CellarBottle[]
 }
 
 model CellarBottle {
   id             String    @id @default(cuid())
   wineId         String
+  userId         String?
   quantity       Int       @default(1)
   purchasePrice  Float?
   purchaseDate   DateTime?
@@ -31,8 +34,10 @@ model CellarBottle {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   wine           Wine      @relation(fields: [wineId], references: [id], onDelete: Cascade)
+  user           User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([wineId])
+  @@index([userId])
 }
 
 model Wine {
