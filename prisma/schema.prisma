@@ -6,6 +6,18 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model CellarBottle {
   id             String    @id @default(cuid())
   wineId         String
@@ -24,60 +36,60 @@ model CellarBottle {
 }
 
 model Wine {
-  id                      String    @id @default(cuid())
-  slug                    String    @unique
-  name                    String
-  producer                String?
-  country                 String?
-  region                  String?
-  grape                   String?
-  color                   String?
-  style                   String?
-  price                   Float?
-  vintage                 String?
-  image                   String?
-  aromasJson              String?
-  tagsJson                String?
-  description             String?
-  isQuebec                Boolean   @default(false)
-  featured                Boolean   @default(false)
-  body                    String?
-  acidity                 String?
-  tannin                  String?
-  minerality              String?
-  pairingJson             String?
-  serving                 String?
-  temperature             String?
-  cellar                  String?
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  producer    String?
+  country     String?
+  region      String?
+  grape       String?
+  color       String?
+  style       String?
+  price       Float?
+  vintage     String?
+  image       String?
+  aromasJson  String?
+  tagsJson    String?
+  description String?
+  isQuebec    Boolean @default(false)
+  featured    Boolean @default(false)
+  body        String?
+  acidity     String?
+  tannin      String?
+  minerality  String?
+  pairingJson String?
+  serving     String?
+  temperature String?
+  cellar      String?
 
-  vineyardId              String?
-  vineyard                Vineyard? @relation(fields: [vineyardId], references: [id], onDelete: SetNull)
+  vineyardId String?
+  vineyard   Vineyard? @relation(fields: [vineyardId], references: [id], onDelete: SetNull)
 
-  originLabel             String?
-  latitude                Float?
-  longitude               Float?
-  placeId                 String?
+  originLabel String?
+  latitude    Float?
+  longitude   Float?
+  placeId     String?
 
-  saqCode                 String?   @unique
-  saqUrl                  String?
-  appellationOrigine      String?
-  designationReglementee  String?
-  alcohol                 String?
-  tauxSucre               String?
-  natureType              String?
-  bioType                 String?
-  formatMl                Int?
-  sourceFile              String?
-  dataSource              String?   @default("manual")
+  saqCode                String? @unique
+  saqUrl                 String?
+  appellationOrigine     String?
+  designationReglementee String?
+  alcohol                String?
+  tauxSucre              String?
+  natureType             String?
+  bioType                String?
+  formatMl               Int?
+  sourceFile             String?
+  dataSource             String? @default("manual")
 
-  sugar                   String?
-  palate                  String?
-  oak                     String?
+  sugar  String?
+  palate String?
+  oak    String?
 
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  cellarBottles           CellarBottle[]
+  cellarBottles CellarBottle[]
 
   @@index([country])
   @@index([region])
@@ -115,26 +127,26 @@ model Vineyard {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  wines            Wine[]
+  wines Wine[]
 }
 
 model BlogPost {
-  id             String   @id @default(cuid())
-  slug           String   @unique
+  id             String    @id @default(cuid())
+  slug           String    @unique
   title          String
   excerpt        String?
-  content        String   @db.Text
+  content        String    @db.Text
   coverImage     String?
   category       String?
   tagsJson       String?
   author         String?
-  published      Boolean  @default(false)
+  published      Boolean   @default(false)
   publishedAt    DateTime?
-  featured       Boolean  @default(false)
+  featured       Boolean   @default(false)
   seoTitle       String?
   seoDescription String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model ShopProduct {
@@ -153,17 +165,17 @@ model ShopProduct {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  orderItems  ShopOrderItem[]
+  orderItems ShopOrderItem[]
 }
 
 model ShopOrder {
-  id                    String          @id @default(cuid())
+  id                    String   @id @default(cuid())
   email                 String
-  status                String          @default("pending")
-  currency              String          @default("cad")
+  status                String   @default("pending")
+  currency              String   @default("cad")
   subtotalCents         Int
   totalCents            Int
-  stripePaymentIntentId String?         @unique
+  stripePaymentIntentId String?  @unique
   shippingName          String?
   shippingAddressLine1  String?
   shippingAddressLine2  String?
@@ -171,21 +183,21 @@ model ShopOrder {
   shippingState         String?
   shippingPostalCode    String?
   shippingCountry       String?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   items ShopOrderItem[]
 }
 
 model ShopOrderItem {
-  id             String      @id @default(cuid())
+  id             String @id @default(cuid())
   orderId        String
   productId      String
   quantity       Int
   unitPriceCents Int
 
-  order          ShopOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product        ShopProduct @relation(fields: [productId], references: [id])
+  order   ShopOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product ShopProduct @relation(fields: [productId], references: [id])
 
-  createdAt      DateTime    @default(now())
+  createdAt DateTime @default(now())
 }
