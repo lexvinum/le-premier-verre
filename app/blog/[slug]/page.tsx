@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { prisma } from "@/lib/prisma";
+import { getArticle, getRelatedArticles } from "@/sanity/lib/queries";
 
 export const revalidate = 60;
 
@@ -12,30 +12,35 @@ type PageProps = {
   }>;
 };
 
-function formatDate(date: Date | null) {
+type Article = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt?: string | null;
+  content?: string | null;
+  category?: string | null;
+  coverImage?: string | null;
+  author?: string | null;
+  tags?: string[] | null;
+  publishedAt?: string | null;
+  createdAt?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+};
+
+function formatDate(date: string | Date | null | undefined) {
   if (!date) return null;
 
   return new Intl.DateTimeFormat("fr-CA", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  }).format(date);
+  }).format(new Date(date));
 }
 
-function parseTags(tagsJson: string | null) {
-  if (!tagsJson) return [];
+function renderContent(content: string | null | undefined) {
+  if (!content) return [];
 
-  try {
-    const parsed = JSON.parse(tagsJson);
-    return Array.isArray(parsed)
-      ? parsed.filter((tag): tag is string => typeof tag === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function renderContent(content: string) {
   return content
     .split(/\n\s*\n/g)
     .map((paragraph) => paragraph.trim())
@@ -44,77 +49,31 @@ function renderContent(content: string) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const post = (await getArticle(slug)) as Article | null;
 
-  const post = await prisma.blogPost.findUnique({
-    where: { slug },
-    select: {
-      title: true,
-      excerpt: true,
-      seoTitle: true,
-      seoDescription: true,
-      published: true,
-    },
-  });
-
-  if (!post || !post.published) {
+  if (!post) {
     return {
-      title: "Article introuvable | Lex Vinum",
+      title: "Article introuvable | Le Premier Verre",
       description: "Cet article est introuvable ou non publié.",
     };
   }
 
   return {
-    title: post.seoTitle || `${post.title} | Lex Vinum`,
-    description: post.seoDescription || post.excerpt || "Article Lex Vinum",
+    title: post.seoTitle || `${post.title} | Le Premier Verre`,
+    description: post.seoDescription || post.excerpt || "Article Le Premier Verre",
   };
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
+  const post = (await getArticle(slug)) as Article | null;
 
-  const post = await prisma.blogPost.findUnique({
-    where: { slug },
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      excerpt: true,
-      content: true,
-      category: true,
-      coverImage: true,
-      author: true,
-      tagsJson: true,
-      published: true,
-      publishedAt: true,
-      createdAt: true,
-    },
-  });
-
-  if (!post || !post.published) {
+  if (!post) {
     notFound();
   }
 
-  const relatedPosts = await prisma.blogPost.findMany({
-    where: {
-      published: true,
-      NOT: { id: post.id },
-      ...(post.category ? { category: post.category } : {}),
-    },
-    orderBy: [{ featured: "desc" }, { publishedAt: "desc" }, { createdAt: "desc" }],
-    take: 3,
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      excerpt: true,
-      category: true,
-      coverImage: true,
-      publishedAt: true,
-      createdAt: true,
-    },
-  });
-
-  const tags = parseTags(post.tagsJson);
+  const relatedPosts = (await getRelatedArticles(slug, post.category)) as Article[];
+  const tags = post.tags ?? [];
   const paragraphs = renderContent(post.content);
   const publicationDate = formatDate(post.publishedAt ?? post.createdAt);
 
@@ -127,10 +86,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           <div className="absolute inset-0 opacity-[0.05] bg-[linear-gradient(135deg,rgba(255,255,255,0.04)_0%,transparent_18%,rgba(255,255,255,0.02)_36%,transparent_54%,rgba(255,255,255,0.03)_72%,transparent_100%)]" />
 
           <div className="relative mx-auto max-w-6xl px-6 py-14 md:px-10 lg:px-12">
-            <Link
-              href="/blog"
-              className="inline-flex items-center gap-2 text-sm text-[#d8c2b2] transition hover:text-[#dff1e5]"
-            >
+            <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-[#d8c2b2] transition hover:text-[#dff1e5]">
               <span aria-hidden>←</span>
               Retour au blog
             </Link>
@@ -145,7 +101,6 @@ export default async function BlogPostPage({ params }: PageProps) {
                   ) : null}
 
                   {publicationDate ? <span>{publicationDate}</span> : null}
-
                   {post.author ? <span>• {post.author}</span> : null}
                 </div>
 
@@ -182,36 +137,22 @@ export default async function BlogPostPage({ params }: PageProps) {
             <div className="grid gap-10 p-8 md:grid-cols-[minmax(0,1fr)_300px] md:p-10">
               <div className="min-w-0">
                 <div className="mb-8 overflow-hidden rounded-[26px] border border-white/10">
-                  <div className="relative h-[280px] md:h-[460px] bg-[#1a221d]">
-                    {post.coverImage ? (
-                      <Image
-                        src={post.coverImage}
-                        alt={post.title}
-                        fill
-                        className="object-cover"
-                        priority
-                      />
-                    ) : (
-                      <Image
-                        src="/images/editorial-1.jpeg"
-                        alt={post.title}
-                        fill
-                        className="object-cover"
-                        priority
-                        unoptimized
-                      />
-                    )}
-
+                  <div className="relative h-[280px] bg-[#1a221d] md:h-[460px]">
+                    <Image
+                      src={post.coverImage || "/images/editorial-1.jpeg"}
+                      alt={post.title}
+                      fill
+                      className="object-cover"
+                      priority
+                      unoptimized={!post.coverImage}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#101613] via-transparent to-transparent" />
                   </div>
                 </div>
 
                 <div className="max-w-none">
                   {paragraphs.map((paragraph, index) => (
-                    <p
-                      key={`${post.id}-${index}`}
-                      className="mb-6 text-[1.03rem] leading-8 text-[#eadfd6]"
-                    >
+                    <p key={`${post.id}-${index}`} className="mb-6 text-[1.03rem] leading-8 text-[#eadfd6]">
                       {paragraph}
                     </p>
                   ))}
@@ -221,21 +162,12 @@ export default async function BlogPostPage({ params }: PageProps) {
               <aside className="space-y-6">
                 <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.02))]">
                   <div className="relative h-[180px]">
-                    <Image
-                      src="/images/lifestyle-2.jpeg"
-                      alt="Lecture lounge"
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
+                    <Image src="/images/lifestyle-2.jpeg" alt="Lecture lounge" fill className="object-cover" unoptimized />
                     <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(15,25,20,0.72),rgba(15,25,20,0.10))]" />
                   </div>
 
                   <div className="p-6">
-                    <p className="text-xs uppercase tracking-[0.24em] text-[#9ab3a1]">
-                      Fiche article
-                    </p>
-
+                    <p className="text-xs uppercase tracking-[0.24em] text-[#9ab3a1]">Fiche article</p>
                     <div className="mt-5 space-y-4 text-sm text-[#d9c5b7]">
                       <div>
                         <p className="text-[#8fae9b]">Catégorie</p>
@@ -259,16 +191,10 @@ export default async function BlogPostPage({ params }: PageProps) {
 
                 {tags.length > 0 ? (
                   <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.02))] p-6">
-                    <p className="text-xs uppercase tracking-[0.24em] text-[#9ab3a1]">
-                      Thèmes
-                    </p>
-
+                    <p className="text-xs uppercase tracking-[0.24em] text-[#9ab3a1]">Thèmes</p>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full border border-[#6f8f7a] bg-[rgba(111,143,122,0.12)] px-3 py-1 text-xs uppercase tracking-[0.18em] text-[#e1eee5]"
-                        >
+                        <span key={tag} className="rounded-full border border-[#6f8f7a] bg-[rgba(111,143,122,0.12)] px-3 py-1 text-xs uppercase tracking-[0.18em] text-[#e1eee5]">
                           {tag}
                         </span>
                       ))}
@@ -278,39 +204,23 @@ export default async function BlogPostPage({ params }: PageProps) {
 
                 <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.10),rgba(255,255,255,0.03))]">
                   <div className="relative h-[180px]">
-                    <Image
-                      src="/images/editorial-2.jpeg"
-                      alt="Découvrir ensuite"
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
+                    <Image src="/images/editorial-2.jpeg" alt="Découvrir ensuite" fill className="object-cover" unoptimized />
                     <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(15,25,20,0.78),rgba(15,25,20,0.16))]" />
                   </div>
 
                   <div className="p-6">
-                    <p className="text-xs uppercase tracking-[0.24em] text-[#9ab3a1]">
-                      À découvrir ensuite
-                    </p>
+                    <p className="text-xs uppercase tracking-[0.24em] text-[#9ab3a1]">À découvrir ensuite</p>
                     <p className="mt-3 text-sm leading-7 text-[#dbc8bb]">
-                      Continue l’exploration du vin avec d’autres repères
-                      éditoriaux, pensés pour t’aider à mieux lire une carte et
-                      choisir avec confiance.
+                      Continue l’exploration du vin avec d’autres repères éditoriaux, pensés pour t’aider à mieux lire une carte et choisir avec confiance.
                     </p>
 
                     <div className="mt-5 flex flex-col gap-3">
-                      <Link
-                        href="/recommandation"
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-[#6f8f7a] bg-[rgba(111,143,122,0.12)] px-4 py-2 text-sm font-medium text-[#e6efe7] transition hover:bg-[rgba(111,143,122,0.18)]"
-                      >
+                      <Link href="/recommandation" className="inline-flex items-center justify-center gap-2 rounded-full border border-[#6f8f7a] bg-[rgba(111,143,122,0.12)] px-4 py-2 text-sm font-medium text-[#e6efe7] transition hover:bg-[rgba(111,143,122,0.18)]">
                         Ouvrir la recommandation
                         <span aria-hidden>→</span>
                       </Link>
 
-                      <Link
-                        href="/scan"
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-[#e7d6c9] transition hover:border-[#6f8f7a]/70 hover:bg-white/5"
-                      >
+                      <Link href="/scan" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-[#e7d6c9] transition hover:border-[#6f8f7a]/70 hover:bg-white/5">
                         Scanner une carte des vins
                         <span aria-hidden>→</span>
                       </Link>
@@ -324,40 +234,22 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         <section className="mx-auto max-w-7xl px-6 pb-16 md:px-10 lg:px-12">
           <div className="mb-6">
-            <p className="text-xs uppercase tracking-[0.32em] text-[#90aa98]">
-              Lecture suivante
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold text-[#fff8f1] md:text-3xl">
-              Articles connexes
-            </h2>
+            <p className="text-xs uppercase tracking-[0.32em] text-[#90aa98]">Lecture suivante</p>
+            <h2 className="mt-2 text-2xl font-semibold text-[#fff8f1] md:text-3xl">Articles connexes</h2>
           </div>
 
           {relatedPosts.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {relatedPosts.map((related: (typeof relatedPosts)[number]) => (
-                <Link
-                  key={related.id}
-                  href={`/blog/${related.slug}`}
-                  className="group overflow-hidden rounded-[26px] border border-[rgba(111,143,122,0.18)] bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.02))] shadow-[0_20px_60px_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-1 hover:border-[#6f8f7a]/70"
-                >
+              {relatedPosts.map((related) => (
+                <Link key={related.id} href={`/blog/${related.slug}`} className="group overflow-hidden rounded-[26px] border border-[rgba(111,143,122,0.18)] bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.02))] shadow-[0_20px_60px_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-1 hover:border-[#6f8f7a]/70">
                   <div className="relative h-56 bg-[#1a221d]">
-                    {related.coverImage ? (
-                      <Image
-                        src={related.coverImage}
-                        alt={related.title}
-                        fill
-                        className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                      />
-                    ) : (
-                      <Image
-                        src="/images/lifestyle-1.jpeg"
-                        alt={related.title}
-                        fill
-                        className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                        unoptimized
-                      />
-                    )}
-
+                    <Image
+                      src={related.coverImage || "/images/lifestyle-1.jpeg"}
+                      alt={related.title}
+                      fill
+                      className="object-cover transition duration-700 group-hover:scale-[1.03]"
+                      unoptimized={!related.coverImage}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#101613] via-transparent to-transparent" />
                   </div>
 
@@ -366,14 +258,10 @@ export default async function BlogPostPage({ params }: PageProps) {
                       {related.category ? <span>{related.category}</span> : null}
                     </div>
 
-                    <h3 className="text-xl font-semibold leading-snug text-[#fff8f1]">
-                      {related.title}
-                    </h3>
+                    <h3 className="text-xl font-semibold leading-snug text-[#fff8f1]">{related.title}</h3>
 
                     {related.excerpt ? (
-                      <p className="mt-4 line-clamp-3 text-sm leading-7 text-[#d5c0b3]">
-                        {related.excerpt}
-                      </p>
+                      <p className="mt-4 line-clamp-3 text-sm leading-7 text-[#d5c0b3]">{related.excerpt}</p>
                     ) : null}
 
                     <div className="mt-6 flex items-center justify-between text-sm text-[#cab4a5]">

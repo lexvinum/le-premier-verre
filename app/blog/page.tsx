@@ -1,42 +1,34 @@
 import Link from "next/link";
 import Image from "next/image";
-import { prisma } from "@/lib/prisma";
+import { getArticles } from "@/sanity/lib/queries";
 
 export const revalidate = 60;
 
-function formatDate(date: Date | null) {
+type BlogPost = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt?: string | null;
+  category?: string | null;
+  featured?: boolean | null;
+  coverImage?: string | null;
+  author?: string | null;
+  publishedAt?: string | null;
+  createdAt?: string | null;
+};
+
+function formatDate(date: string | Date | null | undefined) {
   if (!date) return null;
 
   return new Intl.DateTimeFormat("fr-CA", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  }).format(date);
+  }).format(new Date(date));
 }
 
 export default async function BlogPage() {
-  const posts = await prisma.blogPost.findMany({
-    where: {
-      published: true,
-    },
-    orderBy: [
-      { featured: "desc" },
-      { publishedAt: "desc" },
-      { createdAt: "desc" },
-    ],
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      excerpt: true,
-      category: true,
-      featured: true,
-      coverImage: true,
-      author: true,
-      publishedAt: true,
-      createdAt: true,
-    },
-  });
+  const posts = (await getArticles()) as BlogPost[];
 
   const [featuredPost, ...otherPosts] = posts;
 
@@ -52,7 +44,7 @@ export default async function BlogPage() {
         <div className="relative mx-auto grid max-w-7xl gap-10 px-6 py-16 md:px-10 lg:grid-cols-[1.08fr_0.92fr] lg:px-12 lg:py-20">
           <div className="flex flex-col justify-center">
             <p className="mb-4 text-xs uppercase tracking-[0.38em] text-[#9ab3a1]">
-              Journal Lex Vinum
+              Journal Le Premier Verre
             </p>
 
             <h1 className="max-w-4xl text-4xl font-semibold leading-tight text-[#fff8f1] md:text-6xl">
@@ -66,103 +58,48 @@ export default async function BlogPage() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/scan"
-                className="rounded-full border border-[#6f8f7a] bg-[rgba(111,143,122,0.12)] px-5 py-2 text-sm text-[#e6efe7] transition hover:bg-[rgba(111,143,122,0.18)]"
-              >
+              <Link href="/scan" className="rounded-full border border-[#6f8f7a] bg-[rgba(111,143,122,0.12)] px-5 py-2 text-sm text-[#e6efe7] transition hover:bg-[rgba(111,143,122,0.18)]">
                 Scanner une carte
               </Link>
 
-              <Link
-                href="/recommandation"
-                className="rounded-full border border-white/10 px-5 py-2 text-sm text-[#e7d6c9] transition hover:border-[#6f8f7a]/70 hover:bg-white/5"
-              >
+              <Link href="/recommandation" className="rounded-full border border-white/10 px-5 py-2 text-sm text-[#e7d6c9] transition hover:border-[#6f8f7a]/70 hover:bg-white/5">
                 Trouver un vin
               </Link>
             </div>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
-            <div className="group overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.015))] shadow-[0_24px_70px_rgba(0,0,0,0.32)]">
-              <div className="relative h-[240px]">
-                <Image
-                  src="/images/editorial-2.jpeg"
-                  alt="Ambiance lounge éditoriale"
-                  fill
-                  className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                  unoptimized
-                />
-                <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(15,25,20,0.78),rgba(15,25,20,0.18))]" />
-              </div>
+            {["/images/editorial-2.jpeg", "/images/lifestyle-2.jpeg"].map((src, index) => (
+              <div key={src} className="group overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.015))] shadow-[0_24px_70px_rgba(0,0,0,0.32)]">
+                <div className="relative h-[240px]">
+                  <Image src={src} alt="Ambiance éditoriale" fill className="object-cover transition duration-700 group-hover:scale-[1.03]" unoptimized />
+                  <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(15,25,20,0.78),rgba(15,25,20,0.18))]" />
+                </div>
 
-              <div className="p-6">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-[#9ab3a1]">
-                  Lounge feutré
-                </p>
-                <h2 className="mt-2 font-serif text-2xl text-[#fff8f1]">
-                  Une lecture plus intime
-                </h2>
-                <p className="mt-3 text-sm leading-7 text-[#d5c0b3]">
-                  Une présence plus chaude, plus silencieuse, plus éditoriale
-                  que les autres sections du site.
-                </p>
+                <div className="p-6">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#9ab3a1]">
+                    {index === 0 ? "Lounge feutré" : "Journal premium"}
+                  </p>
+                  <h2 className="mt-2 font-serif text-2xl text-[#fff8f1]">
+                    {index === 0 ? "Une lecture plus intime" : "Lire, choisir, comprendre"}
+                  </h2>
+                  <p className="mt-3 text-sm leading-7 text-[#d5c0b3]">
+                    {index === 0
+                      ? "Une présence plus chaude, plus silencieuse, plus éditoriale que les autres sections du site."
+                      : "Des articles construits pour t’aider à mieux choisir, avec une esthétique plus douce et plus enveloppante."}
+                  </p>
+                </div>
               </div>
-            </div>
-
-            <div className="group overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.015))] shadow-[0_24px_70px_rgba(0,0,0,0.32)]">
-              <div className="relative h-[240px]">
-                <Image
-                  src="/images/lifestyle-2.jpeg"
-                  alt="Lecture et dégustation"
-                  fill
-                  className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                  unoptimized
-                />
-                <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(15,25,20,0.78),rgba(15,25,20,0.18))]" />
-              </div>
-
-              <div className="p-6">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-[#9ab3a1]">
-                  Journal premium
-                </p>
-                <h2 className="mt-2 font-serif text-2xl text-[#fff8f1]">
-                  Lire, choisir, comprendre
-                </h2>
-                <p className="mt-3 text-sm leading-7 text-[#d5c0b3]">
-                  Des articles construits pour t’aider à mieux choisir, avec une
-                  esthétique plus douce et plus enveloppante.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-12 md:px-10 lg:px-12">
         {featuredPost ? (
-          <Link
-            href={`/blog/${featuredPost.slug}`}
-            className="group mb-16 grid overflow-hidden rounded-[34px] border border-[rgba(111,143,122,0.22)] bg-[linear-gradient(135deg,rgba(120,150,120,0.08),rgba(255,255,255,0.015))] shadow-[0_34px_100px_rgba(0,0,0,0.34)] backdrop-blur md:grid-cols-[1.15fr_0.85fr]"
-          >
+          <Link href={`/blog/${featuredPost.slug}`} className="group mb-16 grid overflow-hidden rounded-[34px] border border-[rgba(111,143,122,0.22)] bg-[linear-gradient(135deg,rgba(120,150,120,0.08),rgba(255,255,255,0.015))] shadow-[0_34px_100px_rgba(0,0,0,0.34)] backdrop-blur md:grid-cols-[1.15fr_0.85fr]">
             <div className="relative min-h-[360px] bg-[#1a221d]">
-              {featuredPost.coverImage ? (
-                <Image
-                  src={featuredPost.coverImage}
-                  alt={featuredPost.title}
-                  fill
-                  className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                />
-              ) : (
-                <Image
-                  src="/images/editorial-1.jpeg"
-                  alt={featuredPost.title}
-                  fill
-                  className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                  unoptimized
-                />
-              )}
-
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(12,16,13,0.12),rgba(12,16,13,0.24))]" />
+              <Image src={featuredPost.coverImage || "/images/editorial-1.jpeg"} alt={featuredPost.title} fill className="object-cover transition duration-700 group-hover:scale-[1.03]" unoptimized={!featuredPost.coverImage} />
               <div className="absolute inset-0 bg-gradient-to-t from-[#101613] via-[#101613]/30 to-transparent" />
             </div>
 
@@ -187,10 +124,7 @@ export default async function BlogPage() {
               </div>
 
               <div className="mt-8 flex items-center gap-3 text-sm text-[#cdb7aa]">
-                <span>
-                  {formatDate(featuredPost.publishedAt ?? featuredPost.createdAt)}
-                </span>
-
+                <span>{formatDate(featuredPost.publishedAt ?? featuredPost.createdAt)}</span>
                 <span className="ml-auto text-[#d8eadf] transition group-hover:translate-x-1">
                   Lire →
                 </span>
@@ -216,30 +150,10 @@ export default async function BlogPage() {
 
         {otherPosts.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {otherPosts.map((post: (typeof otherPosts)[number]) => (
-              <Link
-                key={post.id}
-                href={`/blog/${post.slug}`}
-                className="group overflow-hidden rounded-[26px] border border-[rgba(111,143,122,0.18)] bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.02))] shadow-[0_20px_60px_rgba(0,0,0,0.24)] transition hover:-translate-y-1 hover:border-[#6f8f7a]/70"
-              >
+            {otherPosts.map((post) => (
+              <Link key={post.id} href={`/blog/${post.slug}`} className="group overflow-hidden rounded-[26px] border border-[rgba(111,143,122,0.18)] bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.02))] shadow-[0_20px_60px_rgba(0,0,0,0.24)] transition hover:-translate-y-1 hover:border-[#6f8f7a]/70">
                 <div className="relative h-60 bg-[#1a221d]">
-                  {post.coverImage ? (
-                    <Image
-                      src={post.coverImage}
-                      alt={post.title}
-                      fill
-                      className="object-cover transition duration-700 group-hover:scale-[1.04]"
-                    />
-                  ) : (
-                    <Image
-                      src="/images/lifestyle-1.jpeg"
-                      alt={post.title}
-                      fill
-                      className="object-cover transition duration-700 group-hover:scale-[1.04]"
-                      unoptimized
-                    />
-                  )}
-
+                  <Image src={post.coverImage || "/images/lifestyle-1.jpeg"} alt={post.title} fill className="object-cover transition duration-700 group-hover:scale-[1.04]" unoptimized={!post.coverImage} />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#101613] via-transparent to-transparent" />
                 </div>
 
@@ -273,62 +187,6 @@ export default async function BlogPage() {
             Aucun article publié pour le moment.
           </div>
         )}
-
-        <section className="mt-16 grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.015))] shadow-[0_24px_70px_rgba(0,0,0,0.28)]">
-            <div className="relative h-[280px]">
-              <Image
-                src="/images/editorial-1.jpeg"
-                alt="Ambiance du journal"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-              <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(15,25,20,0.78),rgba(15,25,20,0.16))]" />
-            </div>
-
-            <div className="p-7">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-[#9ab3a1]">
-                Atmosphère
-              </p>
-              <h3 className="mt-2 font-serif text-3xl text-[#fff8f1]">
-                Un espace plus feutré que le reste du site
-              </h3>
-              <p className="mt-3 text-sm leading-7 text-[#d6c2b5]">
-                Le blog adopte une présence plus enveloppante, plus calme, plus
-                “salon privé”, tout en restant cohérent avec Lex Vinum Premium.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.10),rgba(255,255,255,0.03))] p-7 shadow-[0_24px_70px_rgba(0,0,0,0.20)]">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-[#9ab3a1]">
-                Lecture
-              </p>
-              <h3 className="mt-2 font-serif text-2xl text-[#fff8f1]">
-                Des repères concrets
-              </h3>
-              <p className="mt-3 text-sm leading-7 text-[#d7c2b5]">
-                Chaque article est pensé pour clarifier sans alourdir, avec une
-                voix plus éditoriale et plus posée.
-              </p>
-            </div>
-
-            <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.10),rgba(255,255,255,0.03))] p-7 shadow-[0_24px_70px_rgba(0,0,0,0.20)]">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-[#9ab3a1]">
-                Style
-              </p>
-              <h3 className="mt-2 font-serif text-2xl text-[#fff8f1]">
-                Une esthétique de revue
-              </h3>
-              <p className="mt-3 text-sm leading-7 text-[#d7c2b5]">
-                Plus chaude, plus dense, plus cinématographique, sans perdre la
-                clarté d’usage du site.
-              </p>
-            </div>
-          </div>
-        </section>
       </section>
     </main>
   );
