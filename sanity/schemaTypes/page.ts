@@ -19,6 +19,27 @@ export const page = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: "pageType",
+      title: "Type de page",
+      type: "string",
+      options: {
+        list: [
+          { title: "Accueil", value: "home" },
+          { title: "À propos", value: "about" },
+          { title: "Contact", value: "contact" },
+          { title: "Services juridiques", value: "legal-services" },
+          { title: "Page générale", value: "general" },
+        ],
+      },
+      initialValue: "general",
+    }),
+    defineField({
+      name: "published",
+      title: "Publié",
+      type: "boolean",
+      initialValue: false,
+    }),
+    defineField({
       name: "heroTitle",
       title: "Titre hero",
       type: "string",

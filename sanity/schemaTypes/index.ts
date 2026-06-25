@@ -10,10 +10,14 @@ import { page } from "./page";
 import { place } from "./place";
 import { producer } from "./producer";
 import { region } from "./region";
+import { siteSettings } from "./siteSettings";
 import { vineyard } from "./vineyard";
 import { wine } from "./wine";
 
 export const schemaTypes = [
+  // Configuration générale du site
+  siteSettings,
+
   // Pages du site
   page,
 
