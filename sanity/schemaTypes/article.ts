@@ -51,7 +51,58 @@ export const article = defineType({
       title: "Thèmes",
       type: "array",
       of: [{ type: "string" }],
+      options: { layout: "tags" },
     }),
+
+    defineField({
+      name: "relatedCountries",
+      title: "Pays liés",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "country" }] }],
+    }),
+    defineField({
+      name: "relatedRegions",
+      title: "Régions liées",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "region" }] }],
+    }),
+    defineField({
+      name: "relatedAppellations",
+      title: "Appellations liées",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "appellation" }] }],
+    }),
+    defineField({
+      name: "relatedGrapes",
+      title: "Cépages liés",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "grape" }] }],
+    }),
+    defineField({
+      name: "relatedWines",
+      title: "Vins liés",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "wine" }] }],
+    }),
+    defineField({
+      name: "relatedProducers",
+      title: "Producteurs liés",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "producer" }] }],
+    }),
+    defineField({
+      name: "relatedVineyards",
+      title: "Vignobles liés",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "vineyard" }] }],
+    }),
+    defineField({
+      name: "relatedPlaces",
+      title: "Bonnes adresses liées",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "place" }] }],
+    }),
+
     defineField({
       name: "featured",
       title: "Article en vedette",
@@ -81,4 +132,11 @@ export const article = defineType({
       rows: 3,
     }),
   ],
+  preview: {
+    select: {
+      title: "title",
+      subtitle: "category",
+      media: "coverImage",
+    },
+  },
 });

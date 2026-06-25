@@ -67,10 +67,199 @@ export const wine = defineType({
     defineField({ name: "isBiodynamic", title: "Biodynamie", type: "boolean", initialValue: false }),
     defineField({ name: "isVegan", title: "Végan", type: "boolean", initialValue: false }),
 
+    defineField({
+      name: "certifications",
+      title: "Certifications",
+      type: "array",
+      of: [{ type: "string" }],
+      options: { layout: "tags" },
+    }),
+
+    defineField({
+      name: "aromas",
+      title: "Arômes",
+      type: "array",
+      of: [{ type: "string" }],
+      options: { layout: "tags" },
+    }),
+
+    defineField({
+      name: "flavors",
+      title: "Saveurs",
+      type: "array",
+      of: [{ type: "string" }],
+      options: { layout: "tags" },
+    }),
+
+    defineField({
+      name: "texture",
+      title: "Texture",
+      type: "string",
+      description: "Exemple : soyeux, ample, tendu, crémeux, minéral.",
+    }),
+
+    defineField({
+      name: "finish",
+      title: "Finale",
+      type: "string",
+      description: "Exemple : courte, moyenne, longue, persistante.",
+    }),
+
+    defineField({
+      name: "intensity",
+      title: "Intensité aromatique",
+      type: "number",
+      validation: (Rule) => Rule.min(1).max(5),
+    }),
+
+    defineField({
+      name: "sweetness",
+      title: "Perception du sucre",
+      type: "number",
+      validation: (Rule) => Rule.min(1).max(5),
+    }),
+
+    defineField({
+      name: "complexity",
+      title: "Complexité",
+      type: "number",
+      validation: (Rule) => Rule.min(1).max(5),
+    }),
+
+    defineField({
+      name: "oakInfluence",
+      title: "Influence du bois",
+      type: "number",
+      validation: (Rule) => Rule.min(1).max(5),
+    }),
+
+    defineField({
+      name: "vinification",
+      title: "Vinification",
+      type: "array",
+      of: [{ type: "block" }],
+    }),
+
+    defineField({
+      name: "aging",
+      title: "Élevage",
+      type: "string",
+      description: "Exemple : 12 mois en fûts de chêne français.",
+    }),
+
+    defineField({
+      name: "soil",
+      title: "Sols",
+      type: "string",
+    }),
+
+    defineField({
+      name: "harvestMethod",
+      title: "Récolte",
+      type: "string",
+      options: {
+        list: [
+          { title: "Manuelle", value: "manual" },
+          { title: "Mécanique", value: "mechanical" },
+          { title: "Mixte", value: "mixed" },
+        ],
+      },
+    }),
+
+    defineField({
+      name: "bottleSize",
+      title: "Format",
+      type: "string",
+      initialValue: "750 ml",
+    }),
+
+    defineField({
+      name: "sku",
+      title: "Code produit / SKU",
+      type: "string",
+    }),
+
+    defineField({
+      name: "saqUrl",
+      title: "Lien SAQ",
+      type: "url",
+    }),
+
+    defineField({
+      name: "producerUrl",
+      title: "Lien producteur",
+      type: "url",
+    }),
+
     defineField({ name: "foodPairings", title: "Accords mets-vins", type: "array", of: [{ type: "reference", to: [{ type: "food" }] }] }),
     defineField({ name: "articles", title: "Articles liés", type: "array", of: [{ type: "reference", to: [{ type: "article" }] }] }),
     defineField({ name: "tastingNotes", title: "Notes de dégustation", type: "array", of: [{ type: "block" }] }),
 
+    defineField({
+      name: "editorialNote",
+      title: "Note éditoriale",
+      type: "array",
+      of: [{ type: "block" }],
+    }),
+
+    defineField({
+      name: "occasionTags",
+      title: "Occasions",
+      type: "array",
+      of: [{ type: "string" }],
+      options: { layout: "tags" },
+      description: "Exemple : apéro, souper entre amis, cadeau, cellier, BBQ.",
+    }),
+
+    defineField({
+      name: "experienceLevel",
+      title: "Niveau conseillé",
+      type: "string",
+      options: {
+        list: [
+          { title: "Débutant", value: "beginner" },
+          { title: "Intermédiaire", value: "intermediate" },
+          { title: "Avancé", value: "advanced" },
+        ],
+      },
+    }),
+
+    defineField({
+      name: "aiSummary",
+      title: "Résumé IA",
+      type: "text",
+      rows: 4,
+      description: "Résumé synthétique destiné aux recommandations et recherches intelligentes.",
+    }),
+
+    defineField({
+      name: "seoTitle",
+      title: "Titre SEO",
+      type: "string",
+    }),
+
+    defineField({
+      name: "seoDescription",
+      title: "Description SEO",
+      type: "text",
+      rows: 3,
+    }),
+
     defineField({ name: "published", title: "Publié", type: "boolean", initialValue: false }),
   ],
+  preview: {
+    select: {
+      title: "name",
+      vintage: "vintage",
+      producer: "producer.name",
+      media: "bottleImage",
+    },
+    prepare({ title, vintage, producer, media }) {
+      return {
+        title: [title, vintage].filter(Boolean).join(" · "),
+        subtitle: producer,
+        media,
+      };
+    },
+  },
 });
