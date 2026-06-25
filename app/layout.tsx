@@ -14,26 +14,26 @@ const bodyFont = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.lexvinum.com"),
+  metadataBase: new URL("https://www.lepremierverre.com"),
 
   title: {
-    default: "Maison Lex Vinum",
-    template: "%s | Maison Lex Vinum",
+    default: "Le Premier Verre",
+    template: "%s | Le Premier Verre",
   },
 
   description:
-    "Une maison éditoriale dédiée au vin, aux vignobles, aux bars à vin et aux découvertes soigneusement choisies.",
+    "Une plateforme éditoriale et technologique consacrée au vin, avec une approche accessible, élégante et orientée Québec.",
 
   verification: {
     google: "-ZkGDMvO096Fv0c2_Vb71lbrue-NOCRrWBpkSP6qdzo",
   },
 
   openGraph: {
-    title: "Maison Lex Vinum",
+    title: "Le Premier Verre",
     description:
-      "Vin, culture, lieux et découvertes soigneusement choisies.",
-    url: "https://www.lexvinum.com",
-    siteName: "Maison Lex Vinum",
+      "Articles, guides, vignobles, bonnes adresses et outils intelligents pour mieux choisir, comprendre et apprécier le vin.",
+    url: "https://www.lepremierverre.com",
+    siteName: "Le Premier Verre",
     locale: "fr_CA",
     type: "website",
   },
