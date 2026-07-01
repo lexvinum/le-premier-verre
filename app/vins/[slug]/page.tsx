@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { WineJournalButton } from "@/components/journal/WineJournalButton";
 import { notFound } from "next/navigation";
 import { PortableText } from "@portabletext/react";
 import type { PortableTextBlock } from "@portabletext/types";
@@ -110,6 +111,9 @@ export default async function WinePage({
                 <p className="mt-2 text-[#fff8f1]">{value}</p>
               </div>
             ))}
+          <div className="mt-8">
+            <WineJournalButton wineId={slug} />
+          </div>
         </section>
 
         {badges.length > 0 ? (

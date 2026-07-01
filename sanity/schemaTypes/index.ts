@@ -3,10 +3,12 @@ import { article } from "./article";
 import { author } from "./author";
 import { category } from "./category";
 import { country } from "./country";
+import { editorialAsset } from "./editorialAsset";
 import { food } from "./food";
 import { grape } from "./grape";
 import { guide } from "./guide";
 import { page } from "./page";
+import { pageSection } from "./pageSection";
 import { place } from "./place";
 import { producer } from "./producer";
 import { region } from "./region";
@@ -17,8 +19,10 @@ import { wine } from "./wine";
 export const schemaTypes = [
   // Configuration générale du site
   siteSettings,
+  editorialAsset,
 
   // Pages du site
+  pageSection,
   page,
 
   // Contenu éditorial

@@ -2,23 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { client } from "@/sanity/lib/client";
 import { appellationBySlugQuery } from "@/sanity/lib/queries";
-
-type LinkedItem = {
-  _id?: string;
-  name: string;
-  slug: string;
-};
+import { EntitySection, type EntityItem } from "@/components/knowledge/entity-section";
+import { KnowledgeLayout } from "@/components/knowledge/knowledge-layout";
 
 type AppellationDetail = {
   _id: string;
   name: string;
   slug: string;
   description?: any[];
-  country?: LinkedItem;
-  region?: LinkedItem;
-  grapes?: LinkedItem[];
-  wines?: LinkedItem[];
-  producers?: LinkedItem[];
+  country?: EntityItem;
+  region?: EntityItem;
+  grapes?: EntityItem[];
+  wines?: EntityItem[];
+  producers?: EntityItem[];
 };
 
 function blocksToText(blocks: any[] = []) {
@@ -45,14 +41,23 @@ export default async function AppellationPage({
   const description = blocksToText(appellation.description);
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-16">
-      <p className="mb-3 text-sm uppercase tracking-[0.3em] text-neutral-500">
-        Appellation
-      </p>
-
-      <h1 className="mb-4 text-4xl font-serif">{appellation.name}</h1>
-
-      <div className="mb-8 flex flex-wrap gap-3 text-sm text-neutral-500">
+    <KnowledgeLayout
+      breadcrumb={[
+        { label: "Pays", href: "/pays" },
+        ...(appellation.country?.slug
+          ? [{ label: appellation.country.name, href: `/pays/${appellation.country.slug}` }]
+          : []),
+        ...(appellation.region?.slug
+          ? [{ label: appellation.region.name, href: `/regions/${appellation.region.slug}` }]
+          : []),
+        { label: "Appellations", href: "/appellations" },
+        { label: appellation.name },
+      ]}
+      eyebrow="Appellation"
+      title={appellation.name}
+      description={description}
+    >
+      <div className="mb-10 flex flex-wrap gap-3 text-sm text-neutral-500">
         {appellation.region?.slug && (
           <Link href={`/regions/${appellation.region.slug}`} className="underline">
             {appellation.region.name}
@@ -66,45 +71,9 @@ export default async function AppellationPage({
         )}
       </div>
 
-      {description && (
-        <p className="mb-12 max-w-3xl whitespace-pre-line text-lg text-neutral-700">
-          {description}
-        </p>
-      )}
-
-      <Section title="Cépages associés" items={appellation.grapes} basePath="/cepages" />
-      <Section title="Vins" items={appellation.wines} basePath="/vins" />
-      <Section title="Producteurs" items={appellation.producers} basePath="/producteurs" />
-    </main>
-  );
-}
-
-function Section({
-  title,
-  items,
-  basePath,
-}: {
-  title: string;
-  items?: LinkedItem[];
-  basePath: string;
-}) {
-  if (!items?.length) return null;
-
-  return (
-    <section className="mb-12">
-      <h2 className="mb-4 text-2xl font-serif">{title}</h2>
-
-      <div className="grid gap-3 md:grid-cols-3">
-        {items.map((item) => (
-          <Link
-            key={item._id ?? item.slug}
-            href={`${basePath}/${item.slug}`}
-            className="rounded-xl border border-neutral-200 p-4 transition hover:bg-neutral-50"
-          >
-            {item.name}
-          </Link>
-        ))}
-      </div>
-    </section>
+      <EntitySection title="Cépages associés" items={appellation.grapes} basePath="/cepages" />
+      <EntitySection title="Vins" items={appellation.wines} basePath="/vins" />
+      <EntitySection title="Producteurs" items={appellation.producers} basePath="/producteurs" />
+    </KnowledgeLayout>
   );
 }

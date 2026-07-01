@@ -1,7 +1,13 @@
+import { MenuDrawer } from "@/components/lpv/MenuDrawer";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+
+import { SearchProvider } from "@/providers/SearchProvider";
+import { SearchDialog } from "@/components/search/SearchDialog";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 
 const display = Playfair_Display({
   subsets: ["latin"],
@@ -47,8 +53,15 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="fr" data-scroll-behavior="smooth">
-        <body className={`${display.variable} ${bodyFont.variable} antialiased`}>
-          {children}
+        <body
+          className={`${display.variable} ${bodyFont.variable} antialiased`}
+        >
+          <SearchProvider>
+            <SiteHeader />
+            {children}
+            <SiteFooter />
+            <SearchDialog />
+          </SearchProvider>
         </body>
       </html>
     </ClerkProvider>

@@ -56,6 +56,14 @@ export const page = defineType({
       options: { hotspot: true },
     }),
     defineField({
+      name: "sections",
+      title: "Sections de page",
+      type: "array",
+      of: [{ type: "pageSection" }],
+      description:
+        "Composez la page comme un magazine : hero, grille, citation, mise en avant, Sommelier IA.",
+    }),
+    defineField({
       name: "content",
       title: "Contenu",
       type: "array",

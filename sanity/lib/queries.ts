@@ -275,12 +275,21 @@ export const countryBySlugQuery = `*[_type == "country" && slug.current == $slug
   name,
   "slug": slug.current,
   description,
+  "regionCount": count(*[_type == "region" && references(^._id)]),
+  "appellationCount": count(*[_type == "appellation" && references(^._id)]),
+  "producerCount": count(*[_type == "producer" && published == true && references(^._id)]),
+  "vineyardCount": count(*[_type == "vineyard" && published == true && references(^._id)]),
+  "wineCount": count(*[_type == "wine" && published == true && references(^._id)]),
   "regions": *[_type == "region" && references(^._id)] | order(name asc) {
     _id,
     name,
     "slug": slug.current,
     description
   },
+  "appellationCount": count(*[_type == "appellation" && references(^._id)]),
+  "producerCount": count(*[_type == "producer" && published == true && references(^._id)]),
+  "vineyardCount": count(*[_type == "vineyard" && published == true && references(^._id)]),
+  "wineCount": count(*[_type == "wine" && published == true && references(^._id)]),
   "appellations": *[_type == "appellation" && references(^._id)] | order(name asc) {
     _id,
     name,

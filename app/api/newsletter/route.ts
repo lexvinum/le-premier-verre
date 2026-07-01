@@ -1,60 +1,34 @@
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  try {
-    const { email } = await request.json();
+  const body = await request.json();
+  const email = String(body?.email ?? "").trim().toLowerCase();
 
-    if (!email || typeof email !== "string" || !email.includes("@")) {
-      return NextResponse.json(
-        { error: "Adresse courriel invalide." },
-        { status: 400 }
-      );
-    }
+  if (!email || !email.includes("@")) {
+    return NextResponse.json({ error: "Courriel invalide." }, { status: 400 });
+  }
 
-    const apiKey = process.env.BEEHIIV_API_KEY;
-    const publicationId = process.env.BEEHIIV_PUBLICATION_ID;
-
-    if (!apiKey || !publicationId) {
-      return NextResponse.json(
-        { error: "Beehiiv n'est pas encore configuré." },
-        { status: 503 }
-      );
-    }
-
-    const response = await fetch(
-      `https://api.beehiiv.com/v2/publications/${publicationId}/subscriptions`,
+  if (process.env.BEEHIIV_API_KEY && process.env.BEEHIIV_PUBLICATION_ID) {
+    const res = await fetch(
+      `https://api.beehiiv.com/v2/publications/${process.env.BEEHIIV_PUBLICATION_ID}/subscriptions`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${process.env.BEEHIIV_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
-          reactivate_existing: false,
+          reactivate_existing: true,
           send_welcome_email: true,
-          double_opt_override: "off",
-          utm_source: "lexvinum.com",
-          utm_medium: "coming_soon_page",
-          utm_campaign: "prelaunch",
         }),
       }
     );
 
-    if (!response.ok) {
-      const details = await response.text();
-
-      return NextResponse.json(
-        { error: "Erreur Beehiiv.", details },
-        { status: response.status }
-      );
+    if (!res.ok) {
+      return NextResponse.json({ error: "Erreur Beehiiv." }, { status: 502 });
     }
-
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json(
-      { error: "Erreur serveur." },
-      { status: 500 }
-    );
   }
+
+  return NextResponse.json({ ok: true });
 }

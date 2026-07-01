@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { client } from "@/sanity/lib/client";
 import { countriesQuery } from "@/sanity/lib/queries";
+import { KnowledgeCard } from "@/components/knowledge/knowledge-card";
 
 type Country = {
   _id: string;
@@ -27,19 +27,12 @@ export default async function CountriesPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         {countries.map((country) => (
-          <Link
+          <KnowledgeCard
             key={country._id}
             href={`/pays/${country.slug}`}
-            className="rounded-2xl border border-neutral-200 p-6 transition hover:bg-neutral-50"
-          >
-            <h2 className="text-xl font-semibold">{country.name}</h2>
-
-            {country.description && (
-              <p className="mt-3 line-clamp-3 text-sm text-neutral-600">
-                {country.description}
-              </p>
-            )}
-          </Link>
+            title={country.name}
+            description={country.description}
+          />
         ))}
       </div>
     </main>

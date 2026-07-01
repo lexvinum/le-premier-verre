@@ -314,25 +314,42 @@ export default async function RepertoirePage({
           <div className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-soft-light premium-page-texture" />
 
           <div className="relative mx-auto max-w-7xl px-6 py-10 md:px-10 lg:px-12 lg:py-14">
-            <div className="max-w-4xl">
-              <p className="text-[11px] uppercase tracking-[0.34em] text-[#6f8f7a]">
-                Répertoire Lex Vinum
-              </p>
+            <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
+              <div className="max-w-4xl">
+                <p className="text-[11px] uppercase tracking-[0.34em] text-[#8f6242]">
+                  Répertoire des bouteilles
+                </p>
 
-              <h1 className="mt-5 font-serif text-5xl leading-[0.92] text-[#231d19] md:text-7xl">
-                Un catalogue
-                <span className="block italic font-light text-[#5f6d55]">
-                  fidèle à la base SAQ enrichie.
-                </span>
-              </h1>
+                <h1 className="mt-5 font-serif text-5xl leading-[0.86] text-[#263227] md:text-8xl">
+                  Les vins à garder
+                  <span className="block italic font-light text-[#71735b]">
+                    sous la main.
+                  </span>
+                </h1>
 
-              <p className="mt-6 max-w-2xl text-[15px] leading-8 text-[#5a534b] md:text-base">
-                Le catalogue reste volontairement large, avec priorité aux visuels
-                réels des produits lorsqu’ils sont disponibles.
-              </p>
+                <p className="mt-7 max-w-2xl text-[15px] leading-8 text-[#4b3a2c] md:text-base">
+                  Un catalogue clair, beau et pratique pour choisir une bouteille selon le moment, la couleur, le prix ou l’envie.
+                </p>
+              </div>
+
+              <div className="relative">
+                <img
+                  src="/images/lpv/IMG_0041.JPG"
+                  alt="Bouteilles au frais"
+                  className="h-[520px] w-full rounded-[38px] object-cover shadow-[0_28px_90px_rgba(51,41,29,.16)]"
+                />
+                <div className="absolute -bottom-7 -left-7 hidden max-w-xs rounded-[28px] bg-[#3b2a20] p-6 text-[#fff8ee] shadow-2xl md:block">
+                  <p className="text-[11px] uppercase tracking-[0.32em] text-[#d9b783]">
+                    Catalogue vivant
+                  </p>
+                  <p className="mt-4 text-sm leading-6 text-[#f3eadf]">
+                    Rouges, blancs, bulles, rosés, soupers d’été, pâtes, barbecue et bouteilles de semaine.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="mt-14 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
               {heroWine ? (
                 <Link
                   href={`/vins/${heroWine.slug}`}
@@ -419,8 +436,9 @@ export default async function RepertoirePage({
                     </span>
                   </p>
                   <p className="mt-4 max-w-xl text-sm leading-7 text-[#665d53]">
-                    Les visuels produits sont affichés dès qu’ils existent. Sinon,
-                    un placeholder neutre prend le relais.
+                    Les bouteilles apparaîtront ici dès qu’elles seront importées.
+                    Le répertoire est pensé comme un vrai catalogue : visuel,
+                    prix, producteur, couleur et fiche complète au clic.
                   </p>
                 </div>
               )}
@@ -529,7 +547,7 @@ export default async function RepertoirePage({
               </h2>
             </div>
             <p className="max-w-xl text-sm leading-7 text-[#655c53]">
-              Le catalogue reste volontairement large. Tu peux filtrer, puis faire
+              Choisis une couleur, un pays, un prix ou une envie. Tu peux filtrer, puis faire
               ton tri métier ensuite, sans perdre l’accès aux produits ni aux visuels.
             </p>
           </div>
@@ -616,6 +634,35 @@ export default async function RepertoirePage({
               Afficher seulement les produits québécois
             </label>
           </form>
+
+          <div className="mt-8 border-t border-[#d8cfbf] pt-6">
+            <p className="mb-4 text-[11px] uppercase tracking-[0.3em] text-[#7c7468]">
+              Explorer par envie
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              {[
+                ["Rouges", buildQueryString({ q: "", pays, couleur: "Rouge", region: "", prixMax, quebecOnly, page: 1 })],
+                ["Blancs", buildQueryString({ q: "", pays, couleur: "Blanc", region: "", prixMax, quebecOnly, page: 1 })],
+                ["Rosés", buildQueryString({ q: "", pays, couleur: "Rosé", region: "", prixMax, quebecOnly, page: 1 })],
+                ["Bulles", buildQueryString({ q: "bulles", pays, couleur: "", region: "", prixMax, quebecOnly, page: 1 })],
+                ["Souper d’été", buildQueryString({ q: "été", pays, couleur: "", region: "", prixMax, quebecOnly, page: 1 })],
+                ["Barbecue", buildQueryString({ q: "barbecue", pays, couleur: "", region: "", prixMax, quebecOnly, page: 1 })],
+                ["Pâtes", buildQueryString({ q: "pâtes", pays, couleur: "", region: "", prixMax, quebecOnly, page: 1 })],
+                ["Moins de 25 $", buildQueryString({ q: "", pays, couleur, region, prixMax: "25", quebecOnly, page: 1 })],
+                ["Québec", buildQueryString({ q: "", pays: "", couleur, region: "", prixMax, quebecOnly: true, page: 1 })],
+              ].map(([label, href]) => (
+                <Link
+                  key={label}
+                  href={href}
+                  prefetch={false}
+                  className="rounded-full border border-[#cdbfae] bg-[#efe6d7] px-5 py-3 text-sm text-[#4b3a2c] transition hover:-translate-y-0.5 hover:bg-[#d9b783] hover:text-[#263227]"
+                >
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 

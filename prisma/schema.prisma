@@ -206,3 +206,16 @@ model ShopOrderItem {
 
   createdAt DateTime @default(now())
 }
+
+
+model UsageEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([feature])
+  @@index([createdAt])
+  @@index([userId, feature, createdAt])
+}

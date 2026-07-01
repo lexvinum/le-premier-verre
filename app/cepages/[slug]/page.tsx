@@ -1,13 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { client } from "@/sanity/lib/client";
 import { grapeBySlugQuery } from "@/sanity/lib/queries";
-
-type LinkedItem = {
-  _id: string;
-  name: string;
-  slug: string;
-};
+import { EntitySection, type EntityItem } from "@/components/knowledge/entity-section";
+import { KnowledgeLayout } from "@/components/knowledge/knowledge-layout";
 
 type GrapeDetail = {
   _id: string;
@@ -15,8 +10,8 @@ type GrapeDetail = {
   slug: string;
   description?: string;
   color?: string;
-  appellations?: LinkedItem[];
-  wines?: LinkedItem[];
+  appellations?: EntityItem[];
+  wines?: EntityItem[];
 };
 
 export default async function GrapePage({
@@ -32,63 +27,29 @@ export default async function GrapePage({
 
   if (!grape) notFound();
 
+  const description = [grape.color, grape.description].filter(Boolean).join(" · ");
+
   return (
-    <main className="mx-auto max-w-6xl px-6 py-16">
-      <p className="mb-3 text-sm uppercase tracking-[0.3em] text-neutral-500">
-        Cépage
-      </p>
-
-      <h1 className="mb-4 text-4xl font-serif">{grape.name}</h1>
-
-      {grape.color && (
-        <p className="mb-6 text-sm uppercase tracking-[0.2em] text-neutral-500">
-          {grape.color}
-        </p>
-      )}
-
-      {grape.description && (
-        <p className="mb-12 max-w-3xl text-lg text-neutral-700">
-          {grape.description}
-        </p>
-      )}
-
-      <Section
+    <KnowledgeLayout
+      breadcrumb={[
+        { label: "Cépages", href: "/cepages" },
+        { label: grape.name },
+      ]}
+      eyebrow="Cépage"
+      title={grape.name}
+      description={description}
+    >
+      <EntitySection
         title="Appellations associées"
         items={grape.appellations}
         basePath="/appellations"
       />
 
-      <Section title="Vins associés" items={grape.wines} basePath="/vins" />
-    </main>
-  );
-}
-
-function Section({
-  title,
-  items,
-  basePath,
-}: {
-  title: string;
-  items?: LinkedItem[];
-  basePath: string;
-}) {
-  if (!items?.length) return null;
-
-  return (
-    <section className="mb-12">
-      <h2 className="mb-4 text-2xl font-serif">{title}</h2>
-
-      <div className="grid gap-3 md:grid-cols-3">
-        {items.map((item) => (
-          <Link
-            key={item._id}
-            href={`${basePath}/${item.slug}`}
-            className="rounded-xl border border-neutral-200 p-4 transition hover:bg-neutral-50"
-          >
-            {item.name}
-          </Link>
-        ))}
-      </div>
-    </section>
+      <EntitySection
+        title="Vins associés"
+        items={grape.wines}
+        basePath="/vins"
+      />
+    </KnowledgeLayout>
   );
 }

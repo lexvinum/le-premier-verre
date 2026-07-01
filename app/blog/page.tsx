@@ -1,193 +1,164 @@
 import Link from "next/link";
-import Image from "next/image";
-import { getArticles } from "@/sanity/lib/queries";
 
-export const revalidate = 60;
+const posts = [
+  {
+    eyebrow: "Guide pratique",
+    title: "Comment choisir un vin quand on ne sait pas quoi prendre",
+    description: "Un guide simple pour partir du repas, du budget et du moment.",
+    image: "/images/lpv/IMG_0044.JPG",
+    featured: true,
+  },
+  {
+    eyebrow: "Recevoir",
+    title: "Les bouteilles qui sauvent une soirée",
+    description: "Bulles, rouges légers, blancs frais : les valeurs sûres à garder en tête.",
+    image: "/images/lpv/IMG_0041.JPG",
+  },
+  {
+    eyebrow: "Accords",
+    title: "Quoi boire avec des pâtes?",
+    description: "Tomate, crème, pesto, fruits de mer : les bons réflexes.",
+    image: "/images/lpv/IMG_0045.JPG",
+  },
+  {
+    eyebrow: "Québec",
+    title: "Pourquoi les vins d’ici méritent plus d’attention",
+    description: "Fraîcheur, précision, proximité et belles surprises.",
+    image: "/images/lpv/vignes.jpg",
+  },
+  {
+    eyebrow: "Style",
+    title: "Monter une mini cave à la maison",
+    description: "Quelques bouteilles utiles sans tomber dans la collection compliquée.",
+    image: "/images/lpv/cave.jpg",
+  },
+  {
+    eyebrow: "Apéro",
+    title: "Recevoir sans se compliquer",
+    description: "Une formule simple : bulles, blanc frais, rouge léger, quelque chose à grignoter.",
+    image: "/images/lpv/table-vin.jpg",
+  },
+];
 
-type BlogPost = {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt?: string | null;
-  category?: string | null;
-  featured?: boolean | null;
-  coverImage?: string | null;
-  author?: string | null;
-  publishedAt?: string | null;
-  createdAt?: string | null;
-};
-
-function formatDate(date: string | Date | null | undefined) {
-  if (!date) return null;
-
-  return new Intl.DateTimeFormat("fr-CA", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(new Date(date));
-}
-
-export default async function BlogPage() {
-  const posts = (await getArticles()) as BlogPost[];
-
-  const [featuredPost, ...otherPosts] = posts;
+export default function BlogPage() {
+  const featured = posts[0];
+  const rest = posts.slice(1);
 
   return (
-    <main className="min-h-screen bg-[#0f1713] text-[#f4ede5]">
-      <section className="relative overflow-hidden border-b border-[rgba(111,143,122,0.22)]">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(120,150,120,0.18),transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.30))]" />
-          <div className="absolute inset-0 opacity-[0.09] mix-blend-soft-light bg-[url('/textures/velvet-olive.jpg')] bg-cover bg-center" />
-          <div className="absolute inset-0 opacity-[0.05] bg-[linear-gradient(135deg,rgba(255,255,255,0.04)_0%,transparent_18%,rgba(255,255,255,0.02)_36%,transparent_54%,rgba(255,255,255,0.03)_72%,transparent_100%)]" />
-        </div>
+    <main className="bg-[#4a372b] text-[#f6efe7]">
+      <section className="relative overflow-hidden px-8 py-24 md:px-14 md:py-32">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_18%,rgba(150,95,58,.34),transparent_34%),radial-gradient(circle_at_82%_22%,rgba(89,70,44,.26),transparent_38%),linear-gradient(180deg,#4a372b,#37271f)]" />
+        <div className="absolute inset-0 opacity-[0.18] bg-[url('/images/lpv/IMG_9670.JPG')] bg-cover bg-center mix-blend-soft-light" />
 
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-6 py-16 md:px-10 lg:grid-cols-[1.08fr_0.92fr] lg:px-12 lg:py-20">
-          <div className="flex flex-col justify-center">
-            <p className="mb-4 text-xs uppercase tracking-[0.38em] text-[#9ab3a1]">
-              Journal Le Premier Verre
+        <div className="relative mx-auto grid max-w-7xl gap-12 md:grid-cols-[.9fr_1.1fr] md:items-end">
+          <div>
+            <p className="text-xs uppercase tracking-[0.42em] text-[#caa06b]">
+              Blogue
             </p>
 
-            <h1 className="max-w-4xl text-4xl font-semibold leading-tight text-[#fff8f1] md:text-6xl">
-              Un blog pensé comme un lounge feutré, pour lire le vin autrement.
+            <h1 className="lpv-display mt-6 text-[clamp(5rem,10vw,11rem)] leading-[0.76] tracking-[-0.09em]">
+              Lire pour
+              <br />
+              mieux boire.
             </h1>
 
-            <p className="mt-6 max-w-2xl text-base leading-8 text-[#d8c4b7] md:text-lg">
-              Conseils au restaurant, lecture de cartes, accords, styles et
-              repères premium. Une matière éditoriale plus intime, plus posée,
-              plus enveloppante.
+            <p className="mt-8 max-w-2xl text-lg leading-8 text-[#d7c3b1]">
+              Des articles courts, beaux et utiles pour choisir plus facilement,
+              recevoir avec confiance et découvrir le vin sans prétention.
             </p>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/scan" className="rounded-full border border-[#6f8f7a] bg-[rgba(111,143,122,0.12)] px-5 py-2 text-sm text-[#e6efe7] transition hover:bg-[rgba(111,143,122,0.18)]">
-                Scanner une carte
-              </Link>
-
-              <Link href="/recommandation" className="rounded-full border border-white/10 px-5 py-2 text-sm text-[#e7d6c9] transition hover:border-[#6f8f7a]/70 hover:bg-white/5">
-                Trouver un vin
-              </Link>
-            </div>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
-            {["/images/editorial-2.jpeg", "/images/lifestyle-2.jpeg"].map((src, index) => (
-              <div key={src} className="group overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.015))] shadow-[0_24px_70px_rgba(0,0,0,0.32)]">
-                <div className="relative h-[240px]">
-                  <Image src={src} alt="Ambiance éditoriale" fill className="object-cover transition duration-700 group-hover:scale-[1.03]" unoptimized />
-                  <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(15,25,20,0.78),rgba(15,25,20,0.18))]" />
-                </div>
-
-                <div className="p-6">
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#9ab3a1]">
-                    {index === 0 ? "Lounge feutré" : "Journal premium"}
-                  </p>
-                  <h2 className="mt-2 font-serif text-2xl text-[#fff8f1]">
-                    {index === 0 ? "Une lecture plus intime" : "Lire, choisir, comprendre"}
-                  </h2>
-                  <p className="mt-3 text-sm leading-7 text-[#d5c0b3]">
-                    {index === 0
-                      ? "Une présence plus chaude, plus silencieuse, plus éditoriale que les autres sections du site."
-                      : "Des articles construits pour t’aider à mieux choisir, avec une esthétique plus douce et plus enveloppante."}
-                  </p>
-                </div>
-              </div>
-            ))}
+          <div className="relative">
+            <img
+              src="/images/lpv/IMG_0043.JPG"
+              alt="Salon de dégustation"
+              className="h-[560px] w-full rounded-[42px] object-cover opacity-90 shadow-[0_28px_90px_rgba(0,0,0,.28)]"
+            />
+            <div className="absolute -bottom-8 -left-8 hidden max-w-xs rounded-[30px] bg-[#dcc8b1] p-6 text-[#2f281f] shadow-2xl md:block">
+              <p className="text-xs uppercase tracking-[0.32em] text-[#8f6242]">
+                Notes de table
+              </p>
+              <p className="mt-4 text-sm leading-6 text-[#4b3a2c]">
+                Un journal feutré pour penser le vin autrement : par les moments,
+                les repas et les saisons.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-12 md:px-10 lg:px-12">
-        {featuredPost ? (
-          <Link href={`/blog/${featuredPost.slug}`} className="group mb-16 grid overflow-hidden rounded-[34px] border border-[rgba(111,143,122,0.22)] bg-[linear-gradient(135deg,rgba(120,150,120,0.08),rgba(255,255,255,0.015))] shadow-[0_34px_100px_rgba(0,0,0,0.34)] backdrop-blur md:grid-cols-[1.15fr_0.85fr]">
-            <div className="relative min-h-[360px] bg-[#1a221d]">
-              <Image src={featuredPost.coverImage || "/images/editorial-1.jpeg"} alt={featuredPost.title} fill className="object-cover transition duration-700 group-hover:scale-[1.03]" unoptimized={!featuredPost.coverImage} />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#101613] via-[#101613]/30 to-transparent" />
+      <section className="px-8 pb-24 md:px-14 md:pb-32">
+        <div className="mx-auto max-w-7xl">
+          <Link
+            href="/blog"
+            className="group grid overflow-hidden rounded-[42px] bg-[#dcc8b1] text-[#263227] shadow-[0_28px_90px_rgba(0,0,0,.24)] md:grid-cols-[1.1fr_.9fr]"
+          >
+            <div className="relative min-h-[520px] overflow-hidden">
+              <img
+                src={featured.image}
+                alt={featured.title}
+                className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
+              />
+              <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(47,40,31,.46),transparent_60%)]" />
             </div>
 
-            <div className="flex flex-col justify-between p-8 md:p-10">
-              <div>
-                <div className="mb-5 flex flex-wrap gap-3 text-xs uppercase tracking-[0.22em] text-[#9ab3a1]">
-                  <span className="rounded-full border border-[#6f8f7a] bg-[rgba(111,143,122,0.10)] px-3 py-1">
-                    Article en vedette
-                  </span>
-                  {featuredPost.category && <span>{featuredPost.category}</span>}
-                </div>
+            <div className="flex flex-col justify-center p-8 md:p-12">
+              <p className="text-xs uppercase tracking-[0.36em] text-[#8f6242]">
+                Article à la une · {featured.eyebrow}
+              </p>
 
-                <h2 className="text-3xl font-semibold text-[#fff8f1] md:text-4xl">
-                  {featuredPost.title}
-                </h2>
+              <h2 className="lpv-display mt-8 text-6xl leading-[.84] tracking-[-0.08em] md:text-8xl">
+                {featured.title}
+              </h2>
 
-                {featuredPost.excerpt && (
-                  <p className="mt-5 text-[#dbc7bb] leading-8">
-                    {featuredPost.excerpt}
-                  </p>
-                )}
-              </div>
+              <p className="mt-8 max-w-xl text-base leading-8 text-[#4b3a2c]">
+                {featured.description}
+              </p>
 
-              <div className="mt-8 flex items-center gap-3 text-sm text-[#cdb7aa]">
-                <span>{formatDate(featuredPost.publishedAt ?? featuredPost.createdAt)}</span>
-                <span className="ml-auto text-[#d8eadf] transition group-hover:translate-x-1">
-                  Lire →
-                </span>
-              </div>
+              <p className="mt-10 text-xs uppercase tracking-[0.28em] text-[#8f6242]">
+                Lire →
+              </p>
             </div>
           </Link>
-        ) : null}
 
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.32em] text-[#90aa98]">
-              Bibliothèque éditoriale
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold text-[#fff8f1] md:text-3xl">
-              Tous les articles
-            </h2>
-          </div>
-
-          <div className="hidden rounded-full border border-white/10 bg-[rgba(111,143,122,0.08)] px-4 py-2 text-sm text-[#d8c4b7] md:block">
-            {posts.length} article{posts.length > 1 ? "s" : ""}
-          </div>
-        </div>
-
-        {otherPosts.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {otherPosts.map((post) => (
-              <Link key={post.id} href={`/blog/${post.slug}`} className="group overflow-hidden rounded-[26px] border border-[rgba(111,143,122,0.18)] bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.02))] shadow-[0_20px_60px_rgba(0,0,0,0.24)] transition hover:-translate-y-1 hover:border-[#6f8f7a]/70">
-                <div className="relative h-60 bg-[#1a221d]">
-                  <Image src={post.coverImage || "/images/lifestyle-1.jpeg"} alt={post.title} fill className="object-cover transition duration-700 group-hover:scale-[1.04]" unoptimized={!post.coverImage} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#101613] via-transparent to-transparent" />
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {rest.map((post) => (
+              <Link
+                key={post.title}
+                href="/blog"
+                className="group overflow-hidden rounded-[34px] bg-[#2f2119] shadow-[0_22px_70px_rgba(0,0,0,.18)] transition duration-700 hover:-translate-y-1 hover:shadow-[0_32px_90px_rgba(0,0,0,.28)]"
+              >
+                <div className="relative h-[300px] overflow-hidden">
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    className="h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-[1.04]"
+                  />
+                  <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(47,40,31,.68),transparent_58%)]" />
+                  <p className="absolute bottom-5 left-6 text-xs uppercase tracking-[0.32em] text-[#caa06b]">
+                    {post.eyebrow}
+                  </p>
                 </div>
 
-                <div className="p-6">
-                  <div className="mb-3 flex items-center gap-3 text-[11px] uppercase tracking-[0.2em] text-[#90aa98]">
-                    {post.category ? <span>{post.category}</span> : <span>Journal</span>}
-                  </div>
-
-                  <h3 className="text-xl font-semibold text-[#fff8f1]">
+                <div className="p-7">
+                  <h2 className="lpv-display text-5xl leading-[.86] tracking-[-0.08em] text-[#fff8ee]">
                     {post.title}
-                  </h3>
+                  </h2>
 
-                  {post.excerpt && (
-                    <p className="mt-4 line-clamp-4 text-sm leading-7 text-[#d5c0b3]">
-                      {post.excerpt}
-                    </p>
-                  )}
+                  <p className="mt-6 text-sm leading-7 text-[#d7c3b1]">
+                    {post.description}
+                  </p>
 
-                  <div className="mt-6 flex justify-between text-sm text-[#c9b2a4]">
-                    <span>{formatDate(post.publishedAt ?? post.createdAt)}</span>
-                    <span className="text-[#d8eadf] transition group-hover:translate-x-1">
-                      Lire →
-                    </span>
-                  </div>
+                  <p className="mt-8 text-xs uppercase tracking-[0.28em] text-[#caa06b]">
+                    Lire →
+                  </p>
                 </div>
               </Link>
             ))}
           </div>
-        ) : (
-          <div className="rounded-[28px] border border-dashed border-white/10 bg-white/5 p-10 text-center text-[#d7c2b5]">
-            Aucun article publié pour le moment.
-          </div>
-        )}
+        </div>
       </section>
+      <div className="pointer-events-none fixed inset-0 z-[-1] bg-[radial-gradient(circle_at_center,transparent_45%,rgba(26,18,13,.22)_100%)]" />
     </main>
   );
 }

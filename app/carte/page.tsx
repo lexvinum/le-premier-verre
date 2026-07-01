@@ -178,14 +178,14 @@ function resolvePointImage(point?: {
   }
 
   if (point?.type === "vineyard") {
-    return "/images/terroir-1.jpeg";
+    return "/images/lpv/vignes.jpg";
   }
 
   if (point?.isQuebec) {
-    return "/images/lifestyle-1.jpeg";
+    return "/images/lpv/table-vin.jpg";
   }
 
-  return "/images/editorial-1.jpeg";
+  return "/images/lpv/IMG_9706.JPG";
 }
 
 export default function CartePage() {
@@ -228,17 +228,17 @@ export default function CartePage() {
   const editorialGallery = useMemo(
     () => [
       {
-        src: "/images/lifestyle-1.jpeg",
+        src: "/images/lpv/pexels-cmphotos06-5526117.jpg",
         title: "Paysage & dégustation",
         text: "Une lecture plus sensible du territoire, entre vignobles, routes et provenance.",
       },
       {
-        src: "/images/editorial-1.jpeg",
+        src: "/images/lpv/greta-farnedi-DWZaTfhfZ_s-unsplash.jpg",
         title: "Origines sélectionnées",
         text: "Les points affichés sur la carte prennent une présence plus éditoriale et plus incarnée.",
       },
       {
-        src: "/images/terroir-1.jpeg",
+        src: "/images/lpv/jkalina-grWhT_5JPDA-unsplash.jpg",
         title: "Terroir vivant",
         text: "Chaque itinéraire relie un lieu, une matière et une signature gustative.",
       },
@@ -632,6 +632,7 @@ export default function CartePage() {
         onLoad={() => setMapsReady(true)}
       />
 
+      <div className="lpv-carte-page">
       <PremiumPageShell
         eyebrow="Carte"
         title="Routes & vignobles"
@@ -671,8 +672,8 @@ export default function CartePage() {
           </div>
         }
       >
-        <section className="relative overflow-hidden rounded-[28px] border border-[#465344] bg-[#233126] shadow-[0_24px_80px_rgba(16,18,14,0.24)]">
-          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(18,14,12,0.18),rgba(18,14,12,0.66))]" />
+        <section className="relative overflow-hidden rounded-[42px] border border-[#d6c7b4] bg-[#efe6d7] shadow-[0_28px_90px_rgba(51,41,29,0.16)]">
+          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(59,42,32,0.10),rgba(59,42,32,0.34))]" />
 
           <div
             ref={mapRef}
@@ -682,7 +683,7 @@ export default function CartePage() {
           <div className="pointer-events-none absolute inset-0 opacity-30">
             <div className="absolute right-0 top-0 h-full w-[34%]">
               <Image
-                src="/images/editorial-1.jpeg"
+                src="/images/lpv/IMG_9706.JPG"
                 alt="Ambiance éditoriale du territoire"
                 fill
                 className="object-cover"
@@ -692,8 +693,8 @@ export default function CartePage() {
             </div>
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-32 bg-gradient-to-b from-[#120d0b]/85 via-[#120d0b]/35 to-transparent" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-40 bg-gradient-to-t from-[#120d0b]/90 via-[#120d0b]/35 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-32 bg-gradient-to-b from-[#3b2a20]/65 via-[#3b2a20]/20 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-40 bg-gradient-to-t from-[#3b2a20]/72 via-[#3b2a20]/24 to-transparent" />
 
           <div className="absolute left-6 top-6 z-20 flex items-center gap-2 rounded-full border border-white/10 bg-[rgba(18,13,11,0.82)] p-1 backdrop-blur-xl">
             <button
@@ -729,14 +730,14 @@ export default function CartePage() {
 
           <div className="absolute bottom-6 left-6 z-20 max-w-xl rounded-[22px] border border-white/10 bg-[rgba(18,13,11,0.78)] p-4 backdrop-blur-xl">
             <p className="text-[11px] uppercase tracking-[0.24em] text-[#b89f8e]">
-              Lex Vinum Premium
+              Le Premier Verre
             </p>
             <h2 className="mt-2 font-serif text-3xl text-white">
               Exploration du territoire
             </h2>
             <p className="mt-2 text-sm leading-6 text-[#d9c6b7]">
               Sélectionne un départ, explore les points visibles et laisse
-              Lex Vinum proposer un parcours cohérent selon le style, le
+              Le Premier Verre proposer un parcours cohérent selon le style, le
               budget et le rythme souhaité.
             </p>
           </div>
@@ -844,7 +845,7 @@ export default function CartePage() {
             <div className="group relative overflow-hidden rounded-[26px] border border-[#d8d0c4] bg-[#eae2d6] shadow-[0_18px_50px_rgba(58,42,28,0.10)]">
               <div className="relative h-[280px] w-full">
                 <Image
-                  src="/images/lifestyle-1.jpeg"
+                  src="/images/lpv/table-vin.jpg"
                   alt="Paysage de vignoble"
                   fill
                   className="object-cover transition duration-700 group-hover:scale-[1.02]"
@@ -868,7 +869,7 @@ export default function CartePage() {
             <div className="group relative overflow-hidden rounded-[26px] border border-[#d8d0c4] bg-[#e8ddd0] shadow-[0_18px_50px_rgba(58,42,28,0.10)]">
               <div className="relative h-[280px] w-full">
                 <Image
-                  src="/images/terroir-1.jpeg"
+                  src="/images/lpv/vignes.jpg"
                   alt="Terroir"
                   fill
                   className="object-cover transition duration-700 group-hover:scale-[1.02]"
@@ -893,7 +894,7 @@ export default function CartePage() {
           <div className="relative overflow-hidden rounded-[28px] border border-[#d7cfc2] bg-[#1f2a24] shadow-[0_24px_70px_rgba(21,25,20,0.18)]">
             <div className="absolute inset-0">
               <Image
-                src="/images/editorial-1.jpeg"
+                src="/images/lpv/IMG_9706.JPG"
                 alt="Atmosphère vignoble"
                 fill
                 className="object-cover"
@@ -1085,7 +1086,7 @@ export default function CartePage() {
                     Route recommandée
                   </p>
                   <h3 className="mt-2 font-serif text-3xl text-[#221c18]">
-                    {activeRoute.title || "Escapade Lex Vinum"}
+                    {activeRoute.title || "Escapade Le Premier Verre"}
                   </h3>
 
                   {activeRoute.subtitle && (
@@ -1369,7 +1370,7 @@ export default function CartePage() {
               <div className="overflow-hidden rounded-[22px] border border-dashed border-[#d7cfc2] bg-white">
                 <div className="relative h-[220px] w-full">
                   <Image
-                    src="/images/editorial-1.jpeg"
+                    src="/images/lpv/IMG_9706.JPG"
                     alt="Sélection à venir"
                     fill
                     className="object-cover"
@@ -1384,7 +1385,8 @@ export default function CartePage() {
             </PremiumSection>
           )}
         </div>
-      </PremiumPageShell>
+      </PremiumPageShell>      
+</div>
     </>
   );
 }
