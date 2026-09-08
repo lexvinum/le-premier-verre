@@ -6,6 +6,7 @@ import { useState } from "react";
 type Status = "idle" | "loading" | "success" | "error";
 
 export default function NewsletterSignup() {
+  const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
 
@@ -17,7 +18,7 @@ export default function NewsletterSignup() {
       const response = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ firstName: firstName.trim(), email: email.trim() }),
       });
 
       const data = await response.json();
@@ -27,6 +28,7 @@ export default function NewsletterSignup() {
       }
 
       setStatus("success");
+      setFirstName("");
       setEmail("");
     } catch (error) {
       console.error("Newsletter error:", error);
@@ -49,7 +51,19 @@ export default function NewsletterSignup() {
         et les découvertes du moment.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-7 flex flex-col gap-4 sm:flex-row">
+      <form onSubmit={handleSubmit} className="mt-7 flex flex-col gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <input
+            type="text"
+            value={firstName}
+            onChange={(event) => {
+              setFirstName(event.target.value);
+              if (status !== "idle") setStatus("idle");
+            }}
+            placeholder="Prénom — facultatif"
+            className="min-h-[62px] rounded-full border border-[#c8a97a] bg-[#fffdfa] px-7 text-[15px] !text-[#102016] outline-none placeholder:!text-[#102016] placeholder:!opacity-100 focus:border-[#b88a55]"
+          />
+
         <input
           type="email"
           required
@@ -61,6 +75,8 @@ export default function NewsletterSignup() {
           placeholder="Votre adresse courriel"
           className="min-h-[62px] flex-1 rounded-full border border-[#c8a97a] bg-[#fffdfa] px-7 text-[15px] !text-[#102016] outline-none placeholder:!text-[#102016] placeholder:!opacity-100 focus:border-[#b88a55]"
         />
+
+        </div>
 
         <button
           type="submit"

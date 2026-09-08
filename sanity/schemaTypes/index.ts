@@ -1,3 +1,4 @@
+import { wineFavorite } from "./wineFavorite";
 import { appellation } from "./appellation";
 import { article } from "./article";
 import { author } from "./author";
@@ -15,6 +16,9 @@ import { region } from "./region";
 import { siteSettings } from "./siteSettings";
 import { vineyard } from "./vineyard";
 import { wine } from "./wine";
+import { wineList } from "./wineList";
+import { wineJournalEntry } from "./wineJournalEntry";
+import { userPreferences } from "./userPreferences";
 
 export const schemaTypes = [
   // Configuration générale du site
@@ -43,4 +47,10 @@ export const schemaTypes = [
   grape,
   wine,
   food,
+
+  // Fonctionnalités utilisateur
+  wineList,
+  wineJournalEntry,
+  wineFavorite,
+  userPreferences,
 ];

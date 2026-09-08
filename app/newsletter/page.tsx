@@ -2,17 +2,24 @@ import NewsletterForm from "@/components/newsletter/NewsletterForm";
 
 export default function NewsletterPage() {
   return (
-    <main className="bg-[#4a372b] px-8 py-24 text-[#fff8ee] md:px-14 md:py-32">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-xs uppercase tracking-[0.42em] text-[#caa06b]">Courrier</p>
-        <h1 className="lpv-display mt-6 text-[clamp(5rem,10vw,11rem)] leading-[0.76] tracking-[-0.09em]">
-          Le courrier
-          <br />
-          du Premier Verre.
-        </h1>
-        <p className="mt-8 max-w-2xl text-lg leading-8 text-[#d7c3b1]">
-          L’article à la une, la bouteille du mois et les idées à boire avant le week-end.
-        </p>
+    <main className="min-h-screen bg-[#4a372b] px-6 py-20 text-[#fff8ee] sm:px-8 md:px-14 md:py-28">
+      <div className="mx-auto max-w-6xl">
+        <div className="max-w-5xl">
+          <p className="text-[11px] uppercase tracking-[0.38em] text-[#caa06b]">
+            L’infolettre
+          </p>
+
+          <h1 className="lpv-display mt-5 max-w-5xl text-[clamp(4.4rem,9vw,9rem)] leading-[0.82] tracking-[-0.075em]">
+            Le prochain verre
+            <br />
+            commence ici.
+          </h1>
+
+          <p className="mt-8 max-w-xl text-base leading-7 text-[#d7c3b1] md:text-lg md:leading-8">
+            Nos découvertes, nouvelles bouteilles, endroits à visiter et bonnes
+            raisons d’ouvrir quelque chose.
+          </p>
+        </div>
 
         <NewsletterForm />
       </div>

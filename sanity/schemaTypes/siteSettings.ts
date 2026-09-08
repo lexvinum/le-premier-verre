@@ -110,7 +110,7 @@ export const siteSettings = defineType({
           title: "Grand texte",
           type: "text",
           rows: 3,
-          initialValue: "Découvrir le vin comme une culture vivante.",
+          initialValue: "Découvrir le vin avec simplicité.",
         }),
         defineField({
           name: "description",
@@ -118,7 +118,7 @@ export const siteSettings = defineType({
           type: "text",
           rows: 4,
           initialValue:
-            "Le Premier Verre réunit guides, producteurs, régions, vins et intelligence artificielle dans une expérience éditoriale contemporaine.",
+            "Le Premier Verre est une plateforme éditoriale québécoise pour découvrir des vins, des producteurs, des bonnes adresses et des guides, avec une approche simple et accessible.",
         }),
         defineField({
           name: "links",
@@ -134,10 +134,21 @@ export const siteSettings = defineType({
             },
           ],
           initialValue: [
-            { label: "Guides", href: "/guides" },
-            { label: "Vins", href: "/vins" },
-            { label: "Producteurs", href: "/producteurs" },
-            { label: "Sommelier IA", href: "/sommelier" },
+            { label: "À propos", href: "/a-propos" },
+            { label: "Contact", href: "/contact" },
+            { label: "Infolettre", href: "/newsletter" },
+            {
+              label: "Conditions",
+              href: "/conditions-utilisation",
+            },
+            {
+              label: "Mentions",
+              href: "/mentions-editoriales",
+            },
+            {
+              label: "Confidentialité",
+              href: "/politique-confidentialite",
+            },
           ],
         }),
         defineField({
@@ -168,24 +179,29 @@ export const siteSettings = defineType({
             },
           ],
           initialValue: [
-            { label: "Guides", href: "/guides" },
-            { label: "Vins", href: "/vins" },
+            { label: "Accueil", href: "/" },
+            { label: "Ce soir", href: "/ce-soir" },
+            { label: "Répertoire", href: "/vins" },
             { label: "Producteurs", href: "/producteurs" },
-            { label: "Régions", href: "/regions" },
-            { label: "Sommelier", href: "/sommelier" },
+            {
+              label: "Bonnes adresses",
+              href: "/bonnes-adresses",
+            },
+            { label: "Guides", href: "/guides" },
+            { label: "Blogue", href: "/blog" },
           ],
         }),
         defineField({
           name: "ctaLabel",
           title: "Bouton principal",
           type: "string",
-          initialValue: "Demander",
+          initialValue: "",
         }),
         defineField({
           name: "ctaHref",
           title: "Lien du bouton principal",
           type: "string",
-          initialValue: "/sommelier",
+          initialValue: "/",
         }),
       ],
     }),

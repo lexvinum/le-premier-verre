@@ -1,43 +1,84 @@
 "use client";
 
-import { SearchResult } from "@/types/search";
+import type { SearchResult } from "@/types/search";
 import { SearchItem } from "./SearchItem";
+
+const typeLabels: Record<string, string> = {
+  wine: "Vins",
+  producer: "Producteurs",
+  vineyard: "Vignobles",
+  country: "Pays",
+  region: "Régions",
+  appellation: "Appellations",
+  grape: "Cépages",
+  article: "Journal",
+  guide: "Guides",
+};
 
 export function SearchResults({
   results,
+  onNavigate,
 }: {
   results?: SearchResult[];
+  onNavigate?: () => void;
 }) {
   if (!results?.length) {
     return (
-      <div className="p-10 text-center text-neutral-500">
-        Aucun résultat.
+      <div className="border-t border-[var(--lpv-line)] px-5 py-20 text-center md:px-8">
+        <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+          Aucun résultat
+        </p>
+
+        <h2 className="lpv-display mt-6 text-5xl leading-[0.9] md:text-7xl">
+          Rien dans la bibliothèque.
+        </h2>
+
+        <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
+          Essaie avec un nom de vin, un producteur, une région ou un terme plus
+          général.
+        </p>
       </div>
     );
   }
 
-  const grouped = Object.groupBy(
-    results,
-    (result) => result._type
+  const grouped = results.reduce<Record<string, SearchResult[]>>(
+    (accumulator, result) => {
+      accumulator[result._type] ||= [];
+      accumulator[result._type].push(result);
+      return accumulator;
+    },
+    {}
   );
 
   return (
-    <div className="max-h-[550px] overflow-y-auto border-t">
+    <div className="border-t border-[var(--lpv-line)]">
+      <div className="px-5 py-5 md:px-8">
+        <p className="text-xs uppercase tracking-[0.16em] text-[var(--lpv-muted)]">
+          {results.length} résultat{results.length > 1 ? "s" : ""}
+        </p>
+      </div>
+
       {Object.entries(grouped).map(([type, items]) => (
         <section
           key={type}
-          className="border-b last:border-b-0"
+          className="grid border-t border-[var(--lpv-line)] md:grid-cols-[0.25fr_0.75fr]"
         >
-          <h3 className="bg-neutral-50 px-5 py-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-            {type}
-          </h3>
+          <div className="px-5 py-6 md:px-8">
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              {typeLabels[type] || type}
+            </p>
+          </div>
 
-          {items?.map((item) => (
-            <SearchItem
-              key={item._id}
-              result={item}
-            />
-          ))}
+          <div className="border-t border-[var(--lpv-line)] md:border-l md:border-t-0">
+            {items.map((item, index) => (
+              <SearchItem
+                key={item._id}
+                result={item}
+                index={index}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
         </section>
       ))}
     </div>

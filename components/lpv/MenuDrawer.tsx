@@ -6,6 +6,7 @@ import { useState } from "react";
 const links = [
   ["Répertoire", "/vins"],
   ["Producteurs", "/producteurs"],
+  ["Régions", "/regions"],
   ["Accords", "/accords"],
   ["Carte", "/carte"],
   ["Scan", "/scan"],

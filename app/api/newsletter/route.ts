@@ -1,34 +1,69 @@
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const email = String(body?.email ?? "").trim().toLowerCase();
+  try {
+    const body = await request.json();
 
-  if (!email || !email.includes("@")) {
-    return NextResponse.json({ error: "Courriel invalide." }, { status: 400 });
-  }
+    const email = String(body?.email ?? "").trim().toLowerCase();
+    const firstName = String(body?.firstName ?? "").trim();
 
-  if (process.env.BEEHIIV_API_KEY && process.env.BEEHIIV_PUBLICATION_ID) {
-    const res = await fetch(
-      `https://api.beehiiv.com/v2/publications/${process.env.BEEHIIV_PUBLICATION_ID}/subscriptions`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.BEEHIIV_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          reactivate_existing: true,
-          send_welcome_email: true,
-        }),
-      }
-    );
-
-    if (!res.ok) {
-      return NextResponse.json({ error: "Erreur Beehiiv." }, { status: 502 });
+    if (!email || !email.includes("@")) {
+      return NextResponse.json(
+        { success: false, error: "Courriel invalide." },
+        { status: 400 }
+      );
     }
-  }
 
-  return NextResponse.json({ ok: true });
+    const apiKey = process.env.BREVO_API_KEY;
+    const listId = Number(process.env.BREVO_LIST_ID);
+
+    if (!apiKey || !Number.isInteger(listId)) {
+      console.error("Configuration Brevo manquante.");
+
+      return NextResponse.json(
+        { success: false, error: "Service d’infolettre non configuré." },
+        { status: 500 }
+      );
+    }
+
+    const attributes: Record<string, string> = {};
+
+    if (firstName) {
+      attributes.FIRSTNAME = firstName;
+    }
+
+    const response = await fetch("https://api.brevo.com/v3/contacts", {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        attributes,
+        listIds: [listId],
+        updateEnabled: true,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Brevo newsletter error:", response.status, errorText);
+
+      return NextResponse.json(
+        { success: false, error: "Impossible de compléter l’inscription." },
+        { status: 502 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Newsletter API error:", error);
+
+    return NextResponse.json(
+      { success: false, error: "Une erreur est survenue." },
+      { status: 500 }
+    );
+  }
 }

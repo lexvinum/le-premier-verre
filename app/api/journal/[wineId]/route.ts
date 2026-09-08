@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import {
-  deleteJournalEntry,
-  getWineJournalEntry,
-  upsertJournalEntry,
-} from "@/lib/journal";
+
+import { client } from "@/sanity/lib/client";
+import { writeClient } from "@/sanity/lib/write-client";
 
 type RouteProps = {
   params: Promise<{
@@ -12,15 +10,40 @@ type RouteProps = {
   }>;
 };
 
+type JournalEntry = {
+  _id: string;
+  tastedAt: string;
+  appreciation: "liked" | "average" | "disliked";
+  note?: string;
+  buyAgain: boolean;
+};
+
 export async function GET(_request: Request, { params }: RouteProps) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Connexion requise." },
+      { status: 401 }
+    );
   }
 
   const { wineId } = await params;
-  const entry = await getWineJournalEntry(userId, wineId);
+
+  const entry = await client.fetch<JournalEntry | null>(
+    `*[
+      _type == "wineJournalEntry" &&
+      userId == $userId &&
+      wine._ref == $wineId
+    ][0]{
+      _id,
+      tastedAt,
+      appreciation,
+      note,
+      buyAgain
+    }`,
+    { userId, wineId }
+  );
 
   return NextResponse.json({ entry });
 }
@@ -29,26 +52,70 @@ export async function PATCH(request: Request, { params }: RouteProps) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Connexion requise." },
+      { status: 401 }
+    );
   }
 
   const { wineId } = await params;
   const body = await request.json();
-  const current = await getWineJournalEntry(userId, wineId);
 
-  const entry = await upsertJournalEntry({
-    userId,
-    wineId,
-    favorite: body.favorite ?? current?.favorite ?? false,
-    tasted: body.tasted ?? current?.tasted ?? false,
-    buyAgain: body.buyAgain ?? current?.buyAgain ?? false,
-    gift: body.gift ?? current?.gift ?? false,
-    avoid: body.avoid ?? current?.avoid ?? false,
-    rating: body.rating ?? current?.rating ?? null,
-    note: body.note ?? current?.note ?? null,
-    tastedAt: body.tastedAt ?? current?.tastedAt ?? null,
-    location: body.location ?? current?.location ?? null,
-  });
+  const tastedAt = String(body.tastedAt || "").trim();
+  const appreciation = String(body.appreciation || "").trim();
+  const note = String(body.note || "").trim();
+  const buyAgain = Boolean(body.buyAgain);
+
+  if (!tastedAt) {
+    return NextResponse.json(
+      { error: "La date est requise." },
+      { status: 400 }
+    );
+  }
+
+  if (!["liked", "average", "disliked"].includes(appreciation)) {
+    return NextResponse.json(
+      { error: "L'appréciation est invalide." },
+      { status: 400 }
+    );
+  }
+
+  const existing = await client.fetch<{ _id: string } | null>(
+    `*[
+      _type == "wineJournalEntry" &&
+      userId == $userId &&
+      wine._ref == $wineId
+    ][0]{ _id }`,
+    { userId, wineId }
+  );
+
+  const now = new Date().toISOString();
+
+  const entry = existing
+    ? await writeClient
+        .patch(existing._id)
+        .set({
+          tastedAt,
+          appreciation,
+          note: note || "",
+          buyAgain,
+          updatedAt: now,
+        })
+        .commit()
+    : await writeClient.create({
+        _type: "wineJournalEntry",
+        userId,
+        wine: {
+          _type: "reference",
+          _ref: wineId,
+        },
+        tastedAt,
+        appreciation,
+        note: note || "",
+        buyAgain,
+        createdAt: now,
+        updatedAt: now,
+      });
 
   return NextResponse.json({ entry });
 }
@@ -57,11 +124,26 @@ export async function DELETE(_request: Request, { params }: RouteProps) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Connexion requise." },
+      { status: 401 }
+    );
   }
 
   const { wineId } = await params;
-  await deleteJournalEntry(userId, wineId);
+
+  const existing = await client.fetch<{ _id: string } | null>(
+    `*[
+      _type == "wineJournalEntry" &&
+      userId == $userId &&
+      wine._ref == $wineId
+    ][0]{ _id }`,
+    { userId, wineId }
+  );
+
+  if (existing) {
+    await writeClient.delete(existing._id);
+  }
 
   return NextResponse.json({ ok: true });
 }

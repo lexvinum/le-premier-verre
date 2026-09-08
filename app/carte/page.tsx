@@ -76,6 +76,29 @@ type RoutePreferences = {
   regionMode: MapMode;
 };
 
+type EditorialCard = {
+  _id: string;
+  name?: string;
+  title?: string;
+  slug?: string | null;
+  municipality?: string | null;
+  oneLiner?: string | null;
+  description?: string | null;
+  excerpt?: string | null;
+  imageUrl?: string | null;
+  country?: { name?: string | null } | null;
+  region?: { name?: string | null } | null;
+  category?: string | null;
+  guideType?: string | null;
+};
+
+type EditorialMapContent = {
+  producers: EditorialCard[];
+  regions: EditorialCard[];
+  guides: EditorialCard[];
+  articles: EditorialCard[];
+};
+
 declare global {
   interface Window {
     google?: typeof google;
@@ -188,19 +211,110 @@ function resolvePointImage(point?: {
   return "/images/lpv/IMG_9706.JPG";
 }
 
+const lpvMapStyles: google.maps.MapTypeStyle[] = [
+  {
+    elementType: "geometry",
+    stylers: [{ color: "#e6ddd1" }],
+  },
+  {
+    elementType: "labels.icon",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#5e4f43" }],
+  },
+  {
+    elementType: "labels.text.stroke",
+    stylers: [{ color: "#efe8df" }],
+  },
+  {
+    featureType: "administrative",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#a89483" }],
+  },
+  {
+    featureType: "administrative.country",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#7b6657" }, { weight: 1.2 }],
+  },
+  {
+    featureType: "landscape",
+    elementType: "geometry",
+    stylers: [{ color: "#e3d9cc" }],
+  },
+  {
+    featureType: "poi",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#f0e8de" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#c5b4a4" }],
+  },
+  {
+    featureType: "road",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#6f5a4b" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#d7c8ba" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#9f8978" }],
+  },
+  {
+    featureType: "transit",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#c4cbc8" }],
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#5f6a66" }],
+  },
+];
+
 export default function CartePage() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const markersRef = useRef<google.maps.OverlayView[]>([]);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const routePolylineRef = useRef<google.maps.Polyline | null>(null);
 
   const [mapsReady, setMapsReady] = useState(false);
+
+  useEffect(() => {
+    if (window.google?.maps) {
+      setMapsReady(true);
+    }
+  }, []);
   const [mapMode, setMapMode] = useState<MapMode>("quebec");
+  const [regionSlug, setRegionSlug] = useState<string | null>(null);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [points, setPoints] = useState<MapPoint[]>([]);
   const [loadingPoints, setLoadingPoints] = useState(false);
   const [pointsError, setPointsError] = useState<string | null>(null);
+
+  const [editorialContent, setEditorialContent] = useState<EditorialMapContent>({
+    producers: [],
+    regions: [],
+    guides: [],
+    articles: [],
+  });
 
   const [selectedPoint, setSelectedPoint] = useState<MapPoint | null>(null);
   const [selectedStart, setSelectedStart] = useState<MapPoint | null>(null);
@@ -217,13 +331,64 @@ export default function CartePage() {
 
   const activeRoute = plannedRoutes[activeRouteIndex] ?? null;
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setRegionSlug(params.get("region"));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadEditorialContent() {
+      try {
+        const res = await fetch("/api/map/editorial", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        if (!cancelled) {
+          setEditorialContent({
+            producers: Array.isArray(data?.producers) ? data.producers : [],
+            regions: Array.isArray(data?.regions) ? data.regions : [],
+            guides: Array.isArray(data?.guides) ? data.guides : [],
+            articles: Array.isArray(data?.articles) ? data.articles : [],
+          });
+        }
+      } catch {
+        // Le contenu éditorial est complémentaire : la carte reste utilisable sans lui.
+      }
+    }
+
+    loadEditorialContent();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const visiblePoints = useMemo(() => {
     if (mapMode === "quebec") {
-      return points.filter((point) => point.type === "vineyard");
+      const vineyards = points.filter(
+        (point) => point.type === "vineyard"
+      );
+
+      if (!regionSlug) {
+        return vineyards;
+      }
+
+      const targetRegion = normalizeValue(regionSlug);
+
+      return vineyards.filter(
+        (point) => normalizeValue(point.region) === targetRegion
+      );
     }
 
     return points.filter((point) => point.type === "wine");
-  }, [mapMode, points]);
+  }, [mapMode, points, regionSlug]);
 
   const editorialGallery = useMemo(
     () => [
@@ -255,12 +420,14 @@ export default function CartePage() {
       center: DEFAULT_CENTER_QUEBEC,
       zoom: 7,
       minZoom: 2,
-      mapId: MAP_ID,
+      styles: lpvMapStyles,
+      backgroundColor: "#e6ddd1",
       disableDefaultUI: true,
       zoomControl: true,
       fullscreenControl: false,
       streetViewControl: false,
       mapTypeControl: false,
+      clickableIcons: false,
       gestureHandling: "greedy",
     });
 
@@ -298,7 +465,7 @@ export default function CartePage() {
 
   const clearMarkers = useCallback(() => {
     markersRef.current.forEach((marker) => {
-      marker.map = null;
+      marker.setMap(null);
     });
     markersRef.current = [];
   }, []);
@@ -321,60 +488,128 @@ export default function CartePage() {
       clearMarkers();
 
       markersRef.current = pts.map((point) => {
-        const el = document.createElement("div");
-        el.className =
-          "flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-[11px] font-semibold text-white shadow-[0_12px_35px_rgba(0,0,0,0.35)]";
+        let element: HTMLButtonElement | null = null;
 
-        el.style.background =
-          point.type === "vineyard"
-            ? "linear-gradient(135deg, #c59a67 0%, #8c5f3d 100%)"
-            : point.isQuebec
-              ? "linear-gradient(135deg, #d8b48a 0%, #6f4b3b 100%)"
-              : "linear-gradient(135deg, #8a7465 0%, #4a362d 100%)";
+        const overlay = new google.maps.OverlayView();
 
-        el.innerText = markerGlyph(point);
+        overlay.onAdd = () => {
+          element = document.createElement("button");
+          element.type = "button";
+          element.title = point.name;
 
-        const marker = new google.maps.marker.AdvancedMarkerElement({
-          map,
-          position: { lat: point.latitude, lng: point.longitude },
-          title: point.name,
-          content: el,
-        });
+          element.style.position = "absolute";
+          element.style.transform = "translate(-50%, -50%)";
+          element.style.cursor = "pointer";
+          element.style.padding = "0";
+          element.style.margin = "0";
+          element.style.zIndex = "2";
 
-        marker.addListener("click", () => {
-          setSelectedPoint(point);
-          setSelectedStart(point);
-          setPlanningError(null);
+          if (point.type === "vineyard" && point.image) {
+            element.style.width = "58px";
+            element.style.height = "58px";
+            element.style.borderRadius = "9999px";
+            element.style.overflow = "hidden";
+            element.style.border = "3px solid #f4eee6";
+            element.style.background = "#d8cec1";
+            element.style.boxShadow =
+              "0 5px 18px rgba(63, 45, 34, 0.28)";
 
-          const html = `
-            <div style="min-width:220px;max-width:260px;padding:6px 2px 4px 2px;">
-              <div style="font-size:13px;color:#8b6b57;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">
-                ${point.type === "vineyard" ? "Vignoble" : "Vin"}
+            const img = document.createElement("img");
+            img.src = point.image;
+            img.alt = point.name;
+            img.style.width = "100%";
+            img.style.height = "100%";
+            img.style.objectFit = "cover";
+            img.style.display = "block";
+
+            element.appendChild(img);
+          } else {
+            element.style.width = "42px";
+            element.style.height = "42px";
+            element.style.borderRadius = "9999px";
+            element.style.border = "2px solid #f4eee6";
+            element.style.background = "#8c654b";
+            element.style.color = "#ffffff";
+            element.style.fontSize = "11px";
+            element.style.fontWeight = "600";
+            element.style.display = "flex";
+            element.style.alignItems = "center";
+            element.style.justifyContent = "center";
+            element.style.boxShadow =
+              "0 5px 18px rgba(63, 45, 34, 0.25)";
+
+            element.innerText = markerGlyph(point);
+          }
+
+          element.addEventListener("click", () => {
+            setSelectedPoint(point);
+            setSelectedStart(point);
+            setPlanningError(null);
+
+            const html = `
+              <div style="min-width:220px;max-width:260px;padding:6px 2px 4px 2px;">
+                <div style="font-size:11px;color:#8b6b57;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;">
+                  ${point.type === "vineyard" ? "Vignoble" : "Vin"}
+                </div>
+
+                <div style="font-weight:600;font-size:17px;color:#221a17;line-height:1.2;margin-bottom:7px;">
+                  ${point.name}
+                </div>
+
+                <div style="font-size:13px;color:#5b4c43;line-height:1.5;">
+                  ${[point.city, point.region, point.country]
+                    .filter(Boolean)
+                    .join(", ")}
+                </div>
               </div>
-              <div style="font-weight:700;font-size:16px;color:#221a17;line-height:1.2;margin-bottom:6px;">
-                ${point.name}
-              </div>
-              <div style="font-size:13px;color:#5b4c43;line-height:1.4;">
-                ${[point.city, point.region, point.country].filter(Boolean).join(", ")}
-              </div>
-              ${
-                point.originLabel
-                  ? `<div style="font-size:12px;color:#7a6658;margin-top:6px;">${point.originLabel}</div>`
-                  : ""
-              }
-            </div>
-          `;
+            `;
 
-          infoWindow?.setContent(html);
-          infoWindow?.open({
-            anchor: marker,
-            map,
+            infoWindow?.setContent(html);
+            infoWindow?.setPosition({
+              lat: point.latitude,
+              lng: point.longitude,
+            });
+            infoWindow?.open({ map });
+
+            map.panTo({
+              lat: point.latitude,
+              lng: point.longitude,
+            });
           });
 
-          map.panTo({ lat: point.latitude, lng: point.longitude });
-        });
+          overlay
+            .getPanes()
+            ?.overlayMouseTarget.appendChild(element);
+        };
 
-        return marker;
+        overlay.draw = () => {
+          if (!element) return;
+
+          const projection = overlay.getProjection();
+
+          const position = projection.fromLatLngToDivPixel(
+            new google.maps.LatLng(
+              point.latitude,
+              point.longitude
+            )
+          );
+
+          if (!position) return;
+
+          element.style.left = `${position.x}px`;
+          element.style.top = `${position.y}px`;
+        };
+
+        overlay.onRemove = () => {
+          if (element) {
+            element.remove();
+            element = null;
+          }
+        };
+
+        overlay.setMap(map);
+
+        return overlay;
       });
     },
     [clearMarkers]
@@ -616,13 +851,15 @@ export default function CartePage() {
     if (!map) return;
 
     if (mapMode === "quebec") {
+      if (regionSlug) return;
+
       map.setCenter(DEFAULT_CENTER_QUEBEC);
       map.setZoom(7);
     } else {
       map.setCenter(DEFAULT_CENTER_WORLD);
       map.setZoom(2);
     }
-  }, [mapMode]);
+  }, [mapMode, regionSlug]);
 
   return (
     <>
@@ -630,763 +867,798 @@ export default function CartePage() {
         src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=marker,geometry`}
         strategy="afterInteractive"
         onLoad={() => setMapsReady(true)}
+        onReady={() => setMapsReady(true)}
       />
 
-      <div className="lpv-carte-page">
-      <PremiumPageShell
-        eyebrow="Carte"
-        title="Routes & vignobles"
-        subtitle="Explore les vignobles du Québec, visualise les vins du monde et génère un itinéraire intelligent dans une lecture plus éditoriale du territoire."
-        actions={
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                setMapMode("quebec");
-                setSelectedCountries([]);
-              }}
-              className={cx(
-                "inline-flex items-center rounded-full px-5 py-2.5 text-sm font-medium transition",
-                mapMode === "quebec"
-                  ? "bg-[#e4d5bc] text-[#1d1712]"
-                  : "border border-[#6c7a65] bg-[rgba(255,255,255,0.05)] text-[#f3ece1] hover:bg-[rgba(255,255,255,0.10)]"
-              )}
-            >
-              Québec
-            </button>
+      <main className="min-h-screen bg-[var(--lpv-paper)] text-[var(--lpv-ink)]">
+        <div className="mx-auto w-full max-w-[1500px] px-5 pb-24 pt-16 md:px-8 md:pt-24 lg:px-12">
 
-            <button
-              type="button"
-              onClick={() => {
-                setMapMode("world");
-              }}
-              className={cx(
-                "inline-flex items-center rounded-full px-5 py-2.5 text-sm font-medium transition",
-                mapMode === "world"
-                  ? "bg-[#e4d5bc] text-[#1d1712]"
-                  : "border border-[#6c7a65] bg-[rgba(255,255,255,0.05)] text-[#f3ece1] hover:bg-[rgba(255,255,255,0.10)]"
-              )}
-            >
-              Monde
-            </button>
-          </div>
-        }
-      >
-        <section className="relative overflow-hidden rounded-[42px] border border-[#d6c7b4] bg-[#efe6d7] shadow-[0_28px_90px_rgba(51,41,29,0.16)]">
-          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(59,42,32,0.10),rgba(59,42,32,0.34))]" />
-
-          <div
-            ref={mapRef}
-            className="relative z-0 h-[65vh] min-h-[640px] w-full"
-          />
-
-          <div className="pointer-events-none absolute inset-0 opacity-30">
-            <div className="absolute right-0 top-0 h-full w-[34%]">
-              <Image
-                src="/images/lpv/IMG_9706.JPG"
-                alt="Ambiance éditoriale du territoire"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-              <div className="absolute inset-0 bg-[linear-gradient(to_left,rgba(20,15,12,0.72),rgba(20,15,12,0.12))]" />
-            </div>
-          </div>
-
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-32 bg-gradient-to-b from-[#3b2a20]/65 via-[#3b2a20]/20 to-transparent" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-40 bg-gradient-to-t from-[#3b2a20]/72 via-[#3b2a20]/24 to-transparent" />
-
-          <div className="absolute left-6 top-6 z-20 flex items-center gap-2 rounded-full border border-white/10 bg-[rgba(18,13,11,0.82)] p-1 backdrop-blur-xl">
-            <button
-              type="button"
-              onClick={() => {
-                setMapMode("quebec");
-                setSelectedCountries([]);
-              }}
-              className={cx(
-                "rounded-full px-4 py-2 text-sm font-medium transition",
-                mapMode === "quebec"
-                  ? "bg-[#d6b692] text-[#2b1d18]"
-                  : "text-[#e7d7c9] hover:bg-white/5"
-              )}
-            >
-              Québec
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMapMode("world");
-              }}
-              className={cx(
-                "rounded-full px-4 py-2 text-sm font-medium transition",
-                mapMode === "world"
-                  ? "bg-[#d6b692] text-[#2b1d18]"
-                  : "text-[#e7d7c9] hover:bg-white/5"
-              )}
-            >
-              Monde
-            </button>
-          </div>
-
-          <div className="absolute bottom-6 left-6 z-20 max-w-xl rounded-[22px] border border-white/10 bg-[rgba(18,13,11,0.78)] p-4 backdrop-blur-xl">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-[#b89f8e]">
-              Le Premier Verre
+          {/* HERO */}
+          <header className="border-b border-[var(--lpv-line)] pb-12 md:pb-16">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--lpv-muted)]">
+              Carte
             </p>
-            <h2 className="mt-2 font-serif text-3xl text-white">
-              Exploration du territoire
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-[#d9c6b7]">
-              Sélectionne un départ, explore les points visibles et laisse
-              Le Premier Verre proposer un parcours cohérent selon le style, le
-              budget et le rythme souhaité.
-            </p>
-          </div>
 
-          {loadingPoints && points.length === 0 && (
-            <div className="absolute right-4 top-4 z-20 rounded-full border border-white/10 bg-[rgba(18,13,11,0.82)] px-4 py-2 text-sm text-[#e7d7c9] backdrop-blur-xl">
-              Chargement des points…
-            </div>
-          )}
-
-          {pointsError && (
-            <div className="absolute bottom-4 right-4 z-20 max-w-sm rounded-[18px] border border-[#7f3d3d] bg-[rgba(61,18,18,0.85)] px-4 py-3 text-sm text-[#ffd4d4] backdrop-blur-xl">
-              {pointsError}
-            </div>
-          )}
-        </section>
-
-        {mapMode === "world" && (
-          <section className="rounded-[24px] border border-[#d7cfc2] bg-white p-5 shadow-[0_16px_45px_rgba(58,42,28,0.06)]">
-            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div className="mt-5 grid gap-8 lg:grid-cols-[1fr_420px] lg:items-end">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.24em] text-[#8b7d71]">
-                  Monde
-                </p>
-                <h3 className="mt-2 font-serif text-2xl text-[#221c18]">
-                  Sélectionne les pays à afficher
-                </h3>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#665d54]">
-                  Pour éviter de surcharger la carte, les vins du monde ne sont
-                  affichés qu’après sélection d’un ou plusieurs pays.
-                </p>
+                <h1 className="max-w-5xl text-[clamp(4rem,9vw,9rem)] font-medium leading-[0.83] tracking-[-0.065em]">
+                  Routes &
+                  <br />
+                  vignobles.
+                </h1>
               </div>
 
-              {selectedCountries.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedCountries([])}
-                  className="inline-flex items-center rounded-full border border-[#d7cfc2] bg-[#faf6ef] px-4 py-2 text-sm text-[#5d544b] transition hover:bg-[#f3ecdf]"
-                >
-                  Effacer la sélection
-                </button>
-              )}
-            </div>
+              <div className="pb-2">
+                <p className="max-w-md text-lg leading-8 text-[var(--lpv-muted)]">
+                  Le vin commence toujours quelque part. Cette carte rassemble
+                  les lieux, les producteurs et les routes qui permettent de
+                  mieux comprendre ce qu’il y a dans le verre.
+                </p>
 
-            <div className="mt-5 flex flex-wrap gap-2">
-              {WORLD_COUNTRIES.map((country) => {
-                const active = selectedCountries.includes(country);
-
-                return (
+                <div className="mt-7 flex gap-6 border-t border-[var(--lpv-line)] pt-5">
                   <button
-                    key={country}
                     type="button"
-                    onClick={() => toggleCountry(country)}
+                    onClick={() => {
+                      setMapMode("quebec");
+                      setSelectedCountries([]);
+                    }}
                     className={cx(
-                      "rounded-full border px-3 py-2 text-sm transition",
-                      active
-                        ? "border-[#d6b692] bg-[#d6b692] text-[#2b1d18]"
-                        : "border-[#ddd5c9] bg-white text-[#5d544b] hover:bg-[#f5f0e7]"
+                      "border-b pb-1 text-sm transition",
+                      mapMode === "quebec"
+                        ? "border-[var(--lpv-ink)] text-[var(--lpv-ink)]"
+                        : "border-transparent text-[var(--lpv-muted)] hover:border-[var(--lpv-line)]"
                     )}
                   >
-                    {country}
+                    Québec
                   </button>
-                );
-              })}
-            </div>
 
-            <p className="mt-4 text-xs text-[#8a7f73]">
-              {selectedCountries.length}/5 pays sélectionnés
-            </p>
-
-            {selectedCountries.length === 0 && (
-              <div className="mt-4 rounded-[18px] border border-dashed border-[#d7cfc2] bg-[#faf8f3] px-4 py-3 text-sm text-[#6b6156]">
-                Aucun pays sélectionné pour l’instant — la carte reste vide afin
-                de garder une expérience fluide.
-              </div>
-            )}
-          </section>
-        )}
-
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          <PremiumStatCard
-            label="Points visibles"
-            value={visiblePoints.length}
-            hint="Vignobles et vins actuellement affichés."
-          />
-          <PremiumStatCard
-            label="Mode"
-            value={mapMode === "quebec" ? "Québec" : "Monde"}
-            hint="Focus local ou lecture globale."
-          />
-          <PremiumStatCard
-            label="Départ"
-            value={selectedStart ? selectedStart.name : "À choisir"}
-            hint="Point utilisé pour générer la route."
-          />
-          <PremiumStatCard
-            label="Itinéraires"
-            value={plannedRoutes.length}
-            hint="Parcours intelligents proposés."
-          />
-        </div>
-
-        <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div className="group relative overflow-hidden rounded-[26px] border border-[#d8d0c4] bg-[#eae2d6] shadow-[0_18px_50px_rgba(58,42,28,0.10)]">
-              <div className="relative h-[280px] w-full">
-                <Image
-                  src="/images/lpv/table-vin.jpg"
-                  alt="Paysage de vignoble"
-                  fill
-                  className="object-cover transition duration-700 group-hover:scale-[1.02]"
-                  unoptimized
-                />
-              </div>
-              <div className="border-t border-[#d8d0c4] bg-[#f7f1e8] p-5">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-[#7c7268]">
-                  Regard éditorial
-                </p>
-                <h3 className="mt-2 font-serif text-2xl text-[#221c18]">
-                  Le territoire avant la route
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-[#655c53]">
-                  Une approche plus sensible de la carte, où l’origine, la
-                  matière et le paysage enrichissent la lecture des points.
-                </p>
+                  <button
+                    type="button"
+                    onClick={() => setMapMode("world")}
+                    className={cx(
+                      "border-b pb-1 text-sm transition",
+                      mapMode === "world"
+                        ? "border-[var(--lpv-ink)] text-[var(--lpv-ink)]"
+                        : "border-transparent text-[var(--lpv-muted)] hover:border-[var(--lpv-line)]"
+                    )}
+                  >
+                    Monde
+                  </button>
+                </div>
               </div>
             </div>
+          </header>
 
-            <div className="group relative overflow-hidden rounded-[26px] border border-[#d8d0c4] bg-[#e8ddd0] shadow-[0_18px_50px_rgba(58,42,28,0.10)]">
-              <div className="relative h-[280px] w-full">
-                <Image
-                  src="/images/lpv/vignes.jpg"
-                  alt="Terroir"
-                  fill
-                  className="object-cover transition duration-700 group-hover:scale-[1.02]"
-                  unoptimized
-                />
-              </div>
-              <div className="border-t border-[#d8d0c4] bg-[#f7f1e8] p-5">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-[#7c7268]">
-                  Signature
+          {/* MAP */}
+          <section className="border-b border-[var(--lpv-line)] py-10 md:py-14">
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-5">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--lpv-muted)]">
+                  Territoire
                 </p>
-                <h3 className="mt-2 font-serif text-2xl text-[#221c18]">
-                  Chaque point raconte un lieu
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-[#655c53]">
-                  Les vignobles et les vins gagnent ici une présence plus
-                  incarnée, plus premium et plus alignée avec la DA du site.
-                </p>
+                <h2 className="mt-2 text-3xl tracking-[-0.03em] md:text-4xl">
+                  {mapMode === "quebec" ? "Vignobles du Québec" : "Origines du monde"}
+                </h2>
               </div>
+
+              <p className="text-sm text-[var(--lpv-muted)]">
+                {visiblePoints.length} point{visiblePoints.length !== 1 ? "s" : ""} visible{visiblePoints.length !== 1 ? "s" : ""}
+              </p>
             </div>
-          </div>
 
-          <div className="relative overflow-hidden rounded-[28px] border border-[#d7cfc2] bg-[#1f2a24] shadow-[0_24px_70px_rgba(21,25,20,0.18)]">
-            <div className="absolute inset-0">
-              <Image
-                src="/images/lpv/IMG_9706.JPG"
-                alt="Atmosphère vignoble"
-                fill
-                className="object-cover"
-                unoptimized
+            <div className="relative overflow-hidden border border-[var(--lpv-line)] bg-[#ded5c8]">
+              <div
+                ref={mapRef}
+                className="h-[68vh] min-h-[560px] w-full md:min-h-[680px]"
               />
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(21,30,24,0.82),rgba(31,42,36,0.58),rgba(23,20,18,0.70))]" />
-            </div>
 
-            <div className="relative z-10 flex h-full min-h-[320px] flex-col justify-end p-8">
-              <p className="text-[11px] uppercase tracking-[0.26em] text-[#d6c1ab]">
-                Itinéraires intelligents
-              </p>
-              <h3 className="mt-3 max-w-md font-serif text-3xl text-[#f6efe7]">
-                Une carte plus habitée, sans toucher à la logique métier
-              </h3>
-              <p className="mt-3 max-w-lg text-sm leading-7 text-[#e1d1c2]">
-                Les fonctions, hooks, états et appels API restent inchangés.
-                On enrichit seulement la présence visuelle avec davantage de
-                photographie et de respiration.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <div className="grid gap-6 xl:grid-cols-[0.94fr_1.06fr]">
-          <PremiumSection
-            title="Planificateur"
-            subtitle="Construire un parcours cohérent selon le rythme, le budget et les styles recherchés."
-          >
-            <div className="space-y-6">
-              <div>
-                <p className="mb-3 text-sm font-medium text-[#221c18]">Durée</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {[1, 2, 3].map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setDays(value)}
-                      className={cx(
-                        "rounded-2xl border px-3 py-3 text-sm font-medium transition",
-                        days === value
-                          ? "border-[#d6b692] bg-[#d6b692] text-[#2b1d18]"
-                          : "border-[#d7cfc2] bg-white text-[#5d544b] hover:bg-[#f1ebe2]"
-                      )}
-                    >
-                      {value} jour{value > 1 ? "s" : ""}
-                    </button>
-                  ))}
+              {loadingPoints && points.length === 0 && (
+                <div className="absolute right-4 top-4 bg-[var(--lpv-paper)] px-4 py-2 text-sm">
+                  Chargement…
                 </div>
-              </div>
+              )}
 
-              <div>
-                <p className="mb-3 text-sm font-medium text-[#221c18]">Budget</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["petit", "moyen", "premium"] as Budget[]).map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setBudget(value)}
-                      className={cx(
-                        "rounded-2xl border px-3 py-3 text-sm font-medium capitalize transition",
-                        budget === value
-                          ? "border-[#d6b692] bg-[#d6b692] text-[#2b1d18]"
-                          : "border-[#d7cfc2] bg-white text-[#5d544b] hover:bg-[#f1ebe2]"
-                      )}
-                    >
-                      {value}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-3 text-sm font-medium text-[#221c18]">Rythme</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {(
-                    [
-                      ["detente", "Détente"],
-                      ["equilibre", "Équilibré"],
-                      ["intensif", "Intensif"],
-                    ] as Array<[Pace, string]>
-                  ).map(([value, label]) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setPace(value)}
-                      className={cx(
-                        "rounded-2xl border px-3 py-3 text-sm font-medium transition",
-                        pace === value
-                          ? "border-[#d6b692] bg-[#d6b692] text-[#2b1d18]"
-                          : "border-[#d7cfc2] bg-white text-[#5d544b] hover:bg-[#f1ebe2]"
-                      )}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-3 text-sm font-medium text-[#221c18]">
-                  Styles recherchés
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {STYLE_OPTIONS.map((style) => {
-                    const active = styles.includes(style);
-                    return (
-                      <button
-                        key={style}
-                        type="button"
-                        onClick={() => handleToggleStyle(style)}
-                        className={cx(
-                          "rounded-full border px-3 py-2 text-sm transition",
-                          active
-                            ? "border-[#d6b692] bg-[#d6b692] text-[#2b1d18]"
-                            : "border-[#d7cfc2] bg-white text-[#5d544b] hover:bg-[#f1ebe2]"
-                        )}
-                      >
-                        {style}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <PremiumInfoCard className="p-5">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-[#8b7d71]">
-                  Point de départ
-                </p>
-                <p className="mt-2 text-base font-semibold text-[#221c18]">
-                  {selectedStart ? selectedStart.name : "Aucun point sélectionné"}
-                </p>
-                <p className="mt-1 text-sm text-[#6b6156]">
-                  {selectedStart
-                    ? [selectedStart.city, selectedStart.region, selectedStart.country]
-                        .filter(Boolean)
-                        .join(", ")
-                    : "Clique sur un point de la carte ou choisis-le dans la liste ci-dessous."}
-                </p>
-              </PremiumInfoCard>
-
-              <button
-                type="button"
-                onClick={handlePlanRoute}
-                disabled={planning || !selectedStart}
-                className="inline-flex w-full items-center justify-center rounded-full bg-[#1f2a24] px-6 py-3 text-sm font-medium text-[#f3ece1] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {planning ? "Planification en cours…" : "Générer l’itinéraire intelligent"}
-              </button>
-
-              {planningError && (
-                <div className="rounded-[18px] border border-[#b46a5f] bg-[rgba(180,74,54,0.08)] px-4 py-3 text-sm text-[#8d3f33]">
-                  {planningError}
+              {pointsError && (
+                <div className="absolute bottom-4 right-4 max-w-sm border border-[#9e6c5f] bg-[var(--lpv-paper)] px-4 py-3 text-sm text-[#7a4037]">
+                  {pointsError}
                 </div>
               )}
             </div>
-          </PremiumSection>
+          </section>
 
-          <PremiumSection
-            title="Itinéraires"
-            subtitle="Résultats générés selon les préférences sélectionnées."
-            rightSlot={
-              plannedRoutes.length > 1 ? (
-                <div className="flex items-center gap-2">
-                  {plannedRoutes.map((_, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => setActiveRouteIndex(index)}
-                      className={cx(
-                        "h-2.5 w-2.5 rounded-full transition",
-                        activeRouteIndex === index ? "bg-[#d6b692]" : "bg-[#d5ccbe]"
-                      )}
-                      aria-label={`Voir itinéraire ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              ) : undefined
-            }
-          >
-            {!activeRoute ? (
-              <div className="rounded-[22px] border border-dashed border-[#d7cfc2] bg-white p-5 text-sm leading-6 text-[#6a6156]">
-                Ton itinéraire apparaîtra ici après la planification.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="overflow-hidden rounded-[24px] border border-[#d7cfc2] bg-[#f6f2eb] p-5">
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-[#8b7d71]">
-                    Route recommandée
+          {/* WORLD FILTER */}
+          {mapMode === "world" && (
+            <section className="border-b border-[var(--lpv-line)] py-10">
+              <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--lpv-muted)]">
+                    Monde
                   </p>
-                  <h3 className="mt-2 font-serif text-3xl text-[#221c18]">
-                    {activeRoute.title || "Escapade Le Premier Verre"}
-                  </h3>
-
-                  {activeRoute.subtitle && (
-                    <p className="mt-2 text-sm text-[#6b6156]">
-                      {activeRoute.subtitle}
-                    </p>
-                  )}
-
-                  <div className="mt-5 grid grid-cols-3 gap-3">
-                    <div className="rounded-[18px] border border-[#ddd5c9] bg-white p-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-[#8a7f73]">
-                        Durée
-                      </p>
-                      <p className="mt-2 text-lg font-semibold text-[#221c18]">
-                        {formatDuration(activeRoute.totalDurationMinutes)}
-                      </p>
-                    </div>
-
-                    <div className="rounded-[18px] border border-[#ddd5c9] bg-white p-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-[#8a7f73]">
-                        Distance
-                      </p>
-                      <p className="mt-2 text-lg font-semibold text-[#221c18]">
-                        {formatDistance(activeRoute.totalDistanceKm)}
-                      </p>
-                    </div>
-
-                    <div className="rounded-[18px] border border-[#ddd5c9] bg-white p-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-[#8a7f73]">
-                        Budget
-                      </p>
-                      <p className="mt-2 text-lg font-semibold text-[#221c18]">
-                        {activeRoute.estimatedBudgetLabel || budget}
-                      </p>
-                    </div>
-                  </div>
-
-                  {activeRoute.summary && (
-                    <p className="mt-4 text-sm leading-6 text-[#5d544b]">
-                      {activeRoute.summary}
-                    </p>
-                  )}
+                  <h2 className="mt-3 text-3xl tracking-[-0.03em]">
+                    Choisir les pays
+                  </h2>
+                  <p className="mt-3 text-sm leading-6 text-[var(--lpv-muted)]">
+                    Jusqu’à cinq pays peuvent être affichés simultanément.
+                  </p>
                 </div>
 
                 <div>
-                  <p className="mb-3 text-sm font-medium text-[#221c18]">
-                    Étapes du parcours
-                  </p>
+                  <div className="flex flex-wrap gap-x-6 gap-y-4">
+                    {WORLD_COUNTRIES.map((country) => {
+                      const active = selectedCountries.includes(country);
 
-                  <div className="space-y-3">
-                    {(activeRoute.stops ?? []).map((stop, index) => (
-                      <div
-                        key={`${stop.id}-${index}`}
-                        className="overflow-hidden rounded-[22px] border border-[#ddd5c9] bg-white"
-                      >
-                        <div className="grid gap-0 md:grid-cols-[200px_1fr]">
-                          <div className="relative min-h-[180px] bg-[#efe7dc]">
-                            <Image
-                              src={resolvePointImage(stop)}
-                              alt={stop.name}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          </div>
-
-                          <div className="p-4">
-                            <div className="flex items-start gap-4">
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#d6b692_0%,#8f6242_100%)] text-sm font-semibold text-[#2a1b16]">
-                                {index + 1}
-                              </div>
-
-                              <div className="min-w-0 flex-1">
-                                <p className="text-base font-semibold text-[#221c18]">
-                                  {stop.name}
-                                </p>
-                                <p className="mt-1 text-sm text-[#6b6156]">
-                                  {[stop.city, stop.region, stop.country].filter(Boolean).join(", ")}
-                                </p>
-
-                                {stop.description && (
-                                  <p className="mt-2 text-sm leading-6 text-[#5d544b]">
-                                    {stop.description}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-
-                    {(!activeRoute.stops || activeRoute.stops.length === 0) && (
-                      <div className="rounded-[22px] border border-[#ddd5c9] bg-white p-4 text-sm text-[#6b6156]">
-                        Aucun arrêt détaillé n’a été retourné par l’API, mais la route a bien été tracée sur la carte.
-                      </div>
-                    )}
+                      return (
+                        <button
+                          key={country}
+                          type="button"
+                          onClick={() => toggleCountry(country)}
+                          className={cx(
+                            "border-b pb-1 text-base transition",
+                            active
+                              ? "border-[var(--lpv-ink)] text-[var(--lpv-ink)]"
+                              : "border-transparent text-[var(--lpv-muted)] hover:border-[var(--lpv-line)]"
+                          )}
+                        >
+                          {country}
+                        </button>
+                      );
+                    })}
                   </div>
+
+                  {selectedCountries.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCountries([])}
+                      className="mt-7 text-sm underline underline-offset-4 text-[var(--lpv-muted)]"
+                    >
+                      Effacer la sélection
+                    </button>
+                  )}
                 </div>
               </div>
-            )}
-          </PremiumSection>
-        </div>
+            </section>
+          )}
 
-        <section className="grid gap-6 md:grid-cols-3">
-          {editorialGallery.map((item) => (
-            <article
-              key={item.src}
-              className="group overflow-hidden rounded-[24px] border border-[#d7cfc2] bg-white shadow-[0_18px_45px_rgba(58,42,28,0.08)]"
-            >
-              <div className="relative h-[240px]">
-                <Image
-                  src={item.src}
-                  alt={item.title}
-                  fill
-                  className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                  unoptimized
-                />
-              </div>
-              <div className="p-5">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-[#8b7d71]">
-                  Carte éditoriale
+          {/* PLANNER */}
+          <section className="border-b border-[var(--lpv-line)] py-14 md:py-20">
+            <div className="grid gap-14 xl:grid-cols-[0.9fr_1.1fr]">
+
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--lpv-muted)]">
+                  Itinéraire
                 </p>
-                <h3 className="mt-2 font-serif text-2xl text-[#221c18]">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-[#665d54]">
-                  {item.text}
+                <h2 className="mt-3 text-4xl tracking-[-0.04em] md:text-5xl">
+                  Construire une route.
+                </h2>
+                <p className="mt-4 max-w-lg text-base leading-7 text-[var(--lpv-muted)]">
+                  Choisis un point de départ, une durée, un budget et quelques
+                  préférences. Le Premier Verre propose ensuite un parcours.
                 </p>
-              </div>
-            </article>
-          ))}
-        </section>
 
-        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-          <PremiumSection
-            title="Départs suggérés"
-            subtitle="Les points visibles sur la carte sont repris ici dans une lecture plus claire et plus éditoriale."
-            rightSlot={
-              <div className="rounded-full border border-[#d7cfc2] bg-white px-4 py-2 text-sm text-[#6a6156]">
-                {visiblePoints.length} points
-              </div>
-            }
-          >
-            <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
-              {visiblePoints.slice(0, 16).map((point) => {
-                const isActive = selectedStart?.id === point.id;
-
-                return (
-                  <button
-                    key={point.id}
-                    type="button"
-                    onClick={() => handleChooseStart(point)}
-                    className={cx(
-                      "w-full overflow-hidden rounded-[22px] border text-left transition",
-                      isActive
-                        ? "border-[#d6b692] bg-[#f1e7d8]"
-                        : "border-[#ddd5c9] bg-white hover:bg-[#f5f0e7]"
-                    )}
-                  >
-                    <div className="grid gap-0 sm:grid-cols-[126px_1fr]">
-                      <div className="relative min-h-[126px] bg-[#ede4d7]">
-                        <Image
-                          src={resolvePointImage(point)}
-                          alt={point.name}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-
-                      <div className="p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-base font-semibold text-[#221c18]">
-                              {point.name}
-                            </p>
-                            <p className="mt-1 text-sm text-[#6b6156]">
-                              {[point.city, point.region, point.country].filter(Boolean).join(", ")}
-                            </p>
-                            <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8a7f73]">
-                              {point.type === "vineyard" ? "Vignoble" : "Vin"}
-                            </p>
-                          </div>
-
-                          <div
-                            className={cx(
-                              "rounded-full px-3 py-1 text-xs font-medium",
-                              point.type === "vineyard"
-                                ? "bg-[#6f4b3b] text-[#f2dfd1]"
-                                : "bg-[#e8e0d4] text-[#5c544b]"
-                            )}
-                          >
-                            {point.type === "vineyard" ? "Visite" : "Origine"}
-                          </div>
-                        </div>
-                      </div>
+                <div className="mt-10 space-y-9">
+                  <div>
+                    <p className="mb-3 text-sm">Durée</p>
+                    <div className="flex flex-wrap gap-3">
+                      {[1, 2, 3].map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setDays(value)}
+                          className={cx(
+                            "border px-5 py-3 text-sm transition",
+                            days === value
+                              ? "border-[var(--lpv-ink)] bg-[var(--lpv-ink)] text-[var(--lpv-paper)]"
+                              : "border-[var(--lpv-line)] hover:border-[var(--lpv-ink)]"
+                          )}
+                        >
+                          {value} jour{value > 1 ? "s" : ""}
+                        </button>
+                      ))}
                     </div>
-                  </button>
-                );
-              })}
-
-              {mapMode === "world" && selectedCountries.length === 0 && !loadingPoints && (
-                <div className="rounded-[22px] border border-[#ddd5c9] bg-white p-4 text-sm text-[#6b6156]">
-                  Sélectionne un ou plusieurs pays pour afficher les vins du monde.
-                </div>
-              )}
-
-              {visiblePoints.length === 0 &&
-                !loadingPoints &&
-                !(mapMode === "world" && selectedCountries.length === 0) && (
-                  <div className="rounded-[22px] border border-[#ddd5c9] bg-white p-4 text-sm text-[#6b6156]">
-                    Aucun point disponible pour ce mode.
-                  </div>
-                )}
-            </div>
-          </PremiumSection>
-
-          {selectedPoint ? (
-            <PremiumSection
-              title="Point sélectionné"
-              subtitle="Résumé du point actuellement sélectionné sur la carte."
-            >
-              <PremiumInfoCard className="overflow-hidden p-0">
-                <div className="relative h-[280px] w-full">
-                  <Image
-                    src={resolvePointImage(selectedPoint)}
-                    alt={selectedPoint.name}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                  <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(22,18,15,0.72),rgba(22,18,15,0.12))]" />
-                </div>
-
-                <div className="space-y-3 p-5">
-                  <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full border border-[#ddd4c7] bg-[#faf6ef] px-3 py-1 text-[11px] text-[#685f56]">
-                      {selectedPoint.type === "vineyard" ? "Vignoble" : "Vin"}
-                    </span>
-                    {selectedPoint.region ? (
-                      <span className="rounded-full border border-[#ddd4c7] bg-[#faf6ef] px-3 py-1 text-[11px] text-[#685f56]">
-                        {selectedPoint.region}
-                      </span>
-                    ) : null}
-                    {selectedPoint.country ? (
-                      <span className="rounded-full border border-[#ddd4c7] bg-[#faf6ef] px-3 py-1 text-[11px] text-[#685f56]">
-                        {selectedPoint.country}
-                      </span>
-                    ) : null}
                   </div>
 
                   <div>
-                    <h3 className="font-serif text-2xl text-[#221c18]">
-                      {selectedPoint.name}
-                    </h3>
-                    <p className="mt-2 text-sm leading-7 text-[#6b6156]">
-                      {[selectedPoint.city, selectedPoint.region, selectedPoint.country]
-                        .filter(Boolean)
-                        .join(", ")}
+                    <p className="mb-3 text-sm">Budget</p>
+                    <div className="flex flex-wrap gap-3">
+                      {(["petit", "moyen", "premium"] as Budget[]).map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setBudget(value)}
+                          className={cx(
+                            "border px-5 py-3 text-sm capitalize transition",
+                            budget === value
+                              ? "border-[var(--lpv-ink)] bg-[var(--lpv-ink)] text-[var(--lpv-paper)]"
+                              : "border-[var(--lpv-line)] hover:border-[var(--lpv-ink)]"
+                          )}
+                        >
+                          {value}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="mb-3 text-sm">Rythme</p>
+                    <div className="flex flex-wrap gap-3">
+                      {(
+                        [
+                          ["detente", "Détente"],
+                          ["equilibre", "Équilibré"],
+                          ["intensif", "Intensif"],
+                        ] as Array<[Pace, string]>
+                      ).map(([value, label]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setPace(value)}
+                          className={cx(
+                            "border px-5 py-3 text-sm transition",
+                            pace === value
+                              ? "border-[var(--lpv-ink)] bg-[var(--lpv-ink)] text-[var(--lpv-paper)]"
+                              : "border-[var(--lpv-line)] hover:border-[var(--lpv-ink)]"
+                          )}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="mb-3 text-sm">Styles recherchés</p>
+                    <div className="flex flex-wrap gap-x-5 gap-y-3">
+                      {STYLE_OPTIONS.map((style) => {
+                        const active = styles.includes(style);
+
+                        return (
+                          <button
+                            key={style}
+                            type="button"
+                            onClick={() => handleToggleStyle(style)}
+                            className={cx(
+                              "border-b pb-1 text-sm transition",
+                              active
+                                ? "border-[var(--lpv-ink)] text-[var(--lpv-ink)]"
+                                : "border-transparent text-[var(--lpv-muted)] hover:border-[var(--lpv-line)]"
+                            )}
+                          >
+                            {style}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-[var(--lpv-line)] pt-6">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--lpv-muted)]">
+                      Point de départ
+                    </p>
+                    <p className="mt-2 text-xl">
+                      {selectedStart ? selectedStart.name : "Aucun point sélectionné"}
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-[var(--lpv-muted)]">
+                      {selectedStart
+                        ? [selectedStart.city, selectedStart.region, selectedStart.country]
+                            .filter(Boolean)
+                            .join(", ")
+                        : "Choisis un vignoble sur la carte ou dans la liste plus bas."}
                     </p>
                   </div>
 
-                  {selectedPoint.description ? (
-                    <p className="text-sm leading-7 text-[#5d544b]">
-                      {selectedPoint.description}
+                  <button
+                    type="button"
+                    onClick={handlePlanRoute}
+                    disabled={planning || !selectedStart}
+                    className="border border-[var(--lpv-ink)] bg-[var(--lpv-ink)] px-6 py-4 text-sm text-[var(--lpv-paper)] transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-35"
+                  >
+                    {planning
+                      ? "Planification en cours…"
+                      : "Générer l’itinéraire →"}
+                  </button>
+
+                  {planningError && (
+                    <p className="border-l-2 border-[#8d3f33] pl-4 text-sm text-[#8d3f33]">
+                      {planningError}
                     </p>
-                  ) : selectedPoint.originLabel ? (
-                    <p className="text-sm leading-7 text-[#5d544b]">
-                      {selectedPoint.originLabel}
-                    </p>
-                  ) : null}
-                </div>
-              </PremiumInfoCard>
-            </PremiumSection>
-          ) : (
-            <PremiumSection
-              title="Point sélectionné"
-              subtitle="Le détail du point apparaîtra ici lorsque tu cliqueras sur la carte."
-            >
-              <div className="overflow-hidden rounded-[22px] border border-dashed border-[#d7cfc2] bg-white">
-                <div className="relative h-[220px] w-full">
-                  <Image
-                    src="/images/lpv/IMG_9706.JPG"
-                    alt="Sélection à venir"
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                  <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(22,18,15,0.65),rgba(22,18,15,0.12))]" />
-                </div>
-                <div className="p-5 text-sm leading-6 text-[#6a6156]">
-                  Sélectionne un point sur la carte ou dans la liste pour afficher son résumé ici.
+                  )}
                 </div>
               </div>
-            </PremiumSection>
+
+              {/* ROUTE RESULT */}
+              <div className="border-l-0 border-[var(--lpv-line)] xl:border-l xl:pl-12">
+                <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--lpv-muted)]">
+                  Parcours proposé
+                </p>
+
+                {!activeRoute ? (
+                  <div className="mt-6 border-t border-[var(--lpv-line)] py-10">
+                    <p className="max-w-md text-2xl leading-9 text-[var(--lpv-muted)]">
+                      Ton itinéraire apparaîtra ici après avoir choisi un départ
+                      et lancé la planification.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-6 border-t border-[var(--lpv-line)] pt-8">
+                    <h3 className="text-4xl tracking-[-0.04em]">
+                      {activeRoute.title || "Escapade Le Premier Verre"}
+                    </h3>
+
+                    {activeRoute.subtitle && (
+                      <p className="mt-3 text-base text-[var(--lpv-muted)]">
+                        {activeRoute.subtitle}
+                      </p>
+                    )}
+
+                    <div className="mt-8 grid grid-cols-3 border-y border-[var(--lpv-line)]">
+                      <div className="py-5">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                          Durée
+                        </p>
+                        <p className="mt-2">{formatDuration(activeRoute.totalDurationMinutes)}</p>
+                      </div>
+                      <div className="border-l border-[var(--lpv-line)] px-5 py-5">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                          Distance
+                        </p>
+                        <p className="mt-2">{formatDistance(activeRoute.totalDistanceKm)}</p>
+                      </div>
+                      <div className="border-l border-[var(--lpv-line)] pl-5 py-5">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                          Budget
+                        </p>
+                        <p className="mt-2">{activeRoute.estimatedBudgetLabel || budget}</p>
+                      </div>
+                    </div>
+
+                    {activeRoute.summary && (
+                      <p className="mt-7 max-w-xl text-base leading-7 text-[var(--lpv-muted)]">
+                        {activeRoute.summary}
+                      </p>
+                    )}
+
+                    <div className="mt-10">
+                      <p className="mb-4 text-sm">Étapes</p>
+
+                      <div className="divide-y divide-[var(--lpv-line)] border-y border-[var(--lpv-line)]">
+                        {(activeRoute.stops ?? []).map((stop, index) => (
+                          <div
+                            key={`${stop.id}-${index}`}
+                            className="grid gap-5 py-5 sm:grid-cols-[46px_1fr]"
+                          >
+                            <div className="text-xl">{String(index + 1).padStart(2, "0")}</div>
+                            <div>
+                              <p className="text-lg">{stop.name}</p>
+                              <p className="mt-1 text-sm text-[var(--lpv-muted)]">
+                                {[stop.city, stop.region, stop.country]
+                                  .filter(Boolean)
+                                  .join(", ")}
+                              </p>
+
+                              {stop.description && (
+                                <p className="mt-3 text-sm leading-6 text-[var(--lpv-muted)]">
+                                  {stop.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* POINTS */}
+          <section className="py-14 md:py-20">
+            <div className="grid gap-14 xl:grid-cols-[0.95fr_1.05fr]">
+
+              <div>
+                <div className="flex items-end justify-between border-b border-[var(--lpv-line)] pb-5">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--lpv-muted)]">
+                      Explorer
+                    </p>
+                    <h2 className="mt-2 text-4xl tracking-[-0.04em]">
+                      Départs suggérés
+                    </h2>
+                  </div>
+                  <p className="text-sm text-[var(--lpv-muted)]">
+                    {visiblePoints.length}
+                  </p>
+                </div>
+
+                <div className="max-h-[650px] overflow-y-auto">
+                  {visiblePoints.slice(0, 16).map((point) => {
+                    const isActive = selectedStart?.id === point.id;
+
+                    return (
+                      <button
+                        key={point.id}
+                        type="button"
+                        onClick={() => handleChooseStart(point)}
+                        className={cx(
+                          "grid w-full grid-cols-[105px_1fr] gap-5 border-b border-[var(--lpv-line)] py-5 text-left transition",
+                          isActive ? "bg-black/[0.035]" : "hover:bg-black/[0.02]"
+                        )}
+                      >
+                        <div className="relative h-[90px] w-full overflow-hidden bg-[#e3dbcf]">
+                          <Image
+                            src={resolvePointImage(point)}
+                            alt={point.name}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+
+                        <div className="py-1">
+                          <p className="text-lg">{point.name}</p>
+                          <p className="mt-1 text-sm text-[var(--lpv-muted)]">
+                            {[point.city, point.region, point.country]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                          <p className="mt-3 text-[10px] uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                            {point.type === "vineyard" ? "Vignoble" : "Vin"}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+
+                  {visiblePoints.length === 0 && !loadingPoints && (
+                    <div className="border-b border-[var(--lpv-line)] py-8 text-sm text-[var(--lpv-muted)]">
+                      Aucun point disponible pour cette sélection.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* SELECTED POINT */}
+              <div className="xl:border-l xl:border-[var(--lpv-line)] xl:pl-12">
+                <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--lpv-muted)]">
+                  Point sélectionné
+                </p>
+
+                {selectedPoint ? (
+                  <div className="mt-5">
+                    <div className="relative h-[360px] overflow-hidden bg-[#e3dbcf] md:h-[460px]">
+                      <Image
+                        src={resolvePointImage(selectedPoint)}
+                        alt={selectedPoint.name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+
+                    <div className="border-b border-[var(--lpv-line)] py-7">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                        {selectedPoint.type === "vineyard" ? "Vignoble" : "Vin"}
+                      </p>
+
+                      <h3 className="mt-2 text-4xl tracking-[-0.04em]">
+                        {selectedPoint.name}
+                      </h3>
+
+                      <p className="mt-3 text-sm text-[var(--lpv-muted)]">
+                        {[selectedPoint.city, selectedPoint.region, selectedPoint.country]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+
+                      {selectedPoint.description ? (
+                        <p className="mt-5 max-w-xl text-base leading-7 text-[var(--lpv-muted)]">
+                          {selectedPoint.description}
+                        </p>
+                      ) : selectedPoint.originLabel ? (
+                        <p className="mt-5 max-w-xl text-base leading-7 text-[var(--lpv-muted)]">
+                          {selectedPoint.originLabel}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-5 border-y border-[var(--lpv-line)] py-12">
+                    <p className="max-w-md text-2xl leading-9 text-[var(--lpv-muted)]">
+                      Sélectionne un point sur la carte ou dans la liste pour
+                      découvrir son détail.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* EDITORIAL DISCOVERY */}
+          <section className="border-t border-[var(--lpv-line)] py-16 md:py-24">
+            <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr]">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--lpv-muted)]">
+                  Continuer l’exploration
+                </p>
+
+                <h2 className="mt-4 max-w-md text-5xl tracking-[-0.05em] md:text-6xl">
+                  Derrière la carte,
+                  <br />
+                  il y a les gens.
+                </h2>
+
+                <p className="mt-6 max-w-md text-base leading-7 text-[var(--lpv-muted)]">
+                  Des domaines à connaître, des régions à comprendre et des
+                  histoires qui donnent un peu plus de sens à ce qu’on boit.
+                </p>
+              </div>
+
+              <div className="border-t border-[var(--lpv-line)]">
+                {editorialContent.producers.map((producer) => (
+                  <a
+                    key={producer._id}
+                    href={`/producteurs/${producer.slug}`}
+                    className="group grid gap-5 border-b border-[var(--lpv-line)] py-6 sm:grid-cols-[130px_1fr_auto] sm:items-center"
+                  >
+                    <div className="relative h-[92px] overflow-hidden bg-[#e3dbcf]">
+                      {producer.imageUrl ? (
+                        <Image
+                          src={producer.imageUrl}
+                          alt={producer.name || ""}
+                          fill
+                          className="object-cover transition duration-500 group-hover:scale-[1.025]"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-[10px] uppercase tracking-[0.18em] text-[var(--lpv-muted)]">
+                          Photo à venir
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                        {[producer.municipality, producer.region?.name]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+
+                      <h3 className="mt-2 text-2xl tracking-[-0.03em]">
+                        {producer.name}
+                      </h3>
+
+                      {producer.oneLiner && (
+                        <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--lpv-muted)]">
+                          {producer.oneLiner}
+                        </p>
+                      )}
+                    </div>
+
+                    <span className="hidden text-xl transition-transform duration-300 group-hover:translate-x-1 sm:block">
+                      →
+                    </span>
+                  </a>
+                ))}
+
+                {editorialContent.producers.length > 0 && (
+                  <div className="pt-6">
+                    <a
+                      href="/producteurs"
+                      className="text-sm underline decoration-[var(--lpv-line)] underline-offset-8 transition hover:decoration-[var(--lpv-ink)]"
+                    >
+                      Voir tous les producteurs
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {editorialContent.regions.length > 0 && (
+            <section className="border-t border-[var(--lpv-line)] py-16 md:py-24">
+              <div className="flex items-end justify-between gap-6 border-b border-[var(--lpv-line)] pb-6">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--lpv-muted)]">
+                    Géographie du vin
+                  </p>
+                  <h2 className="mt-3 text-4xl tracking-[-0.04em] md:text-5xl">
+                    Régions à explorer
+                  </h2>
+                </div>
+
+                <a
+                  href="/regions"
+                  className="hidden text-sm underline decoration-[var(--lpv-line)] underline-offset-8 md:block"
+                >
+                  Toutes les régions
+                </a>
+              </div>
+
+              <div className="grid md:grid-cols-3">
+                {editorialContent.regions.map((region, index) => (
+                  <a
+                    key={region._id}
+                    href={`/regions/${region.slug}`}
+                    className={`group py-7 md:px-7 ${
+                      index > 0
+                        ? "border-t border-[var(--lpv-line)] md:border-l md:border-t-0"
+                        : ""
+                    } ${index === 0 ? "md:pl-0" : ""}`}
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden bg-[#e3dbcf]">
+                      {region.imageUrl ? (
+                        <Image
+                          src={region.imageUrl}
+                          alt={region.name || ""}
+                          fill
+                          className="object-cover transition duration-700 group-hover:scale-[1.025]"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-[10px] uppercase tracking-[0.18em] text-[var(--lpv-muted)]">
+                          Région
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="mt-5 text-[10px] uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                      {region.country?.name || "Région viticole"}
+                    </p>
+
+                    <div className="mt-2 flex items-start justify-between gap-5">
+                      <h3 className="text-2xl tracking-[-0.03em]">
+                        {region.name}
+                      </h3>
+                      <span className="transition-transform duration-300 group-hover:translate-x-1">
+                        →
+                      </span>
+                    </div>
+
+                    {region.description && (
+                      <p className="mt-3 text-sm leading-6 text-[var(--lpv-muted)]">
+                        {region.description}
+                      </p>
+                    )}
+                  </a>
+                ))}
+              </div>
+
+              <a
+                href="/regions"
+                className="mt-4 inline-block text-sm underline decoration-[var(--lpv-line)] underline-offset-8 md:hidden"
+              >
+                Toutes les régions
+              </a>
+            </section>
           )}
+
+          {(editorialContent.articles.length > 0 ||
+            editorialContent.guides.length > 0) && (
+            <section className="border-t border-[var(--lpv-line)] py-16 md:py-24">
+              <div className="grid gap-14 lg:grid-cols-2">
+
+                {editorialContent.articles.length > 0 && (
+                  <div>
+                    <div className="flex items-end justify-between border-b border-[var(--lpv-line)] pb-5">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--lpv-muted)]">
+                          Journal
+                        </p>
+                        <h2 className="mt-2 text-4xl tracking-[-0.04em]">
+                          À lire avant de partir
+                        </h2>
+                      </div>
+
+                      <a
+                        href="/blog"
+                        className="hidden text-sm underline decoration-[var(--lpv-line)] underline-offset-8 sm:block"
+                      >
+                        Tous les articles
+                      </a>
+                    </div>
+
+                    <div>
+                      {editorialContent.articles.map((article, index) => (
+                        <a
+                          key={article._id}
+                          href={`/blog/${article.slug}`}
+                          className="group grid grid-cols-[46px_1fr_auto] gap-4 border-b border-[var(--lpv-line)] py-6"
+                        >
+                          <span className="text-sm text-[var(--lpv-muted)]">
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+
+                          <div>
+                            {article.category && (
+                              <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                                {article.category}
+                              </p>
+                            )}
+
+                            <h3 className="mt-1 text-xl leading-7">
+                              {article.title}
+                            </h3>
+
+                            {article.excerpt && (
+                              <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--lpv-muted)]">
+                                {article.excerpt}
+                              </p>
+                            )}
+                          </div>
+
+                          <span className="transition-transform duration-300 group-hover:translate-x-1">
+                            →
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {editorialContent.guides.length > 0 && (
+                  <div>
+                    <div className="flex items-end justify-between border-b border-[var(--lpv-line)] pb-5">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.25em] text-[var(--lpv-muted)]">
+                          Pour aller plus loin
+                        </p>
+                        <h2 className="mt-2 text-4xl tracking-[-0.04em]">
+                          Guides
+                        </h2>
+                      </div>
+
+                      <a
+                        href="/guides"
+                        className="hidden text-sm underline decoration-[var(--lpv-line)] underline-offset-8 sm:block"
+                      >
+                        Tous les guides
+                      </a>
+                    </div>
+
+                    <div>
+                      {editorialContent.guides.map((guide, index) => (
+                        <a
+                          key={guide._id}
+                          href={`/guides/${guide.slug}`}
+                          className="group grid grid-cols-[46px_1fr_auto] gap-4 border-b border-[var(--lpv-line)] py-6"
+                        >
+                          <span className="text-sm text-[var(--lpv-muted)]">
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+
+                          <div>
+                            {guide.guideType && (
+                              <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                                {guide.guideType}
+                              </p>
+                            )}
+
+                            <h3 className="mt-1 text-xl leading-7">
+                              {guide.title}
+                            </h3>
+
+                            {guide.excerpt && (
+                              <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--lpv-muted)]">
+                                {guide.excerpt}
+                              </p>
+                            )}
+                          </div>
+
+                          <span className="transition-transform duration-300 group-hover:translate-x-1">
+                            →
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </section>
+          )}
+
         </div>
-      </PremiumPageShell>      
-</div>
+      </main>
     </>
   );
 }

@@ -1,43 +1,89 @@
 import Link from "next/link";
-import { WineJournalButton } from "@/components/journal/WineJournalButton";
 import { notFound } from "next/navigation";
-import { PortableText } from "@portabletext/react";
 import type { PortableTextBlock } from "@portabletext/types";
+import { PortableText } from "@portabletext/react";
+
+import { WineJournalButton } from "@/components/journal/WineJournalButton";
+import FavoriteButton from "@/components/favorites/FavoriteButton";
+import AddToListButton from "@/components/lists/AddToListButton";
+import WineHero from "@/components/wine/WineHero";
+import WineRatings from "@/components/wine/WineRatings";
 import { client } from "@/sanity/lib/client";
 import { wineBySlugQuery } from "@/sanity/lib/queries";
 
 export const revalidate = 60;
 
 type Wine = {
+  _id: string;
   name: string;
+  slug?: string;
   vintage?: number;
   color?: string;
-  style?: string;
-  producer?: { name?: string; slug?: string };
-  vineyard?: { name?: string; slug?: string };
+  bottleImage?: any;
+
+  producer?: {
+    _id?: string;
+    name?: string;
+    slug?: string;
+  };
+
   country?: { name?: string };
   region?: { name?: string };
   appellation?: { name?: string };
-  grapes?: { name?: string }[];
-  saqPrice?: number;
-  domainPrice?: number;
-  availableAtSaq?: boolean;
-  availableAtDomain?: boolean;
-  servingTemperature?: string;
-  cellaringPotential?: string;
-  alcohol?: number;
-  sugar?: string;
-  acidity?: number;
+
+  grapes?: {
+    name?: string;
+    slug?: string;
+  }[];
+
+  approxPrice?: number;
+  purchaseChannel?: string;
+  purchaseChannelDetails?: string;
+  purchaseUrl?: string;
+  purchaseLastChecked?: string;
+
+  oneLiner?: string;
+  tastingKeywords?: string[];
+  perfectFor?: string[];
+  whyWeRecommend?: string;
+
   body?: number;
-  tannins?: number;
-  isOrganic?: boolean;
-  isNatural?: boolean;
-  isBiodynamic?: boolean;
-  isVegan?: boolean;
-  foodPairings?: { _id: string; name: string; slug: string; category?: string }[];
-  articles?: { _id: string; title: string; slug: string; excerpt?: string }[];
+  sweetness?: number;
+  roundness?: number;
+
+  servingTemperature?: string;
+  decant?: boolean;
+
+  foodPairings?: {
+    _id?: string;
+    name?: string;
+    slug?: string;
+  }[];
+
   tastingNotes?: PortableTextBlock[];
 };
+
+function formatPurchaseChannel(value?: string) {
+  const labels: Record<string, string> = {
+    saq: "SAQ",
+    "private-import": "Importation privée",
+    producer: "Producteur",
+    other: "Autre",
+  };
+
+  return value ? labels[value] || value : null;
+}
+
+function formatDate(value?: string) {
+  if (!value) return null;
+
+  return new Intl.DateTimeFormat("fr-CA", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00Z`));
+}
 
 export default async function WinePage({
   params,
@@ -45,121 +91,322 @@ export default async function WinePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const wine = await client.fetch<Wine | null>(wineBySlugQuery, { slug });
+
+  const wine = await client.fetch<Wine | null>(wineBySlugQuery, {
+    slug,
+  });
 
   if (!wine) notFound();
 
-  const badges = [
-    wine.isOrganic ? "Bio" : null,
-    wine.isNatural ? "Nature" : null,
-    wine.isBiodynamic ? "Biodynamie" : null,
-    wine.isVegan ? "Végan" : null,
-  ].filter(Boolean);
+  const purchaseLabel = formatPurchaseChannel(wine.purchaseChannel);
+  const checkedDate = formatDate(wine.purchaseLastChecked);
 
   return (
-    <main className="min-h-screen bg-[#0f1713] px-6 py-24 text-[#f4ede5]">
-      <article className="mx-auto max-w-5xl">
-        <Link href="/vins" className="text-sm text-[#d8c2b2]">
-          ← Retour aux vins
-        </Link>
+    <main className="min-h-screen bg-[var(--lpv-paper)] text-[var(--lpv-ink)]">
+      <article className="mx-auto max-w-[1500px] px-5 pb-24 pt-8 sm:px-8 md:px-12 lg:px-16">
+        <div className="flex items-center justify-between gap-6 border-b border-[var(--lpv-line)] pb-5">
+          <Link
+            href="/vins"
+            className="text-xs uppercase tracking-[0.22em] text-[var(--lpv-muted)] transition hover:text-[var(--lpv-ink)]"
+          >
+            ← Retour aux vins
+          </Link>
 
-        <h1 className="mt-8 text-4xl font-semibold leading-tight md:text-6xl">
-          {wine.name}
-        </h1>
-
-        <p className="mt-6 text-[#d7c2b5]">
-          {[wine.vintage, wine.color, wine.style, wine.region?.name]
-            .filter(Boolean)
-            .join(" · ")}
-        </p>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          {wine.producer?.slug ? (
-            <Link href={`/producteurs/${wine.producer.slug}`} className="rounded-full border border-white/10 px-4 py-2 text-sm">
-              Producteur : {wine.producer.name}
-            </Link>
-          ) : null}
-
-          {wine.vineyard?.slug ? (
-            <Link href={`/vignobles/${wine.vineyard.slug}`} className="rounded-full border border-white/10 px-4 py-2 text-sm">
-              Vignoble : {wine.vineyard.name}
-            </Link>
-          ) : null}
+          <div className="flex items-center gap-3">
+            <FavoriteButton wineId={wine._id} size="sm" />
+            <AddToListButton wineId={wine._id} />
+            <WineJournalButton wineId={wine._id} />
+          </div>
         </div>
 
-        <section className="mt-10 grid gap-4 md:grid-cols-3">
-          {[
-            ["Pays", wine.country?.name],
-            ["Appellation", wine.appellation?.name],
-            ["Cépages", wine.grapes?.map((grape) => grape.name).filter(Boolean).join(", ")],
-            ["Prix SAQ", wine.saqPrice ? `${wine.saqPrice} $` : null],
-            ["Prix domaine", wine.domainPrice ? `${wine.domainPrice} $` : null],
-            ["Température", wine.servingTemperature],
-            ["Garde", wine.cellaringPotential],
-            ["Alcool", wine.alcohol ? `${wine.alcohol} %` : null],
-            ["Sucre", wine.sugar],
-            ["Acidité", wine.acidity],
-            ["Corps", wine.body],
-            ["Tanins", wine.tannins],
-          ]
-            .filter(([, value]) => value)
-            .map(([label, value]) => (
-              <div key={label} className="rounded-[22px] border border-white/10 bg-white/5 p-5">
-                <p className="text-xs uppercase tracking-[0.22em] text-[#9ab3a1]">
-                  {label}
-                </p>
-                <p className="mt-2 text-[#fff8f1]">{value}</p>
-              </div>
-            ))}
-          <div className="mt-8">
-            <WineJournalButton wineId={slug} />
-          </div>
-        </section>
+        <WineHero
+          name={wine.name}
+          producer={wine.producer?.name}
+          producerSlug={wine.producer?.slug}
+          country={wine.country?.name}
+          region={wine.region?.name}
+          appellation={wine.appellation?.name}
+          color={wine.color}
+          vintage={wine.vintage}
+          bottleImage={wine.bottleImage}
+        />
 
-        {badges.length > 0 ? (
-          <div className="mt-8 flex flex-wrap gap-2">
-            {badges.map((badge) => (
-              <span key={badge} className="rounded-full border border-[#6f8f7a] bg-[rgba(111,143,122,0.12)] px-3 py-1 text-xs uppercase tracking-[0.18em] text-[#e1eee5]">
-                {badge}
-              </span>
-            ))}
-          </div>
-        ) : null}
+        {wine.oneLiner ? (
+          <section className="border-b border-[var(--lpv-line)] py-16 md:py-24">
+            <div className="grid gap-10 md:grid-cols-[0.28fr_0.72fr]">
+              <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                En une phrase
+              </p>
 
-        {wine.tastingNotes ? (
-          <section className="mt-12 space-y-6 text-[1.03rem] leading-8 text-[#eadfd6]">
-            <h2 className="text-2xl font-semibold">Notes de dégustation</h2>
-            <PortableText value={wine.tastingNotes} />
-          </section>
-        ) : null}
-
-        {wine.foodPairings && wine.foodPairings.length > 0 ? (
-          <section className="mt-14">
-            <h2 className="text-2xl font-semibold">Accords mets-vins</h2>
-            <div className="mt-6 flex flex-wrap gap-3">
-              {wine.foodPairings.map((food) => (
-                <span key={food._id} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm">
-                  {food.name}
-                </span>
-              ))}
+              <p className="max-w-5xl text-[clamp(2.2rem,5vw,5rem)] font-medium leading-[1.06] tracking-[-0.035em]">
+                {wine.oneLiner}
+              </p>
             </div>
           </section>
         ) : null}
 
-        {wine.articles && wine.articles.length > 0 ? (
-          <section className="mt-14">
-            <h2 className="text-2xl font-semibold">Articles liés</h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {wine.articles.map((article) => (
-                <Link key={article._id} href={`/blog/${article.slug}`} className="rounded-[22px] border border-white/10 bg-white/5 p-5">
-                  <p className="font-semibold">{article.title}</p>
-                  {article.excerpt ? (
-                    <p className="mt-2 text-sm leading-6 text-[#d5c0b3]">
-                      {article.excerpt}
+        <WineRatings
+          body={wine.body}
+          sweetness={wine.sweetness}
+          roundness={wine.roundness}
+        />
+
+        {(wine.tastingKeywords?.length ||
+          wine.perfectFor?.length ||
+          wine.grapes?.length) ? (
+          <section className="border-b border-[var(--lpv-line)] py-16 md:py-24">
+            <div className="grid gap-14 lg:grid-cols-3">
+              <div>
+                <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                  On goûte
+                </p>
+
+                <div className="mt-7 flex flex-wrap gap-x-3 gap-y-2">
+                  {wine.tastingKeywords?.map((item) => (
+                    <span
+                      key={item}
+                      className="border-b border-[var(--lpv-line)] pb-1 text-xl"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                  Parfait pour
+                </p>
+
+                <div className="mt-7 space-y-3">
+                  {wine.perfectFor?.map((item) => (
+                    <p
+                      key={item}
+                      className="border-t border-[var(--lpv-line)] pt-3 text-lg"
+                    >
+                      {item}
+                    </p>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                  Cépage ou assemblage
+                </p>
+
+                <div className="mt-7 space-y-3">
+                  {wine.grapes?.map((grape) => (
+                    <p
+                      key={grape.name}
+                      className="border-t border-[var(--lpv-line)] pt-3 text-lg"
+                    >
+                      {grape.name}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="border-b border-[var(--lpv-line)] py-16 md:py-24">
+          <div className="grid gap-14 lg:grid-cols-[0.44fr_0.56fr]">
+            <div>
+              <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                Service
+              </p>
+
+              <h2 className="lpv-display mt-6 text-5xl leading-[0.9] md:text-6xl">
+                À table.
+              </h2>
+            </div>
+
+            <div className="grid gap-0 sm:grid-cols-2">
+              <div className="border-t border-[var(--lpv-line)] py-5 sm:pr-8">
+                <p className="text-xs uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                  Température
+                </p>
+                <p className="mt-3 text-xl">
+                  {wine.servingTemperature || "À compléter"}
+                </p>
+              </div>
+
+              <div className="border-t border-[var(--lpv-line)] py-5 sm:border-l sm:pl-8">
+                <p className="text-xs uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                  Carafe
+                </p>
+                <p className="mt-3 text-xl">
+                  {wine.decant ? "Oui" : "Non"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {(wine.approxPrice ||
+          wine.purchaseChannel ||
+          wine.purchaseUrl) ? (
+          <section className="border-b border-[var(--lpv-line)] py-16 md:py-24">
+            <div className="grid gap-14 lg:grid-cols-[0.44fr_0.56fr]">
+              <div>
+                <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                  Où le trouver
+                </p>
+
+                {typeof wine.approxPrice === "number" ? (
+                  <p className="lpv-display mt-6 text-6xl leading-none md:text-7xl">
+                    {wine.approxPrice.toLocaleString("fr-CA", {
+                      style: "currency",
+                      currency: "CAD",
+                    })}
+                  </p>
+                ) : null}
+
+                <p className="mt-4 text-sm text-[var(--lpv-muted)]">
+                  Prix approximatif
+                </p>
+              </div>
+
+              <div>
+                <div className="border-t border-[var(--lpv-line)] py-5">
+                  <p className="text-xs uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                    Circuit d’achat
+                  </p>
+                  <p className="mt-3 text-xl">
+                    {purchaseLabel || "À compléter"}
+                  </p>
+
+                  {wine.purchaseChannelDetails ? (
+                    <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--lpv-muted)]">
+                      {wine.purchaseChannelDetails}
                     </p>
                   ) : null}
-                </Link>
-              ))}
+                </div>
+
+                {checkedDate ? (
+                  <div className="border-t border-[var(--lpv-line)] py-5">
+                    <p className="text-xs uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
+                      Dernière vérification
+                    </p>
+                    <p className="mt-3 text-base">{checkedDate}</p>
+                  </div>
+                ) : null}
+
+                {wine.purchaseUrl ? (
+                  <div className="border-t border-[var(--lpv-line)] pt-6">
+                    <a
+                      href={wine.purchaseUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-3 rounded-full bg-[var(--lpv-ink)] px-7 py-4 text-xs font-medium uppercase tracking-[0.2em] !text-white transition hover:opacity-80"
+                    >
+                      Voir où l’acheter
+                      <span>↗</span>
+                    </a>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {wine.whyWeRecommend ? (
+          <section className="border-b border-[var(--lpv-line)] py-16 md:py-24">
+            <div className="grid gap-10 md:grid-cols-[0.3fr_0.7fr]">
+              <div>
+                <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                  Pourquoi on l’aime
+                </p>
+
+
+              </div>
+
+              <p className="max-w-4xl text-xl leading-9 md:text-2xl md:leading-10">
+                {wine.whyWeRecommend}
+              </p>
+            </div>
+          </section>
+        ) : null}
+
+        {wine.foodPairings?.length ? (
+          <section className="border-b border-[var(--lpv-line)] py-16 md:py-24">
+            <div className="grid gap-10 md:grid-cols-[0.3fr_0.7fr]">
+              <div>
+                <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                  Accords
+                </p>
+
+                <h2 className="lpv-display mt-6 text-5xl leading-[0.9] md:text-6xl">
+                  Avec quoi?
+                </h2>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {wine.foodPairings.map((pairing) =>
+                  pairing.slug ? (
+                    <Link
+                      key={pairing._id || pairing.slug}
+                      href={`/accords/${pairing.slug}`}
+                      className="border-t border-[var(--lpv-line)] py-4 text-lg transition hover:pl-2"
+                    >
+                      {pairing.name} →
+                    </Link>
+                  ) : (
+                    <p
+                      key={pairing._id || pairing.name}
+                      className="border-t border-[var(--lpv-line)] py-4 text-lg"
+                    >
+                      {pairing.name}
+                    </p>
+                  )
+                )}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {wine.tastingNotes?.length ? (
+          <section className="border-b border-[var(--lpv-line)] py-16 md:py-24">
+            <div className="grid gap-10 md:grid-cols-[0.3fr_0.7fr]">
+              <div>
+                <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                  Dégustation
+                </p>
+
+                <h2 className="lpv-display mt-6 text-5xl leading-[0.9] md:text-6xl">
+                  En détail.
+                </h2>
+              </div>
+
+              <div className="prose prose-stone max-w-none">
+                <PortableText value={wine.tastingNotes} />
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {wine.producer?.name ? (
+          <section className="py-16 md:py-24">
+            <div className="grid gap-10 md:grid-cols-[0.3fr_0.7fr]">
+              <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                Le producteur
+              </p>
+
+              <div>
+                <h2 className="lpv-display text-5xl leading-[0.9] md:text-7xl">
+                  {wine.producer.name}
+                </h2>
+
+                {wine.producer.slug ? (
+                  <Link
+                    href={`/producteurs/${wine.producer.slug}`}
+                    className="lpv-text-link mt-8 w-fit"
+                  >
+                    Découvrir le producteur <span>→</span>
+                  </Link>
+                ) : null}
+              </div>
             </div>
           </section>
         ) : null}

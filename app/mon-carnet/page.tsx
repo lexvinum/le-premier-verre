@@ -1,147 +1,328 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { getJournal, getJournalStats } from "@/lib/journal";
+import type { SanityImageSource } from "@sanity/image-url";
+
+import { client } from "@/sanity/lib/client";
+import { urlFor } from "@/sanity/lib/image";
+
+type JournalEntry = {
+  _id: string;
+  tastedAt: string;
+  appreciation: "liked" | "average" | "disliked";
+  note?: string;
+  buyAgain: boolean;
+  wine?: {
+    _id: string;
+    name?: string;
+    slug?: string;
+    vintage?: number;
+    color?: string;
+    bottleImage?: SanityImageSource;
+    producer?: {
+      name?: string;
+    };
+  };
+};
+
+const appreciationLabels: Record<JournalEntry["appreciation"], string> = {
+  liked: "Aimé",
+  average: "Moyen",
+  disliked: "Pas aimé",
+};
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("fr-CA", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00Z`));
+}
 
 export default async function MonCarnetPage() {
   const { userId } = await auth();
 
-  const entries = userId ? await getJournal(userId) : [];
-  const stats = userId
-    ? await getJournalStats(userId)
-    : { total: 0, favorites: 0, tasted: 0, buyAgain: 0, gift: 0, avoid: 0 };
-
-  return (
-    <main className="bg-[#efe6d7] text-[#263227]">
-      <section className="relative overflow-hidden px-8 py-24 md:px-14 md:py-32">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_16%,rgba(217,183,131,.30),transparent_32%),radial-gradient(circle_at_88%_38%,rgba(113,115,91,.14),transparent_34%)]" />
-
-        <div className="relative mx-auto grid max-w-7xl gap-12 md:grid-cols-[.9fr_1.1fr] md:items-end">
-          <div>
-            <p className="text-xs uppercase tracking-[0.42em] text-[#8f6242]">
-              Premium
+  if (!userId) {
+    return (
+      <main className="min-h-screen bg-[var(--lpv-paper)] text-[var(--lpv-ink)]">
+        <section className="border-b border-[var(--lpv-line)]">
+          <div className="lpv-container py-20 md:py-28">
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              Mon espace
             </p>
 
-            <h1 className="lpv-display mt-6 text-[clamp(5rem,10vw,11rem)] leading-[0.76] tracking-[-0.09em]">
+            <h1 className="lpv-display mt-7 max-w-5xl text-[clamp(4.8rem,10vw,10rem)] leading-[0.82]">
               Mon carnet
               <br />
               de vin.
             </h1>
 
-            <p className="mt-8 max-w-2xl text-lg leading-8 text-[#4b3a2c]">
-              Tes bouteilles gardées, goûtées, aimées, à racheter ou à offrir.
-              Une mémoire personnelle autour du vin.
+            <p className="mt-8 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
+              Les bouteilles bues. Les impressions qu’on veut garder.
+            </p>
+          </div>
+        </section>
+
+        <section className="lpv-container py-24 text-center">
+          <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+            Connexion requise
+          </p>
+
+          <h2 className="lpv-display mt-6 text-5xl md:text-7xl">
+            Ton carnet t’attend.
+          </h2>
+
+          <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
+            Connecte-toi pour retrouver les bouteilles que tu as bues et les
+            notes que tu veux garder.
+          </p>
+
+          <Link href="/connexion" className="lpv-button lpv-button-dark mt-9">
+            Se connecter
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
+  const entries = await client.fetch<JournalEntry[]>(
+    `*[
+      _type == "wineJournalEntry" &&
+      userId == $userId
+    ] | order(tastedAt desc, createdAt desc) {
+      _id,
+      tastedAt,
+      appreciation,
+      note,
+      buyAgain,
+      wine->{
+        _id,
+        name,
+        "slug": slug.current,
+        vintage,
+        color,
+        bottleImage,
+        producer->{name}
+      }
+    }`,
+    { userId }
+  );
+
+  const likedCount = entries.filter(
+    (entry) => entry.appreciation === "liked"
+  ).length;
+
+  const buyAgainCount = entries.filter(
+    (entry) => entry.buyAgain
+  ).length;
+
+  return (
+    <main className="min-h-screen bg-[var(--lpv-paper)] text-[var(--lpv-ink)]">
+
+      {/* HERO */}
+      <section className="border-b border-[var(--lpv-line)]">
+        <div className="lpv-container grid gap-12 py-16 md:grid-cols-[1fr_0.42fr] md:items-end md:py-24">
+          <div>
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              Mon espace
             </p>
 
-            {!userId && (
-              <Link
-                href="/sign-in"
-                className="mt-10 inline-flex rounded-full bg-[#3b2a20] px-8 py-3 text-xs uppercase tracking-[0.28em] text-[#fff8ee]"
-              >
-                Se connecter
-              </Link>
-            )}
+            <h1 className="lpv-display mt-7 text-[clamp(4.8rem,10vw,10rem)] leading-[0.8]">
+              Mon carnet
+              <br />
+              de vin.
+            </h1>
           </div>
 
-          <div className="relative">
-            <img
-              src="/images/lpv/IMG_0048.JPG"
-              alt="Carnet de vin"
-              className="h-[600px] w-full rounded-[42px] object-cover shadow-[0_28px_90px_rgba(51,41,29,.16)]"
-            />
-            <div className="absolute -bottom-8 -left-8 hidden max-w-xs rounded-[30px] bg-[#3b2a20] p-6 text-[#fff8ee] shadow-2xl md:block">
-              <p className="text-xs uppercase tracking-[0.32em] text-[#caa06b]">
-                {stats.total} bouteille{stats.total > 1 ? "s" : ""}
-              </p>
-              <p className="mt-4 text-sm leading-6 text-[#d7c3b1]">
-                Ton carnet commence à se construire, une bouteille à la fois.
-              </p>
-            </div>
+          <div className="border-t border-[var(--lpv-line)] pt-6 md:border-t-0 md:pb-2">
+            <p className="max-w-sm text-base leading-8 text-[var(--lpv-muted)]">
+              Les bouteilles bues. Les impressions qu’on veut garder.
+              Rien de plus compliqué.
+            </p>
+
+            <Link
+              href="/vins"
+              className="lpv-text-link mt-7 inline-flex"
+            >
+              Ajouter une bouteille <span>→</span>
+            </Link>
           </div>
         </div>
       </section>
 
-      <section className="px-8 pb-24 md:px-14 md:pb-32">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-5 md:grid-cols-6">
-            {[
-              ["Total", stats.total],
-              ["Favoris", stats.favorites],
-              ["Goûtés", stats.tasted],
-              ["À racheter", stats.buyAgain],
-              ["À offrir", stats.gift],
-              ["À éviter", stats.avoid],
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-[30px] bg-[#f7f0e6] p-6 shadow-[0_18px_55px_rgba(51,41,29,.10)]">
-                <p className="text-xs uppercase tracking-[0.28em] text-[#8f6242]">
+      {/* STATS */}
+      <section className="border-b border-[var(--lpv-line)]">
+        <div className="lpv-container grid md:grid-cols-3">
+          {[
+            ["Bouteilles bues", entries.length],
+            ["Aimées", likedCount],
+            ["À racheter", buyAgainCount],
+          ].map(([label, value], index) => (
+            <div
+              key={label}
+              className={`py-8 md:px-8 md:py-10 ${
+                index < 2
+                  ? "border-b border-[var(--lpv-line)] md:border-b-0 md:border-r"
+                  : ""
+              }`}
+            >
+              <div className="flex items-end justify-between gap-6">
+                <p className="lpv-kicker pb-2 text-[var(--lpv-cocoa)]">
                   {label}
                 </p>
-                <p className="mt-5 lpv-display text-6xl leading-none">
+
+                <p className="lpv-display text-6xl leading-none md:text-7xl">
                   {value}
                 </p>
               </div>
-            ))}
-          </div>
-
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {[
-              ["Mes vins", "Favoris, goûtés, à racheter, à offrir ou à éviter.", "/mes-vins"],
-              ["Mes listes", "Bulles, rouges de souper, blancs d’été et bouteilles sous 25 $.", "/mes-listes"],
-              ["Sommelier", "Des recommandations selon ton goût, ton budget et le moment.", "/sommelier"],
-            ].map(([title, description, href]) => (
-              <Link
-                key={title}
-                href={href}
-                className="group overflow-hidden rounded-[34px] bg-[#f7f0e6] p-8 shadow-[0_22px_70px_rgba(51,41,29,.11)] transition duration-700 hover:-translate-y-1"
-              >
-                <p className="text-xs uppercase tracking-[0.32em] text-[#8f6242]">
-                  Carnet
-                </p>
-
-                <h2 className="lpv-display mt-8 text-6xl leading-[.84] tracking-[-0.08em]">
-                  {title}
-                </h2>
-
-                <p className="mt-6 text-sm leading-7 text-[#5f5447]">
-                  {description}
-                </p>
-
-                <p className="mt-10 text-xs uppercase tracking-[0.28em] text-[#8f6242]">
-                  Ouvrir →
-                </p>
-              </Link>
-            ))}
-          </div>
-
-          {entries.length > 0 && (
-            <div className="mt-12 rounded-[42px] bg-[#3b2a20] p-8 text-[#fff8ee] shadow-[0_28px_90px_rgba(51,41,29,.18)]">
-              <p className="text-xs uppercase tracking-[0.36em] text-[#caa06b]">
-                Dernières bouteilles
-              </p>
-
-              <div className="mt-8 grid gap-4 md:grid-cols-3">
-                {entries.slice(0, 6).map((entry) => (
-                  <Link
-                    key={entry.id}
-                    href={`/vins/${entry.wineId}`}
-                    className="rounded-[28px] bg-[#2f2119] p-6 transition hover:-translate-y-1"
-                  >
-                    <p className="text-xs uppercase tracking-[0.26em] text-[#caa06b]">
-                      {entry.favorite ? "Favori" : entry.tasted ? "Goûté" : "Carnet"}
-                    </p>
-                    <h3 className="mt-5 lpv-display text-4xl leading-[.88]">
-                      {entry.wineId}
-                    </h3>
-                    {entry.rating ? (
-                      <p className="mt-5 text-[#caa06b]">
-                        {"★".repeat(Math.round(entry.rating))}
-                      </p>
-                    ) : null}
-                  </Link>
-                ))}
-              </div>
             </div>
-          )}
+          ))}
         </div>
+      </section>
+
+      {/* CARNET */}
+      <section className="lpv-container py-16 md:py-24">
+        <div className="border-b border-[var(--lpv-line)] pb-7">
+          <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+            Mon historique
+          </p>
+
+          <h2 className="lpv-display mt-5 text-5xl leading-[0.9] md:text-7xl">
+            À retenir.
+          </h2>
+        </div>
+
+        {entries.length > 0 ? (
+          <div>
+            {entries.map((entry, index) => {
+              const wine = entry.wine;
+
+              const imageSrc = wine?.bottleImage
+                ? urlFor(wine.bottleImage)
+                    .width(260)
+                    .height(420)
+                    .fit("max")
+                    .url()
+                : null;
+
+              return (
+                <article
+                  key={entry._id}
+                  className="grid gap-8 border-b border-[var(--lpv-line)] py-10 md:grid-cols-[45px_150px_1fr] md:gap-10 md:py-14"
+                >
+                  {/* NUMÉRO */}
+                  <div>
+                    <span className="text-[0.62rem] tracking-[0.18em] text-[var(--lpv-muted)]">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+
+                  {/* BOUTEILLE */}
+                  <Link
+                    href={wine?.slug ? `/vins/${wine.slug}` : "/vins"}
+                    className="flex h-48 items-center justify-center md:h-60"
+                  >
+                    {imageSrc ? (
+                      <img
+                        src={imageSrc}
+                        alt={wine?.name || "Bouteille de vin"}
+                        className="h-full w-auto object-contain transition-transform duration-500 hover:-translate-y-1"
+                      />
+                    ) : (
+                      <div className="h-full w-20 border border-[var(--lpv-line)]" />
+                    )}
+                  </Link>
+
+                  {/* CONTENU */}
+                  <div className="flex flex-col justify-between">
+                    <div className="grid gap-8 lg:grid-cols-[1fr_0.85fr] lg:gap-16">
+
+                      {/* IDENTITÉ */}
+                      <div>
+                        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                          <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                            {appreciationLabels[entry.appreciation]}
+                          </p>
+
+                          <span className="text-[var(--lpv-line)]">—</span>
+
+                          <p className="text-xs uppercase tracking-[0.14em] text-[var(--lpv-muted)]">
+                            {formatDate(entry.tastedAt)}
+                          </p>
+                        </div>
+
+                        <Link
+                          href={wine?.slug ? `/vins/${wine.slug}` : "/vins"}
+                        >
+                          <h3 className="lpv-display mt-5 text-5xl leading-[0.86] transition-opacity hover:opacity-60 md:text-6xl">
+                            {wine?.name || "Vin"}
+                          </h3>
+                        </Link>
+
+                        <p className="mt-5 text-sm text-[var(--lpv-muted)]">
+                          {[wine?.producer?.name, wine?.vintage]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      </div>
+
+                      {/* SOUVENIR */}
+                      <div className="border-t border-[var(--lpv-line)] pt-5 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+                        <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                          Ce que j’en retiens
+                        </p>
+
+                        <p className="mt-5 max-w-md text-base leading-7 text-[var(--lpv-ink)]">
+                          {entry.note?.trim() || (
+                            <span className="text-[var(--lpv-muted)]">
+                              Aucune note pour cette bouteille.
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* BAS */}
+                    <div className="mt-10 flex flex-wrap items-center justify-between gap-6 border-t border-[var(--lpv-line)] pt-5">
+                      <p className="text-xs uppercase tracking-[0.16em] text-[var(--lpv-muted)]">
+                        Rachèterais{" "}
+                        <span className="ml-2 text-[var(--lpv-ink)]">
+                          {entry.buyAgain ? "Oui" : "Non"}
+                        </span>
+                      </p>
+
+                      <Link
+                        href={wine?.slug ? `/vins/${wine.slug}` : "/vins"}
+                        className="lpv-text-link"
+                      >
+                        Voir le vin <span>→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-24 text-center">
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              Première bouteille
+            </p>
+
+            <h2 className="lpv-display mt-6 text-5xl md:text-7xl">
+              Le carnet est encore vide.
+            </h2>
+
+            <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
+              Après avoir bu un vin, ajoute-le ici pour garder une trace de
+              ce que tu en as pensé.
+            </p>
+
+            <Link href="/vins" className="lpv-button lpv-button-dark mt-9">
+              Découvrir les vins
+            </Link>
+          </div>
+        )}
       </section>
     </main>
   );

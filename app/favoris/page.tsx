@@ -1,259 +1,241 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
+import type { SanityImageSource } from "@sanity/image-url";
+
 import FavoriteButton from "@/components/favorites/FavoriteButton";
-import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+import { client } from "@/sanity/lib/client";
+import { urlFor } from "@/sanity/lib/image";
 
-function parseFavoriteSlugs(raw: string | undefined): string[] {
-  if (!raw) return [];
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-
-    if (!Array.isArray(parsed)) return [];
-
-    return [...new Set(parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0))];
-  } catch {
-    return [];
-  }
-}
-
-function formatPrice(value: number | null | undefined) {
-  if (typeof value !== "number" || Number.isNaN(value)) return null;
+function formatPrice(value?: number) {
+  if (typeof value !== "number") return null;
 
   return new Intl.NumberFormat("fr-CA", {
     style: "currency",
     currency: "CAD",
-    maximumFractionDigits: 2,
   }).format(value);
 }
 
-function formatLabel(value: string | null | undefined) {
+function formatLabel(value?: string) {
   if (!value) return null;
-  return value.replace(/_/g, " ").trim();
+
+  const labels: Record<string, string> = {
+    red: "Rouge",
+    white: "Blanc",
+    rose: "Rosé",
+    orange: "Orange",
+    sparkling: "Effervescent",
+    fortified: "Fortifié",
+  };
+
+  return labels[value] || value.replace(/[-_]/g, " ");
 }
 
-function getBadgeList(wine: {
-  isQuebec?: boolean | null;
-  featured?: boolean | null;
-  color?: string | null;
-  style?: string | null;
-}) {
-  const badges: string[] = [];
-
-  if (wine.isQuebec) badges.push("Québec");
-  if (wine.featured) badges.push("Sélection");
-  if (wine.color?.toLowerCase().includes("bulle")) badges.push("Bulles");
-  if (wine.style?.toLowerCase().includes("nature")) badges.push("Nature");
-
-  return badges;
-}
+type FavoriteWine = {
+  _id: string;
+  slug: string;
+  name: string;
+  vintage?: number;
+  color?: string;
+  bottleImage?: SanityImageSource;
+  approxPrice?: number;
+  producer?: { name?: string };
+  country?: { name?: string };
+  region?: { name?: string };
+};
 
 export default async function FavoritesPage() {
-  const cookieStore = await cookies();
-  const favoriteSlugs = parseFavoriteSlugs(
-    cookieStore.get("lexvinum_favorites")?.value
-  );
+  const { userId } = await auth();
 
-  const wines =
-    favoriteSlugs.length > 0
-      ? await prisma.wine.findMany({
-          where: {
-            slug: {
-              in: favoriteSlugs,
-            },
-          },
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-            producer: true,
-            country: true,
-            region: true,
-            color: true,
-            style: true,
-            grape: true,
-            vintage: true,
-            price: true,
-            image: true,
-            isQuebec: true,
-            featured: true,
-          },
-        })
-      : [];
-
-  const orderedWines = favoriteSlugs
-    .map((slug: string) => wines.find((wine: { slug: string }) => wine.slug === slug))
-    .filter(
-      (wine): wine is NonNullable<(typeof wines)[number]> => Boolean(wine)
-    );
+  const orderedWines = userId
+    ? await client.fetch<FavoriteWine[]>(
+        `*[
+          _type == "wineFavorite" &&
+          userId == $userId &&
+          defined(wine->slug.current) &&
+          wine->published == true
+        ] | order(createdAt desc) {
+          "wine": wine->{
+            _id,
+            name,
+            "slug": slug.current,
+            vintage,
+            color,
+            bottleImage,
+            approxPrice,
+            producer->{name},
+            country->{name},
+            region->{name}
+          }
+        }.wine`,
+        { userId }
+      )
+    : [];
 
   return (
-    <main className="min-h-screen bg-[#f3efe6] text-[#223229]">
-      <section className="relative overflow-hidden border-b border-[#ddd6c7] bg-[radial-gradient(circle_at_top,rgba(122,139,124,0.16),transparent_42%),linear-gradient(180deg,#f7f3eb_0%,#efe8db_100%)]">
-        <div className="pointer-events-none absolute inset-0 opacity-[0.08] mix-blend-multiply premium-page-texture" />
-
-        <div className="mx-auto max-w-7xl px-6 py-12 md:px-8 lg:px-12 lg:py-16">
-          <div className="max-w-4xl space-y-6">
-            <p className="text-xs uppercase tracking-[0.34em] text-[#8a6a52]">
+    <main className="min-h-screen bg-[var(--lpv-paper)] text-[var(--lpv-ink)]">
+      <section className="border-b border-[var(--lpv-line)]">
+        <div className="lpv-container grid gap-10 py-16 md:grid-cols-[0.68fr_0.32fr] md:items-end md:py-24">
+          <div>
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
               Collection personnelle
             </p>
 
-            <h1 className="font-serif text-4xl leading-tight text-[#1d2a22] md:text-5xl lg:text-6xl">
-              Mes favoris
+            <h1 className="lpv-display mt-7 max-w-5xl text-[clamp(4.8rem,10vw,10rem)] leading-[0.82]">
+              Mes favoris.
             </h1>
+          </div>
 
-            <p className="max-w-3xl text-base leading-8 text-[#324338] md:text-lg">
-              Retrouve ici les bouteilles que tu as mises de côté pendant ta
-              navigation. Une sélection personnelle, éditoriale et prête à être
-              revisitée au fil de tes découvertes.
+          <div className="border-t border-[var(--lpv-line)] pt-6 md:border-t-0 md:pb-2">
+            <p className="max-w-md text-base leading-8 text-[var(--lpv-muted)]">
+              Les bouteilles mises de côté au fil des découvertes.
             </p>
 
-            <div className="flex flex-wrap gap-3">
-              <div className="rounded-full border border-[#d7cfbf] bg-[#f7f3eb] px-5 py-2 text-sm text-[#223229]">
-                {orderedWines.length} favori{orderedWines.length > 1 ? "s" : ""}
-              </div>
-
-              <Link
-                href="/repertoire"
-                className="inline-flex items-center rounded-full border border-[#223229] bg-[#223229] px-5 py-2 text-sm uppercase tracking-[0.16em] text-[#f5f1e8] transition hover:opacity-90"
-              >
-                Explorer le répertoire
-              </Link>
-            </div>
+            <p className="mt-7 text-xs uppercase tracking-[0.18em] text-[var(--lpv-cocoa)]">
+              {orderedWines.length} favori
+              {orderedWines.length > 1 ? "s" : ""}
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-10 md:px-8 lg:px-12 lg:py-14">
-        {orderedWines.length === 0 ? (
-          <div className="rounded-[32px] border border-[#ddd6c7] bg-[#f8f4ec] p-8 text-center shadow-[0_18px_50px_rgba(58,48,32,0.06)] md:p-12">
-            <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a52]">
-              Aucun favori
+      <section className="lpv-container py-16 md:py-24">
+        <div className="flex items-end justify-between border-b border-[var(--lpv-line)] pb-6">
+          <div>
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              À garder
             </p>
 
-            <h2 className="mt-3 font-serif text-3xl text-[#1d2a22] md:text-4xl">
-              Ta sélection est encore vide
+            <h2 className="lpv-display mt-5 text-5xl leading-none md:text-7xl">
+              Les bouteilles.
             </h2>
-
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-[#324338]">
-              Ajoute des vins à tes favoris depuis le répertoire ou depuis une
-              fiche bouteille pour construire une sélection personnelle, élégante
-              et facile à retrouver.
-            </p>
-
-            <div className="mt-8">
-              <Link
-                href="/repertoire"
-                className="inline-flex items-center rounded-full border border-[#223229] bg-[#223229] px-6 py-3 text-sm uppercase tracking-[0.18em] text-[#f5f1e8] transition hover:opacity-90"
-              >
-                Découvrir les vins
-              </Link>
-            </div>
           </div>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {orderedWines.map((wine) => {
-              const badges = getBadgeList(wine);
+
+          <Link href="/vins" className="lpv-text-link hidden sm:inline-flex">
+            Explorer <span>→</span>
+          </Link>
+        </div>
+
+        {orderedWines.length > 0 ? (
+          <div className="grid md:grid-cols-2 xl:grid-cols-3">
+            {orderedWines.map((wine, index) => {
+              const imageSrc = wine.bottleImage
+                ? urlFor(wine.bottleImage)
+                    .width(800)
+                    .height(1100)
+                    .fit("max")
+                    .url()
+                : null;
+
+              const price = wine.approxPrice;
 
               return (
                 <article
-                  key={wine.id}
-                  className="group overflow-hidden rounded-[28px] border border-[#ddd6c7] bg-[#f8f4ec] transition hover:-translate-y-0.5 hover:border-[#c7b29b] hover:shadow-[0_18px_40px_rgba(58,48,32,0.08)]"
+                  key={wine._id}
+                  className={`group border-b border-[var(--lpv-line)] py-10 ${
+                    index % 3 !== 2
+                      ? "xl:border-r xl:pr-10"
+                      : "xl:pl-10"
+                  } ${
+                    index % 3 === 1
+                      ? "xl:px-10"
+                      : ""
+                  }`}
                 >
-                  <div className="relative">
-                    <Link href={`/vins/${wine.slug}`} className="block">
-                      <div className="flex h-[280px] items-center justify-center overflow-hidden bg-[#f1ece2] p-5">
-                        {wine.image ? (
-                          <img
-                            src={wine.image}
-                            alt={wine.name}
-                            className="max-h-full w-auto object-contain transition duration-300 group-hover:scale-[1.03]"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-end rounded-[22px] border border-dashed border-[#cfc6b5] bg-[linear-gradient(180deg,#f7f3eb_0%,#ece2d3_100%)] p-4">
-                            <div className="rounded-full border border-[#d7cfbf] bg-white/70 px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-[#6d4e39]">
-                              Sélection Lex Vinum
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                  <div className="relative flex min-h-[430px] items-center justify-center overflow-hidden bg-[var(--lpv-paper-light)] px-8 py-10">
+                    <Link
+                      href={`/vins/${wine.slug}`}
+                      className="flex h-full w-full items-center justify-center"
+                    >
+                      {imageSrc ? (
+                        <img
+                          src={imageSrc}
+                          alt={wine.name}
+                          className="max-h-[390px] max-w-full object-contain transition duration-700 group-hover:scale-[1.025]"
+                        />
+                      ) : (
+                        <p className="text-sm text-[var(--lpv-muted)]">
+                          Photo à venir
+                        </p>
+                      )}
                     </Link>
 
                     <div className="absolute right-4 top-4">
-                      <FavoriteButton slug={wine.slug} size="sm" />
+                      <FavoriteButton wineId={wine._id} size="sm" />
                     </div>
                   </div>
 
-                  <div className="space-y-4 p-5">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        {wine.color ? (
-                          <span className="rounded-full border border-[#d7cfbf] bg-white/70 px-3 py-1 text-xs text-[#223229]">
-                            {formatLabel(wine.color)}
-                          </span>
-                        ) : null}
-
-                        {wine.grape ? (
-                          <span className="rounded-full border border-[#d7cfbf] bg-white/70 px-3 py-1 text-xs text-[#223229]">
-                            {formatLabel(wine.grape)}
-                          </span>
-                        ) : null}
-
-                        {badges.map((badge) => (
-                          <span
-                            key={badge}
-                            className="rounded-full border border-[#d8c8b6] bg-[#efe5d8] px-3 py-1 text-xs text-[#6d4e39]"
-                          >
-                            {badge}
-                          </span>
-                        ))}
-                      </div>
-
-                      <Link href={`/vins/${wine.slug}`} className="block">
-                        <h2 className="line-clamp-2 font-serif text-2xl leading-tight text-[#1d2a22] transition group-hover:text-[#314338]">
-                          {wine.name}
-                        </h2>
-                      </Link>
-
-                      <p className="line-clamp-1 text-sm text-[#5f6f62]">
-                        {[wine.producer, wine.region, wine.country]
+                  <div className="pt-7">
+                    <div className="flex items-start justify-between gap-6">
+                      <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                        {[formatLabel(wine.color), wine.vintage]
                           .filter(Boolean)
-                          .join(" • ") || "—"}
+                          .join(" · ") || "Vin"}
                       </p>
+
+                      <span className="text-[0.6rem] tracking-[0.16em] text-[var(--lpv-muted)]">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
                     </div>
 
-                    <div className="flex items-end justify-between gap-4 border-t border-[#e0d8cb] pt-4">
+                    <Link href={`/vins/${wine.slug}`}>
+                      <h2 className="lpv-display mt-5 text-4xl leading-[0.92] transition-opacity group-hover:opacity-60 md:text-5xl">
+                        {wine.name}
+                      </h2>
+                    </Link>
+
+                    {wine.producer?.name ? (
+                      <p className="mt-5 text-sm text-[var(--lpv-muted)]">
+                        {wine.producer.name}
+                      </p>
+                    ) : null}
+
+                    <div className="mt-7 flex items-end justify-between gap-6 border-t border-[var(--lpv-line)] pt-5">
                       <div>
-                        <p className="text-xs uppercase tracking-[0.22em] text-[#8a6a52]">
-                          Millésime
+                        <p className="text-xs leading-6 text-[var(--lpv-muted)]">
+                          {[wine.region?.name, wine.country?.name]
+                            .filter(Boolean)
+                            .join(" · ")}
                         </p>
-                        <p className="mt-1 text-sm text-[#223229]">
-                          {wine.vintage || "—"}
-                        </p>
+
+                        {price ? (
+                          <p className="mt-2 text-sm">
+                            {formatPrice(price)}
+                          </p>
+                        ) : null}
                       </div>
 
-                      <div className="text-right">
-                        <p className="text-xs uppercase tracking-[0.22em] text-[#8a6a52]">
-                          Prix
-                        </p>
-                        <p className="mt-1 text-base font-semibold text-[#1d2a22]">
-                          {formatPrice(wine.price) || "—"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-1">
                       <Link
                         href={`/vins/${wine.slug}`}
-                        className="inline-flex items-center text-sm text-[#5f6f62] transition hover:text-[#223229]"
+                        className="lpv-text-link"
                       >
-                        Voir la fiche →
+                        Voir <span>→</span>
                       </Link>
                     </div>
                   </div>
                 </article>
               );
             })}
+          </div>
+        ) : (
+          <div className="py-24 text-center">
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              Rien pour le moment
+            </p>
+
+            <h2 className="lpv-display mt-6 text-5xl md:text-7xl">
+              Ta sélection est vide.
+            </h2>
+
+            <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
+              Ajoute des bouteilles depuis le répertoire ou une fiche vin.
+            </p>
+
+            <Link href="/vins" className="lpv-button lpv-button-dark mt-9">
+              Explorer les vins
+            </Link>
           </div>
         )}
       </section>

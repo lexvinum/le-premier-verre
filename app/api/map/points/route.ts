@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { client } from "@/sanity/lib/client";
 
 type MapMode = "quebec" | "world";
 
@@ -301,67 +302,46 @@ export async function GET(request: NextRequest) {
     const mode = getMode(searchParams);
 
     if (mode === "quebec") {
-      const vineyards = await prisma.vineyard.findMany({
-        where: {
-          latitude: { not: null },
-          longitude: { not: null },
-          OR: [
-            { isQuebec: true },
-            { country: { contains: "Québec" } },
-            { country: { contains: "Quebec" } },
-            { province: { contains: "Québec" } },
-            { province: { contains: "Quebec" } },
-            { region: { contains: "Québec" } },
-            { region: { contains: "Quebec" } },
-          ],
-        },
-        orderBy: [{ name: "asc" }],
-        take: 5000,
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          country: true,
-          region: true,
-          province: true,
-          city: true,
-          latitude: true,
-          longitude: true,
-          image: true,
-          website: true,
-          isQuebec: true,
-          tastingOffered: true,
-          lodgingOffered: true,
-          restaurantOnSite: true,
-        },
-      });
+      const producers = await client.fetch(`
+        *[
+          _type == "producer" &&
+          published == true &&
+          defined(latitude) &&
+          defined(longitude)
+        ] | order(name asc) {
+          _id,
+          name,
+          "slug": slug.current,
+          municipality,
+          latitude,
+          longitude,
+          website,
+          openToVisitors,
+          "image": coalesce(heroImage.asset->url, photo.asset->url),
+          country->{name},
+          region->{name}
+        }
+      `);
 
-      const points: MapPoint[] = (vineyards as VineyardRow[])
-        .filter(hasCoordinates)
-        .filter(
-          (v) =>
-            Boolean(v.isQuebec) ||
-            isQuebecPlace(v.country, v.region, v.province, v.city)
-        )
-        .map((v) => ({
-          id: v.id,
-          slug: v.slug ?? null,
-          type: "vineyard",
-          name: v.name,
-          subtitle: null,
-          country: v.country ?? null,
-          region: v.region ?? null,
-          province: v.province ?? null,
-          city: v.city ?? null,
-          latitude: v.latitude,
-          longitude: v.longitude,
-          image: v.image ?? null,
-          website: v.website ?? null,
-          isQuebec: true,
-          tastingOffered: Boolean(v.tastingOffered),
-          lodgingOffered: Boolean(v.lodgingOffered),
-          restaurantOnSite: Boolean(v.restaurantOnSite),
-        }));
+      const points: MapPoint[] = producers.map((producer: any) => ({
+        id: producer._id,
+        slug: producer.slug ?? null,
+        type: "vineyard",
+        name: producer.name,
+        subtitle: producer.region?.name ?? null,
+        country: producer.country?.name ?? "Canada",
+        region: producer.region?.name ?? null,
+        province: "Québec",
+        city: producer.municipality ?? null,
+        latitude: producer.latitude,
+        longitude: producer.longitude,
+        image: producer.image ?? null,
+        website: producer.website ?? null,
+        isQuebec: true,
+        tastingOffered: Boolean(producer.openToVisitors),
+        lodgingOffered: false,
+        restaurantOnSite: false,
+      }));
 
       const sorted = sortPoints(points);
 

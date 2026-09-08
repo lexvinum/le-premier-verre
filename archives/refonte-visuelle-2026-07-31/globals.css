@@ -1,0 +1,1097 @@
+@import "tailwindcss";
+
+:root {
+  --lpv-bg: #f5efe5;
+  --lpv-surface: #fbf7ef;
+  --lpv-surface-2: #eee4d6;
+  --lpv-ink: #151210;
+  --lpv-muted: #756c63;
+  --lpv-border: rgba(21, 18, 16, 0.12);
+  --lpv-border-strong: rgba(21, 18, 16, 0.22);
+  --lpv-olive: #3f4a36;
+  --lpv-wine: #74283a;
+  --lpv-sand: #d7c4aa;
+  --lpv-cream: #fffaf0;
+
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --ease-luxury: cubic-bezier(.16, 1, .3, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--lpv-bg);
+  color: var(--lpv-ink);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(215, 196, 170, 0.6), transparent 30rem),
+    radial-gradient(circle at 90% 15%, rgba(63, 74, 54, 0.12), transparent 24rem),
+    linear-gradient(180deg, #fbf7ef 0%, var(--lpv-bg) 48%, #efe6d9 100%);
+  color: var(--lpv-ink);
+  font-family: var(--font-body);
+  text-rendering: geometricPrecision;
+}
+
+::selection {
+  background: var(--lpv-ink);
+  color: var(--lpv-cream);
+}
+
+a {
+  text-decoration: none;
+}
+
+img {
+  display: block;
+}
+
+.lpv-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.055em;
+}
+
+.lpv-container {
+  width: min(1500px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+@media (min-width: 768px) {
+  .lpv-container {
+    width: min(1500px, calc(100% - 64px));
+  }
+}
+
+.lpv-soft-border {
+  border: 1px solid var(--lpv-border);
+}
+
+.lpv-glass {
+  background: rgba(251, 247, 239, 0.74);
+  backdrop-filter: blur(24px);
+}
+
+.lpv-shadow {
+  box-shadow:
+    0 1px 1px rgba(21,18,16,.03),
+    0 24px 80px rgba(21,18,16,.08);
+}
+
+.lpv-noise {
+  position: relative;
+}
+
+.lpv-noise::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.055;
+  background-image:
+    linear-gradient(90deg, rgba(21,18,16,0.08) 1px, transparent 1px),
+    linear-gradient(rgba(21,18,16,0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, black, transparent 82%);
+}
+
+.lpv-reveal {
+  animation: lpvReveal 900ms var(--ease-luxury) both;
+}
+
+.lpv-reveal-delay {
+  animation: lpvReveal 1100ms var(--ease-luxury) 140ms both;
+}
+
+.lpv-image-zoom {
+  overflow: hidden;
+}
+
+.lpv-image-zoom img {
+  transition: transform 1400ms var(--ease-luxury), filter 1400ms var(--ease-luxury);
+}
+
+.lpv-image-zoom:hover img {
+  transform: scale(1.035);
+  filter: contrast(1.04) saturate(.96);
+}
+
+.lpv-link {
+  position: relative;
+}
+
+.lpv-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.35rem;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 500ms var(--ease-luxury);
+}
+
+.lpv-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+@keyframes lpvReveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* =========================================================
+   LPV DESIGN SYSTEM V1
+========================================================= */
+
+.lpv-section {
+  padding-block: clamp(5rem, 8vw, 9rem);
+}
+
+.lpv-card {
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(22px);
+  border: 1px solid var(--lpv-border);
+  border-radius: 2rem;
+  box-shadow:
+    0 1px 1px rgba(0,0,0,.02),
+    0 24px 70px rgba(21,18,16,.06);
+  transition:
+    transform .45s var(--ease-luxury),
+    box-shadow .45s var(--ease-luxury),
+    border-color .45s var(--ease-luxury);
+}
+
+.lpv-card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(21,18,16,.18);
+  box-shadow:
+    0 1px 1px rgba(0,0,0,.03),
+    0 40px 90px rgba(21,18,16,.10);
+}
+
+.lpv-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.6rem;
+  border-radius:9999px;
+  padding:.95rem 1.6rem;
+  font-size:.75rem;
+  font-weight:600;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  transition:all .45s var(--ease-luxury);
+}
+
+.lpv-button-primary{
+  background:var(--lpv-ink);
+  color:white;
+}
+
+.lpv-button-primary:hover{
+  background:var(--lpv-olive);
+}
+
+.lpv-button-secondary{
+  border:1px solid var(--lpv-border-strong);
+  color:var(--lpv-ink);
+}
+
+.lpv-button-secondary:hover{
+  background:var(--lpv-ink);
+  color:white;
+}
+
+.lpv-eyebrow{
+  font-size:.65rem;
+  letter-spacing:.35em;
+  text-transform:uppercase;
+  color:var(--lpv-muted);
+  font-weight:600;
+}
+
+.lpv-title{
+  font-family:var(--font-display);
+  font-weight:500;
+  letter-spacing:-.06em;
+  line-height:.9;
+}
+
+.lpv-copy{
+  color:var(--lpv-muted);
+  line-height:1.9;
+}
+
+.lpv-divider{
+  height:1px;
+  background:var(--lpv-border);
+  margin-block:5rem;
+}
+
+.lpv-pill{
+  display:inline-flex;
+  align-items:center;
+  border-radius:9999px;
+  border:1px solid var(--lpv-border);
+  background:rgba(255,255,255,.6);
+  padding:.45rem .95rem;
+  font-size:.72rem;
+}
+
+.lpv-hover-lift{
+  transition:all .45s var(--ease-luxury);
+}
+
+.lpv-hover-lift:hover{
+  transform:translateY(-3px);
+}
+/* LPV — direction artistique magazine */
+.lpv-display {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 900;
+  letter-spacing: -0.075em;
+  font-variation-settings: "opsz" 144;
+}
+
+.lpv-display::selection,
+p::selection,
+a::selection,
+span::selection {
+  background: #d7c4aa;
+  color: #0e0b09;
+}
+
+/* LPV — palette terre / crème / vert */
+:root {
+  --lpv-cream: #f6efe7;
+  --lpv-paper: #efe4d4;
+  --lpv-green: #465344;
+  --lpv-deep-green: #1f2a24;
+  --lpv-clay: #8f6242;
+  --lpv-gold: #d6b692;
+}
+
+body {
+  background: var(--lpv-cream);
+}
+
+/* LPV — header refinement */
+header a[href="/"],
+.site-logo,
+[href="/"].lpv-logo {
+  margin-left: 72px !important;
+}
+
+/* Search: less tech, more editorial */
+input[type="search"],
+input[placeholder="Rechercher"] {
+  letter-spacing: 0.08em;
+}
+
+input[placeholder="Rechercher"]::placeholder {
+  color: #6f7468;
+}
+
+/* LPV — header: menu + logo alignés */
+button[aria-label="Ouvrir le menu"] {
+  top: 31px !important;
+  left: 36px !important;
+}
+
+header a[href="/"],
+header [href="/"],
+.site-logo,
+.lpv-logo {
+  margin-left: 88px !important;
+}
+
+/* LPV — recherche moins IA */
+input[placeholder="Rechercher"] {
+  padding-left: 1.75rem !important;
+  font-family: inherit;
+  letter-spacing: 0.04em;
+}
+
+input[placeholder="Rechercher"] ~ svg,
+input[placeholder="Rechercher"] + svg,
+svg[class*="search"],
+svg[class*="Search"],
+[aria-hidden="true"]:has(+ input[placeholder="Rechercher"]) {
+  display: none !important;
+}
+
+/* cache les loupes décoratives dans la barre de recherche */
+header form svg,
+header [role="search"] svg {
+  display: none !important;
+}
+
+
+/* LPV — header final */
+button[aria-label="Ouvrir le menu"] {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  left: 36px !important;
+}
+
+/* Logo placé à droite du hamburger */
+header a[href="/"],
+header [href="/"],
+.site-logo,
+.lpv-logo {
+  margin-left: 104px !important;
+}
+
+/* Recherche plus éditoriale : on cache la loupe tech */
+header form svg,
+header [role="search"] svg,
+header svg[class*="Search"],
+header svg[class*="search"] {
+  display: none !important;
+}
+
+header input[placeholder="Rechercher"],
+input[placeholder="Rechercher"] {
+  padding-left: 2.4rem !important;
+  background-image: none !important;
+}
+
+/* Petit repère éditorial discret à la place de la loupe */
+header form::before,
+header [role="search"]::before {
+  content: "chercher";
+  position: absolute;
+  left: 1.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #8f6242;
+  pointer-events: none;
+}
+
+
+/* LPV — correction définitive hamburger header */
+button[aria-label="Ouvrir le menu"] {
+  top: 155px !important;
+  left: 36px !important;
+  transform: none !important;
+}
+
+/* FIX IMMÉDIAT — hamburger visible dans le bandeau beige */
+body::before {
+  content: "";
+  position: fixed;
+  left: 36px;
+  top: 170px;
+  z-index: 999999;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: #1F2A24;
+  box-shadow: 0 10px 24px rgba(31, 42, 36, 0.22);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  left: 51px;
+  top: 187px;
+  z-index: 1000000;
+  width: 22px;
+  height: 16px;
+  background:
+    linear-gradient(#F6EFE7, #F6EFE7) 0 0 / 22px 2px no-repeat,
+    linear-gradient(#F6EFE7, #F6EFE7) 0 7px / 22px 2px no-repeat,
+    linear-gradient(#F6EFE7, #F6EFE7) 0 14px / 22px 2px no-repeat;
+}
+
+
+/* retrait du faux hamburger précédent */
+body::before,
+body::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* hamburger réel cliquable */
+button[aria-label="Ouvrir le menu"] {
+  left: 72px !important;
+  top: 184px !important;
+  transform: translateY(-50%) !important;
+}
+
+
+/* reset des faux hamburgers précédents */
+body::before,
+body::after {
+  display: none !important;
+  content: none !important;
+}
+
+
+/* LPV — ajustements header */
+header button[aria-label="Ouvrir le menu"] {
+  align-self: center !important;
+  transform: translateY(2px) !important;
+}
+
+/* Barre de recherche plus longue */
+header [role="search"],
+header form,
+header button:has(input[placeholder="Rechercher"]),
+header div:has(input[placeholder="Rechercher"]) {
+  min-width: 520px !important;
+}
+
+/* Si SearchButton est un bouton simple */
+header button:has(svg) {
+  min-width: 520px;
+}
+
+/* LPV — cartes éditoriales */
+.lpv-editorial-card {
+  border-radius: 34px;
+  overflow: hidden;
+  background: #efe4d4;
+  box-shadow: 0 22px 60px rgba(51, 41, 29, 0.08);
+}
+
+/* LPV — chaleur rétro, vécu, moins numérique */
+main {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(214, 182, 146, 0.20), transparent 28%),
+    radial-gradient(circle at 86% 42%, rgba(113, 115, 91, 0.12), transparent 30%),
+    #f6efe7;
+}
+
+.lpv-warm-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.lpv-warm-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  background:
+    linear-gradient(115deg, rgba(214, 182, 146, 0.20), transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(143, 98, 66, 0.26), transparent 34%);
+}
+
+.lpv-warm-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+.lpv-worn-card {
+  position: relative;
+  box-shadow: 0 24px 70px rgba(51, 41, 29, 0.16);
+}
+
+.lpv-worn-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  mix-blend-mode: soft-light;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(246, 239, 231, 0.35), transparent 24%),
+    linear-gradient(90deg, rgba(246, 239, 231, 0.10), transparent 45%, rgba(51, 41, 29, 0.20));
+}
+
+.lpv-display {
+  text-wrap: balance;
+}
+
+main p {
+  color: inherit;
+}
+
+main img {
+  filter: saturate(0.88) contrast(0.94) sepia(0.08);
+}
+
+main a {
+  text-underline-offset: 0.45em;
+}
+
+/* LPV — patine journal / terre / vécu */
+:root {
+  --lpv-paper-warm: #f3eadf;
+  --lpv-paper-deep: #eadcca;
+  --lpv-cocoa: #33291d;
+  --lpv-cedar: #3d3b2f;
+  --lpv-musk: #575348;
+  --lpv-sandalwood: #877863;
+  --lpv-sage: #71735b;
+  --lpv-clay: #9e6b44;
+  --lpv-rust: #b98a67;
+}
+
+/* texture papier subtile */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  pointer-events: none;
+  opacity: 0.075;
+  mix-blend-mode: multiply;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(51,41,29,.16) 0 1px, transparent 1px),
+    radial-gradient(circle at 72% 64%, rgba(113,115,91,.14) 0 1px, transparent 1px),
+    linear-gradient(115deg, rgba(185,138,103,.08), transparent 34%, rgba(51,41,29,.06));
+  background-size: 22px 22px, 31px 31px, 100% 100%;
+}
+
+/* fond plus chaud, moins parfait */
+main {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(185,138,103,.20), transparent 30%),
+    radial-gradient(circle at 92% 28%, rgba(113,115,91,.14), transparent 34%),
+    linear-gradient(180deg, #f6efe7 0%, #f3eadf 48%, #efe4d4 100%) !important;
+}
+
+/* sections moins vides, plus magazine */
+main section {
+  position: relative;
+}
+
+main section:not(:first-child)::after {
+  content: "";
+  position: absolute;
+  left: 4.5rem;
+  right: 4.5rem;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(51,41,29,.18), transparent);
+}
+
+/* photos façon tirages posés */
+main img {
+  filter: saturate(.86) contrast(.96) sepia(.10) !important;
+}
+
+main section:nth-of-type(3) img,
+main section:nth-of-type(5) img {
+  transform: rotate(-0.45deg);
+  box-shadow: 0 22px 55px rgba(51,41,29,.13);
+}
+
+main section:nth-of-type(4) img,
+main section:nth-of-type(6) img {
+  transform: rotate(0.35deg);
+  box-shadow: 0 22px 55px rgba(51,41,29,.12);
+}
+
+/* cartes plus tactiles */
+main a[class*="rounded-[34px]"],
+main a[class*="rounded-[24px]"],
+main a[class*="rounded-[28px]"] {
+  box-shadow:
+    0 24px 70px rgba(51,41,29,.13),
+    inset 0 0 0 1px rgba(246,239,231,.08);
+}
+
+/* blocs foncés plus terreux, moins noirs */
+main .bg-\[\#120f0d\],
+main .bg-\[\#0E0B09\],
+main .bg-\[\#151210\],
+main .bg-\[\#1F2A24\] {
+  background-color: #3d3b2f !important;
+}
+
+footer,
+footer.bg-\[\#120f0d\],
+footer.bg-\[\#151210\],
+footer.bg-\[\#1F2A24\],
+footer[class*="bg-[#120f0d]"],
+footer[class*="bg-[#151210]"],
+footer[class*="bg-[#1F2A24]"] {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(158,107,68,.20), transparent 30%),
+    radial-gradient(circle at 88% 70%, rgba(113,115,91,.18), transparent 34%),
+    #433b2e !important;
+  color: #f6efe7 !important;
+}
+
+/* petits détails éditoriaux */
+main h2,
+main blockquote {
+  text-shadow: 0 1px 0 rgba(246,239,231,.34);
+}
+
+main p[class*="uppercase"],
+main span[class*="uppercase"] {
+  letter-spacing: .32em;
+}
+
+/* effet crayon / impression imparfaite très discret */
+.lpv-display {
+  text-shadow:
+    .35px .25px 0 rgba(51,41,29,.18),
+    -.25px -.2px 0 rgba(246,239,231,.16);
+}
+
+/* annotations discrètes */
+main section:nth-of-type(2)::before {  position: absolute;
+  right: 7vw;
+  top: 4rem;
+  transform: rotate(-4deg);
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: rgba(158,107,68,.42);
+}
+
+main section:nth-of-type(5)::before {
+  content: "carnet";
+  position: absolute;
+  left: 9vw;
+  top: 5rem;
+  transform: rotate(3deg);
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: rgba(113,115,91,.45);
+}
+
+/* liens plus éditoriaux */
+main a {
+  transition: transform .7s ease, opacity .7s ease, background-color .7s ease, color .7s ease;
+}
+
+main a:hover {
+  opacity: .92;
+}
+
+/* boutons terreux */
+main a.rounded-full,
+main button.rounded-full {
+  box-shadow: 0 12px 32px rgba(51,41,29,.10);
+}
+
+/* mobile safety */
+@media (max-width: 768px) {
+  main section:not(:first-child)::after {
+    left: 1.5rem;
+    right: 1.5rem;
+  }
+
+  main section:nth-of-type(2)::before,
+  main section:nth-of-type(5)::before {
+    display: none;
+  }
+}
+
+/* LPV — override clean, warm, vintage */
+body::before,
+body::after {
+  display: none !important;
+  content: none !important;
+}
+
+.lpv-paper {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(217,183,131,.22), transparent 32%),
+    radial-gradient(circle at 88% 50%, rgba(113,115,91,.11), transparent 34%),
+    #efe6d7;
+}
+
+.lpv-paper::before,
+.bg-\[\#6f5c48\]::before,
+.bg-\[\#3b3b2f\]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .06;
+  background-image:
+    linear-gradient(90deg, rgba(51,41,29,.35) 1px, transparent 1px),
+    linear-gradient(rgba(51,41,29,.18) 1px, transparent 1px);
+  background-size: 38px 38px;
+}
+
+.lpv-tile {
+  display: block;
+  overflow: hidden;
+  border-radius: 30px;
+  background: #f6efe7;
+  color: #263227;
+  box-shadow: 0 24px 70px rgba(51,41,29,.12);
+  transition: transform .7s ease, box-shadow .7s ease;
+}
+
+.lpv-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 30px 90px rgba(51,41,29,.18);
+}
+
+main img {
+  filter: saturate(.92) contrast(.98) sepia(.06) !important;
+}
+
+footer {
+  background: #433b2e !important;
+}
+
+/* LPV — catalogue vins, aesthetic magazine */
+main.bg-\[\#efe9dd\] {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(217, 183, 131, 0.24), transparent 30%),
+    radial-gradient(circle at 88% 38%, rgba(113, 115, 91, 0.14), transparent 34%),
+    #efe6d7 !important;
+  color: #263227 !important;
+}
+
+main.bg-\[\#efe9dd\] section:first-of-type > div {
+  border-radius: 42px !important;
+  border-color: rgba(51, 41, 29, 0.12) !important;
+  background:
+    radial-gradient(circle at 20% 16%, rgba(217,183,131,.26), transparent 32%),
+    radial-gradient(circle at 90% 42%, rgba(113,115,91,.16), transparent 34%),
+    #efe6d7 !important;
+  box-shadow: 0 28px 90px rgba(51, 41, 29, 0.10);
+}
+
+main.bg-\[\#efe9dd\] h1,
+main.bg-\[\#efe9dd\] h2,
+main.bg-\[\#efe9dd\] h3 {
+  font-family: Georgia, "Times New Roman", serif !important;
+  letter-spacing: -0.075em !important;
+  color: #263227 !important;
+}
+
+main.bg-\[\#efe9dd\] h1 {
+  font-size: clamp(5rem, 10vw, 11rem) !important;
+  line-height: 0.78 !important;
+}
+
+main.bg-\[\#efe9dd\] .italic {
+  color: #71735b !important;
+}
+
+main.bg-\[\#efe9dd\] p,
+main.bg-\[\#efe9dd\] label {
+  color: #4b3a2c;
+}
+
+main.bg-\[\#efe9dd\] input,
+main.bg-\[\#efe9dd\] select {
+  border-radius: 999px !important;
+  border-color: rgba(51,41,29,.16) !important;
+  background: rgba(255, 248, 238, 0.78) !important;
+  color: #263227 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
+}
+
+main.bg-\[\#efe9dd\] button[type="submit"] {
+  border-radius: 999px !important;
+  border-color: #71735b !important;
+  background: #71735b !important;
+  color: #fff8ee !important;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+main.bg-\[\#efe9dd\] article,
+main.bg-\[\#efe9dd\] a.group,
+main.bg-\[\#efe9dd\] section:nth-of-type(2) > div,
+main.bg-\[\#efe9dd\] section:nth-of-type(3) > div:last-child {
+  border-radius: 34px !important;
+  border-color: rgba(51,41,29,.14) !important;
+  background: rgba(247, 240, 230, 0.86) !important;
+  box-shadow: 0 24px 70px rgba(51,41,29,.10) !important;
+}
+
+main.bg-\[\#efe9dd\] article:hover,
+main.bg-\[\#efe9dd\] a.group:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 32px 90px rgba(51,41,29,.17) !important;
+}
+
+main.bg-\[\#efe9dd\] img {
+  filter: saturate(.92) contrast(.98) sepia(.06) !important;
+}
+
+main.bg-\[\#efe9dd\] a[href*="?"] {
+  border-color: rgba(51,41,29,.16) !important;
+  background: #f7f0e6 !important;
+  color: #4b3a2c !important;
+}
+
+main.bg-\[\#efe9dd\] a[href*="?"]:hover {
+  background: #d9b783 !important;
+  color: #263227 !important;
+}
+
+main.bg-\[\#efe9dd\] footer,
+footer {
+  background: #433b2e !important;
+}
+
+/* LPV — répertoire vins plus rétro / chaleureux */
+main.bg-\[\#efe9dd\] {
+  background:
+    radial-gradient(circle at 8% 12%, rgba(217,183,131,.28), transparent 28%),
+    radial-gradient(circle at 88% 34%, rgba(113,115,91,.16), transparent 34%),
+    linear-gradient(180deg, #f3eadf 0%, #efe6d7 55%, #e8dac8 100%) !important;
+}
+
+main.bg-\[\#efe9dd\] section:first-of-type > div {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(217,183,131,.25), transparent 32%),
+    radial-gradient(circle at 78% 18%, rgba(113,115,91,.16), transparent 34%),
+    #efe6d7 !important;
+  border-radius: 42px !important;
+  border: 1px solid rgba(51,41,29,.13) !important;
+}
+
+main.bg-\[\#efe9dd\] section:first-of-type > div::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .08;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(51,41,29,.45) 0 1px, transparent 1px),
+    radial-gradient(circle at 70% 60%, rgba(113,115,91,.30) 0 1px, transparent 1px);
+  background-size: 24px 24px, 37px 37px;
+  mix-blend-mode: multiply;
+}
+
+main.bg-\[\#efe9dd\] section:first-of-type > div > div {
+  position: relative;
+  z-index: 1;
+}
+
+main.bg-\[\#efe9dd\] section:nth-of-type(2) > div {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(217,183,131,.18), transparent 32%),
+    #f6efe7 !important;
+  border-radius: 36px !important;
+  box-shadow: 0 24px 80px rgba(51,41,29,.10) !important;
+}
+
+main.bg-\[\#efe9dd\] input,
+main.bg-\[\#efe9dd\] select {
+  background: rgba(255,248,238,.82) !important;
+  border-color: rgba(75,58,44,.20) !important;
+}
+
+main.bg-\[\#efe9dd\] button[type="submit"] {
+  background: #6f5c48 !important;
+  border-color: #6f5c48 !important;
+}
+
+main.bg-\[\#efe9dd\] a[href*="?"] {
+  background: #efe6d7 !important;
+  border-color: rgba(75,58,44,.22) !important;
+}
+
+main.bg-\[\#efe9dd\] a[href*="?"]:hover {
+  background: #d9b783 !important;
+}
+
+main.bg-\[\#efe9dd\] .rounded-\[30px\],
+main.bg-\[\#efe9dd\] .rounded-\[28px\],
+main.bg-\[\#efe9dd\] .rounded-\[26px\] {
+  border-color: rgba(75,58,44,.16) !important;
+}
+
+main.bg-\[\#efe9dd\] img {
+  filter: saturate(.92) contrast(.98) sepia(.08) !important;
+}
+
+/* LPV — carte / routes & vignobles, même logique, nouvelle DA */
+.lpv-carte-page {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(217,183,131,.26), transparent 30%),
+    radial-gradient(circle at 88% 26%, rgba(113,115,91,.15), transparent 34%),
+    linear-gradient(180deg, #f3eadf 0%, #efe6d7 58%, #e7d8c4 100%);
+  color: #263227;
+}
+
+/* Hero PremiumPageShell */
+.lpv-carte-page > main > section:first-child,
+.lpv-carte-page > div > section:first-child,
+.lpv-carte-page section:first-child {
+  background:
+    linear-gradient(90deg, rgba(38,50,39,.82), rgba(59,42,32,.52)),
+    url("/images/lpv/IMG_0047.JPG") center/cover !important;
+  border-radius: 42px !important;
+  border-color: rgba(246,239,231,.18) !important;
+  box-shadow: 0 28px 90px rgba(51,41,29,.18) !important;
+  color: #fff8ee !important;
+}
+
+.lpv-carte-page section:first-child h1,
+.lpv-carte-page section:first-child h2,
+.lpv-carte-page section:first-child p {
+  color: #fff8ee !important;
+}
+
+/* Conteneur Google Maps */
+.lpv-carte-page section:has([class*="h-[65vh]"]) {
+  background:
+    radial-gradient(circle at 10% 16%, rgba(217,183,131,.18), transparent 28%),
+    #efe6d7 !important;
+  border: 1px solid rgba(75,58,44,.18) !important;
+  border-radius: 42px !important;
+  box-shadow: 0 28px 90px rgba(51,41,29,.16) !important;
+}
+
+.lpv-carte-page section:has([class*="h-[65vh]"])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .08;
+  mix-blend-mode: multiply;
+  background-image:
+    radial-gradient(circle at 18% 24%, rgba(51,41,29,.45) 0 1px, transparent 1px),
+    radial-gradient(circle at 78% 64%, rgba(113,115,91,.30) 0 1px, transparent 1px);
+  background-size: 24px 24px, 36px 36px;
+}
+
+/* Le panneau photo qui accompagne la carte */
+.lpv-carte-page section:has([class*="h-[65vh]"]) img {
+  filter: saturate(.92) contrast(.96) sepia(.10) !important;
+}
+
+/* Boutons Québec / Monde et capsules */
+.lpv-carte-page button {
+  border-radius: 999px !important;
+}
+
+.lpv-carte-page button.bg-\[\#e4d5bc\],
+.lpv-carte-page button[class*="bg-[#e4d5bc]"] {
+  background: #d9b783 !important;
+  color: #263227 !important;
+}
+
+.lpv-carte-page button[class*="bg-[rgba(255,255,255,0.05)]"] {
+  background: rgba(59,42,32,.42) !important;
+  border-color: rgba(246,239,231,.22) !important;
+  color: #fff8ee !important;
+}
+
+/* Cartes stats / planner / détails */
+.lpv-carte-page article,
+.lpv-carte-page aside,
+.lpv-carte-page section > div[class*="rounded"],
+.lpv-carte-page div[class*="border"][class*="rounded"] {
+  border-color: rgba(75,58,44,.16) !important;
+}
+
+.lpv-carte-page div[class*="bg-[#fbf7ef]"],
+.lpv-carte-page div[class*="bg-white"],
+.lpv-carte-page article[class*="bg-white"],
+.lpv-carte-page section[class*="bg-[#fbf7ef]"] {
+  background: rgba(247,240,230,.86) !important;
+  box-shadow: 0 22px 70px rgba(51,41,29,.10) !important;
+}
+
+.lpv-carte-page h1,
+.lpv-carte-page h2,
+.lpv-carte-page h3 {
+  color: #263227;
+}
+
+.lpv-carte-page h1,
+.lpv-carte-page h2 {
+  font-family: Georgia, "Times New Roman", serif !important;
+  letter-spacing: -0.07em;
+}
+
+.lpv-carte-page p,
+.lpv-carte-page span,
+.lpv-carte-page label {
+  color: inherit;
+}
+
+.lpv-carte-page [class*="text-[#6"] {
+  color: #6f5c48 !important;
+}
+
+.lpv-carte-page [class*="text-[#8"] {
+  color: #8f6242 !important;
+}
+
+/* Galerie éditoriale */
+.lpv-carte-page img {
+  filter: saturate(.90) contrast(.97) sepia(.08) !important;
+}
+
+.lpv-carte-page article img,
+.lpv-carte-page div:has(> img) img {
+  border-color: rgba(75,58,44,.14) !important;
+}
+
+/* Planner */
+.lpv-carte-page input,
+.lpv-carte-page select {
+  background: rgba(255,248,238,.84) !important;
+  border-color: rgba(75,58,44,.18) !important;
+  color: #263227 !important;
+}
+
+.lpv-carte-page button[class*="bg-[#d6b692]"],
+.lpv-carte-page button[class*="bg-[#c59a67]"],
+.lpv-carte-page .bg-\[\#d6b692\],
+.lpv-carte-page .bg-\[\#c59a67\] {
+  background: #d9b783 !important;
+  color: #263227 !important;
+}
+
+.lpv-carte-page button[class*="bg-[#6f735b]"],
+.lpv-carte-page button[class*="bg-[#71735b]"],
+.lpv-carte-page .bg-\[\#6f735b\],
+.lpv-carte-page .bg-\[\#71735b\] {
+  background: #71735b !important;
+  color: #fff8ee !important;
+}
+
+/* Sections sombres : brun olive au lieu de noir */
+.lpv-carte-page .bg-\[\#120d0b\],
+.lpv-carte-page .bg-\[\#120f0d\],
+.lpv-carte-page .bg-\[\#151210\],
+.lpv-carte-page .bg-\[\#233126\] {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(217,183,131,.18), transparent 34%),
+    #3b3b2f !important;
+  color: #fff8ee !important;
+}
+
+/* Google error reste lisible */
+.lpv-carte-page .gm-style {
+  font-family: inherit !important;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .lpv-carte-page section:first-child,
+  .lpv-carte-page section:has([class*="h-[65vh]"]) {
+    border-radius: 30px !important;
+  }
+}

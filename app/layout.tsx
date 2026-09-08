@@ -1,22 +1,24 @@
-import { MenuDrawer } from "@/components/lpv/MenuDrawer";
 import "./globals.css";
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { DM_Serif_Display, Manrope } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { frFR } from "@clerk/localizations";
+import { clerkAppearance } from "@/lib/clerk-theme";
 
 import { SearchProvider } from "@/providers/SearchProvider";
 import { SearchDialog } from "@/components/search/SearchDialog";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
-const display = Playfair_Display({
+const editorial = DM_Serif_Display({
   subsets: ["latin"],
-  variable: "--font-display",
+  weight: "400",
+  variable: "--font-editorial",
 });
 
-const bodyFont = Inter({
+const sans = Manrope({
   subsets: ["latin"],
-  variable: "--font-body",
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
@@ -28,7 +30,7 @@ export const metadata: Metadata = {
   },
 
   description:
-    "Une plateforme éditoriale et technologique consacrée au vin, avec une approche accessible, élégante et orientée Québec.",
+    "Une plateforme québécoise pour découvrir des vins, des producteurs, des bonnes adresses et des guides avec simplicité.",
 
   verification: {
     google: "-ZkGDMvO096Fv0c2_Vb71lbrue-NOCRrWBpkSP6qdzo",
@@ -37,7 +39,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Le Premier Verre",
     description:
-      "Articles, guides, vignobles, bonnes adresses et outils intelligents pour mieux choisir, comprendre et apprécier le vin.",
+      "Vins, producteurs, bonnes adresses, guides et articles pour découvrir le vin autrement.",
     url: "https://www.lepremierverre.com",
     siteName: "Le Premier Verre",
     locale: "fr_CA",
@@ -51,11 +53,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={frFR} appearance={clerkAppearance}>
       <html lang="fr" data-scroll-behavior="smooth">
-        <body
-          className={`${display.variable} ${bodyFont.variable} antialiased`}
-        >
+        <body className={`${editorial.variable} ${sans.variable}`}>
           <SearchProvider>
             <SiteHeader />
             {children}

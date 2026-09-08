@@ -1,5 +1,8 @@
 import Link from "next/link";
+import type { SanityImageSource } from "@sanity/image-url";
+
 import { client } from "@/sanity/lib/client";
+import { urlFor } from "@/sanity/lib/image";
 import { producersQuery } from "@/sanity/lib/queries";
 
 export const revalidate = 60;
@@ -8,154 +11,180 @@ type Producer = {
   _id: string;
   name: string;
   slug: string;
-  country?: { name?: string };
-  region?: { name?: string };
+  municipality?: string;
+  oneLiner?: string;
+  shortBio?: string;
+  logo?: SanityImageSource;
+  photo?: SanityImageSource;
+  heroImage?: SanityImageSource;
+  country?: {
+    name?: string;
+  };
+  region?: {
+    name?: string;
+  };
 };
-
-const producerImages = [
-  "/images/lpv/IMG_5428.JPG",
-  "/images/lpv/IMG_9670.JPG",
-  "/images/lpv/vignes.jpg",
-  "/images/lpv/vendanges.jpg",
-  "/images/lpv/IMG_9706.JPG",
-  "/images/lpv/IMG_9729.JPG",
-  "/images/lpv/cave.jpg",
-  "/images/lpv/barriques.jpg",
-  "/images/lpv/pexels-alisa-skripina-2147548092-35518179.jpg",
-];
 
 export default async function ProducersPage() {
   const producers = await client.fetch<Producer[]>(producersQuery);
 
   return (
-    <main className="bg-[#efe6d7] text-[#263227]">
-      <section className="relative overflow-hidden px-8 py-24 md:px-14 md:py-32">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(217,183,131,.26),transparent_32%),radial-gradient(circle_at_86%_42%,rgba(113,115,91,.16),transparent_34%)]" />
-
-        <div className="relative mx-auto grid max-w-7xl gap-12 md:grid-cols-[.9fr_1.1fr] md:items-end">
+    <main className="min-h-screen bg-[var(--lpv-paper)] text-[var(--lpv-ink)]">
+      <section className="border-b border-[var(--lpv-line)]">
+        <div className="lpv-container grid gap-10 py-16 md:grid-cols-[0.68fr_0.32fr] md:items-end md:py-24">
           <div>
-            <p className="text-xs uppercase tracking-[0.42em] text-[#71735b]">
-              Producteurs
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              Répertoire
             </p>
-            <h1 className="lpv-display mt-6 text-[clamp(5rem,11vw,12rem)] leading-[0.76] tracking-[-0.09em]">
+
+            <h1 className="lpv-display mt-7 max-w-5xl text-[clamp(4.8rem,10vw,10rem)] leading-[0.82]">
               Ceux qui
               <br />
               font le vin.
             </h1>
           </div>
 
-          <div className="relative">
-            <img
-              src="/images/lpv/vignes.jpg"
-              alt="Vignes"
-              className="h-[560px] w-full rounded-[42px] object-cover shadow-[0_28px_90px_rgba(51,41,29,.16)]"
-            />
-            <div className="absolute -bottom-8 -left-8 hidden max-w-sm rounded-[30px] bg-[#3b2a20] p-7 text-[#fff8ee] shadow-2xl md:block">
-              <p className="text-xs uppercase tracking-[0.34em] text-[#d9b783]">
-                Répertoire vivant
-              </p>
-              <p className="mt-4 text-sm leading-7 text-[#f3eadf]">
-                Des domaines, des paysages, des gestes et des bouteilles qui ont
-                quelque chose à raconter.
-              </p>
-            </div>
+          <div className="border-t border-[var(--lpv-line)] pt-6 md:border-t-0 md:pb-2">
+            <p className="max-w-md text-base leading-8 text-[var(--lpv-muted)]">
+              Des personnes, des gestes, des lieux et des façons de travailler
+              qui donnent une identité aux bouteilles.
+            </p>
+
+            <p className="mt-7 text-xs uppercase tracking-[0.18em] text-[var(--lpv-cocoa)]">
+              {producers.length} producteur
+              {producers.length > 1 ? "s" : ""} dans la collection
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="px-8 pb-24 md:px-14 md:pb-32">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-12 grid gap-8 md:grid-cols-[.8fr_1.2fr] md:items-end">
-            <div>
-              <p className="text-xs uppercase tracking-[0.34em] text-[#9e6b44]">
-                {producers.length} producteur{producers.length > 1 ? "s" : ""}
-              </p>
-              <h2 className="lpv-display mt-4 text-6xl leading-[.84] tracking-[-0.08em]">
-                À découvrir.
-              </h2>
-            </div>
-
-            <p className="max-w-2xl text-xl leading-relaxed text-[#4b3a2c]">
-              Ici, le producteur n’est pas une fiche technique. C’est un lieu,
-              une main, une méthode, une saison, une façon de regarder la table.
+      <section className="lpv-container py-16 md:py-24">
+        <div className="flex items-end justify-between border-b border-[var(--lpv-line)] pb-6">
+          <div>
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              À découvrir
             </p>
-          </div>
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <h2 className="lpv-display mt-5 text-5xl leading-none md:text-7xl">
+              Les domaines.
+            </h2>
+          </div>
+        </div>
+
+        {producers.length > 0 ? (
+          <div className="grid md:grid-cols-2">
             {producers.map((producer, index) => {
-              const location = [producer.region?.name, producer.country?.name]
+              const image =
+                producer.heroImage ||
+                producer.photo ||
+                producer.logo;
+
+              const imageSrc = image
+                ? urlFor(image)
+                    .width(1100)
+                    .height(1400)
+                    .fit("crop")
+                    .url()
+                : null;
+
+              const location = [
+                producer.municipality,
+                producer.region?.name,
+                producer.country?.name,
+              ]
                 .filter(Boolean)
                 .join(" · ");
 
-              const image = producerImages[index % producerImages.length];
-
               return (
-                <Link
+                <article
                   key={producer._id}
-                  href={`/producteurs/${producer.slug}`}
-                  className="group overflow-hidden rounded-[36px] bg-[#f7f0e6] shadow-[0_22px_70px_rgba(51,41,29,.11)] transition duration-700 hover:-translate-y-1 hover:shadow-[0_32px_90px_rgba(51,41,29,.18)]"
+                  className={`group border-b border-[var(--lpv-line)] py-10 ${
+                    index % 2 === 0
+                      ? "md:border-r md:pr-10"
+                      : "md:pl-10"
+                  }`}
                 >
-                  <div className="relative h-[360px] overflow-hidden">
-                    <img
-                      src={image}
-                      alt={producer.name}
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
-                    />
-                    <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(51,41,29,.54),transparent_58%)]" />
-                    <p className="absolute bottom-5 left-6 text-xs uppercase tracking-[0.32em] text-[#fff8ee]">
-                      Domaine
-                    </p>
-                  </div>
+                  <Link
+                    href={`/producteurs/${producer.slug}`}
+                    className="block"
+                  >
+                    <div className="overflow-hidden bg-[var(--lpv-paper-light)]">
+                      {imageSrc ? (
+                        <img
+                          src={imageSrc}
+                          alt={producer.name}
+                          className="aspect-[4/5] h-full w-full object-cover transition duration-700 group-hover:scale-[1.015]"
+                        />
+                      ) : (
+                        <div className="flex aspect-[4/5] items-center justify-center">
+                          <p className="text-sm text-[var(--lpv-muted)]">
+                            Photo à venir
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
 
-                  <div className="p-7">
-                    <h2 className="lpv-display text-5xl leading-[0.86] tracking-[-0.08em]">
-                      {producer.name}
-                    </h2>
+                  <div className="pt-7">
+                    <div className="flex items-start justify-between gap-6">
+                      <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                        Producteur
+                      </p>
 
-                    {location && (
-                      <p className="mt-5 text-sm leading-7 text-[#5f5447]">
+                      <span className="text-[0.6rem] tracking-[0.16em] text-[var(--lpv-muted)]">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                    </div>
+
+                    <Link href={`/producteurs/${producer.slug}`}>
+                      <h2 className="lpv-display mt-5 text-[clamp(3.2rem,5vw,5.5rem)] leading-[0.9] transition-opacity group-hover:opacity-60">
+                        {producer.name}
+                      </h2>
+                    </Link>
+
+                    {location ? (
+                      <p className="mt-5 text-sm text-[var(--lpv-muted)]">
                         {location}
                       </p>
-                    )}
+                    ) : null}
 
-                    <p className="mt-8 text-xs uppercase tracking-[0.28em] text-[#9e6b44]">
-                      Découvrir le domaine →
-                    </p>
+                    {producer.oneLiner || producer.shortBio ? (
+                      <p className="mt-6 max-w-xl text-base leading-7 text-[var(--lpv-muted)]">
+                        {producer.oneLiner || producer.shortBio}
+                      </p>
+                    ) : null}
+
+                    <Link
+                      href={`/producteurs/${producer.slug}`}
+                      className="lpv-text-link mt-8"
+                    >
+                      Découvrir <span>→</span>
+                    </Link>
                   </div>
-                </Link>
+                </article>
               );
             })}
           </div>
-        </div>
-      </section>
-
-      <section className="bg-[#6f5c48] px-8 py-24 text-[#fff8ee] md:px-14 md:py-32">
-        <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1fr_1fr] md:items-center">
-          <img
-            src="/images/lpv/barriques.jpg"
-            alt="Barriques"
-            className="h-[560px] w-full rounded-[42px] object-cover opacity-90 shadow-[0_28px_90px_rgba(0,0,0,.18)]"
-          />
-
-          <div>
-            <p className="text-xs uppercase tracking-[0.42em] text-[#d9b783]">
-              Carnet de producteurs
+        ) : (
+          <div className="py-24 text-center">
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              Bientôt
             </p>
-            <h2 className="lpv-display mt-6 max-w-3xl text-6xl leading-[0.84] tracking-[-0.08em] md:text-8xl">
-              Les vins ont toujours une adresse.
+
+            <h2 className="lpv-display mt-6 text-5xl md:text-7xl">
+              Les portraits arrivent.
             </h2>
-            <p className="mt-8 max-w-xl text-lg leading-relaxed text-[#f3eadf]">
-              Revenir aux producteurs, c’est revenir à la terre, au geste et au
-              rythme lent des choses bien faites.
+
+            <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
+              Les premiers producteurs seront ajoutés au fil des rencontres et
+              des bouteilles découvertes.
             </p>
-            <Link
-              href="/vins"
-              className="mt-10 inline-block rounded-full bg-[#d9b783] px-8 py-3 text-xs uppercase tracking-[0.28em] text-[#263227]"
-            >
-              Explorer les bouteilles
+
+            <Link href="/vins" className="lpv-button mt-9">
+              Explorer les vins
             </Link>
           </div>
-        </div>
+        )}
       </section>
     </main>
   );

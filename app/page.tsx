@@ -1,237 +1,491 @@
 import Link from "next/link";
-import { LPV_HOME_IMAGES } from "@/lib/lpv-home-images";
+import type { SanityImageSource } from "@sanity/image-url";
 
-const img = (group: keyof typeof LPV_HOME_IMAGES, index = 0) =>
-  LPV_HOME_IMAGES[group]?.[index]?.src;
+import { client } from "@/sanity/lib/client";
+import { urlFor } from "@/sanity/lib/image";
+
+export const revalidate = 60;
+
+type FeaturedWine = {
+  name: string;
+  slug: string;
+  vintage?: number;
+  color?: string;
+  bottleImage?: SanityImageSource;
+  producer?: {
+    name?: string;
+  };
+};
 
 function Photo({
   src,
-  alt = "",
+  alt,
   className = "",
 }: {
-  src?: string;
-  alt?: string;
+  src: string;
+  alt: string;
   className?: string;
 }) {
-  return src ? (
-    <img src={src} alt={alt} className={`h-full w-full object-cover ${className}`} />
-  ) : (
-    <div className={`h-full w-full bg-[#c8b89f] ${className}`} />
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={`h-full w-full object-cover ${className}`}
+    />
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const homeWines = await client.fetch<FeaturedWine[]>(
+    `*[_type == "wine" && published == true] | order(_updatedAt desc)[0...4] {
+      name,
+      "slug": slug.current,
+      vintage,
+      color,
+      bottleImage,
+      producer->{name}
+    }`
+  );
+
+  const featuredWine = homeWines[0] ?? null;
+  const selectionWines = homeWines.slice(1, 4);
+
+  const bottleImage = featuredWine?.bottleImage
+    ? urlFor(featuredWine.bottleImage)
+        .width(900)
+        .height(1200)
+        .fit("max")
+        .url()
+    : null;
+
+  const featuredProducer = await client.fetch<{
+    name: string;
+    slug: string;
+    image?: SanityImageSource;
+  } | null>(
+    `*[_type == "producer" && defined(slug.current)] | order(_updatedAt desc)[0] {
+      name,
+      "slug": slug.current,
+      "image": coalesce(image, mainImage, heroImage, photo, coverImage)
+    }`
+  );
+
+  const producerImage = featuredProducer?.image
+    ? urlFor(featuredProducer.image)
+        .width(1200)
+        .height(900)
+        .fit("crop")
+        .url()
+    : null;
+
   return (
-    <main className="bg-[#efe6d7] text-[#263227]">
-      <section className="relative min-h-[88vh] overflow-hidden">
-        <Photo
-          src="/images/lpv/IMG_0042.JPG"
-          alt="Verre de rosé devant la lune"
-          className="absolute inset-0"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(38,50,39,.54),rgba(38,50,39,.12),rgba(38,50,39,.04))]" />
-
-        <div className="relative z-10 flex min-h-[88vh] flex-col justify-between px-8 py-10 text-[#fff8ee] md:px-14">
-          <div className="flex justify-between text-xs uppercase tracking-[0.34em]">
-            <span>Le Premier Verre</span>
-            <span>Guide vin francophone</span>
-          </div>
-
-          <div className="max-w-4xl pb-10">
-            <h1 className="lpv-display text-[18vw] leading-[0.76] tracking-[-0.08em] md:text-[10vw]">
-              boire
-              <br />
-              mieux.
-            </h1>
-            <div className="mt-8 flex items-center gap-5">
-              <Link href="/ce-soir" className="rounded-full bg-[#d9b783] px-8 py-3 text-xs uppercase tracking-[0.28em] text-[#263227]">
-                Ce soir
-              </Link>
-              <Link href="/sommelier" className="text-xs uppercase tracking-[0.28em] underline underline-offset-8">
-                Demander au sommelier
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="lpv-paper px-8 py-24 md:px-14 md:py-32">
-        <div className="mx-auto grid max-w-7xl gap-16 md:grid-cols-[1.05fr_.95fr] md:items-end">
-          <div>
-            <p className="mb-8 text-xs uppercase tracking-[0.34em] text-[#71735b]">Éditorial</p>
-            <h2 className="lpv-display max-w-3xl text-6xl leading-[0.84] tracking-[-0.08em] md:text-8xl">
-              Une plateforme qui prend son temps.
-            </h2>
-          </div>
-          <p className="max-w-xl text-2xl leading-relaxed text-[#33291d]">
-            Le Premier Verre n’est pas un catalogue. C’est un carnet de moments :
-            une lumière, une table, une bouteille, une envie de recevoir sans trop
-            compliquer les choses.
-          </p>
-        </div>
-
-        <div className="mx-auto mt-20 grid max-w-7xl gap-6 md:grid-cols-4">
-          <Link href="/blog" className="lpv-tile group md:col-span-2">
-            <Photo src="/images/lpv/IMG_0045.JPG" alt="Table de vin" className="aspect-[4/5] transition duration-700 group-hover:scale-[1.03]" />
-            <div className="p-6">
-              <p className="text-xs uppercase tracking-[0.3em] text-[#9e6b44]">Article du mois</p>
-              <h3 className="mt-4 lpv-display text-4xl leading-[.9]">Recevoir sans cérémonie.</h3>
-              <p className="mt-4 text-sm leading-6 text-[#5f5447]">Une façon plus douce de penser le vin, la table et le moment.</p>
-            </div>
-          </Link>
-
-          <Link href="/vins" className="lpv-tile group">
-            <Photo src="/images/lpv/IMG_0041.JPG" alt="Bouteille coup de coeur" className="aspect-[3/4] transition duration-700 group-hover:scale-[1.03]" />
-            <div className="p-6">
-              <p className="text-xs uppercase tracking-[0.3em] text-[#9e6b44]">Coup de cœur</p>
-              <h3 className="mt-4 lpv-display text-3xl leading-[.9]">La bouteille du moment.</h3>
-            </div>
-          </Link>
-
-          <Link href="/accords" className="lpv-tile group">
-            <Photo src="/images/lpv/IMG_0043.JPG" alt="Accords" className="aspect-[3/4] transition duration-700 group-hover:scale-[1.03]" />
-            <div className="p-6">
-              <p className="text-xs uppercase tracking-[0.3em] text-[#9e6b44]">À table</p>
-              <h3 className="mt-4 lpv-display text-3xl leading-[.9]">Les bons accords.</h3>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      
-      <section className="lpv-paper px-8 py-20 md:px-14 md:py-28">
-        <div className="mx-auto grid max-w-7xl gap-5 md:grid-cols-5">
-          <Photo src="/images/lpv/IMG_0040.JPG" alt="Service du vin" className="aspect-[3/4] rounded-[30px]" />
-          <Photo src="/images/lpv/IMG_0046.JPG" alt="Raisins" className="aspect-[3/4] rounded-[30px] md:translate-y-12" />
-          <div className="flex flex-col justify-center rounded-[30px] bg-[#3b2a20] p-8 text-[#fff8ee]">
-            <p className="text-xs uppercase tracking-[0.34em] text-[#d9b783]">Carnet visuel</p>
-            <h2 className="mt-6 lpv-display text-5xl leading-[.86]">
-              Des images qui donnent envie de rester à table.
-            </h2>
-          </div>
-          <Photo src="/images/lpv/IMG_0049.JPG" alt="Vendanges" className="aspect-[3/4] rounded-[30px] md:-translate-y-8" />
-          <Photo src="/images/lpv/IMG_0042.JPG" alt="Verres en bord de mer" className="aspect-[3/4] rounded-[30px] md:translate-y-6" />
-        </div>
-      </section>
-
-
-      <section className="lpv-paper px-8 py-24 md:px-14 md:py-32">
-        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1.15fr_.85fr]">
-          <Link
-            href="/blog"
-            className="group relative overflow-hidden rounded-[36px] bg-[#3b2a20] text-[#fff8ee] shadow-[0_28px_90px_rgba(51,41,29,.18)]"
-          >
+    <main className="bg-[var(--lpv-paper)] text-[var(--lpv-ink)]">
+          {/* HERO */}
+          <section className="relative min-h-[78vh] overflow-hidden">
             <Photo
-              src="/images/lpv/IMG_0043.JPG"
-              alt="Article à la une"
-              className="h-[680px] opacity-90 transition duration-700 group-hover:scale-[1.03]"
+              src="/images/lpv/table-vin.jpg"
+              alt="Des amis réunis autour d’une table et de bouteilles de vin"
+              className="absolute inset-0 grayscale"
             />
-            <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(59,42,32,.88),rgba(59,42,32,.22),transparent)]" />
-            <div className="absolute bottom-0 left-0 max-w-3xl p-8 md:p-12">
-              <p className="mb-6 text-xs uppercase tracking-[0.34em] text-[#d9b783]">
-                Article à la une
+
+            <div className="absolute inset-0 bg-black/38" />
+
+            <div className="lpv-container relative z-10 flex min-h-[78vh] flex-col justify-end pb-12 pt-24 text-[var(--lpv-paper-light)] md:pb-16">
+              <p className="lpv-kicker mb-6 text-white/72">
+                Le Premier Verre
               </p>
-              <h2 className="lpv-display text-6xl leading-[.84] tracking-[-0.08em] md:text-8xl">
-                L’art de choisir une bouteille sans casser le moment.
+
+              <h1 className="lpv-display max-w-5xl text-[clamp(4rem,15vw,5.2rem)] md:text-[clamp(4.6rem,11vw,10.5rem)] leading-[0.82]">
+                Boire moins
+                <br />
+                compliqué.
+              </h1>
+
+              <div className="mt-8 flex flex-col gap-6 border-t border-white/35 pt-6 md:flex-row md:items-end md:justify-between">
+                <p className="max-w-xl text-base leading-7 text-white/82 md:text-lg">
+                  Des bouteilles, des producteurs et des endroits qui méritent
+                  qu’on s’y attarde.
+                </p>
+
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-8">
+                  <Link
+                    href="/vins"
+                    className="lpv-text-link w-fit text-white"
+                  >
+                    Trouver un vin <span>→</span>
+                  </Link>
+
+                  <Link
+                href="/ce-soir"
+                className="lpv-text-link w-fit text-white/75"
+              >
+                Ce soir, on boit quoi? <span>→</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* BLOC ÉDITORIAL */}
+      <section className="border-y border-[var(--lpv-line)]">
+        <div className="lpv-container grid gap-0 py-[3.5vw] md:grid-cols-2">
+          <div className="h-[500px] overflow-hidden md:h-auto md:min-h-[720px]">
+            <Photo
+              src="/images/lpv/bouteille-ce-soir.jpg"
+              alt="Moment de table autour du vin"
+              className="transition duration-700 hover:scale-[1.015]"
+            />
+          </div>
+
+          <div className="flex flex-col justify-between border-t border-[var(--lpv-line)] px-0 py-10 md:border-l md:border-t-0 md:px-12 md:py-14 lg:px-16">
+            <div>
+              <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                Commencer ici
+              </p>
+
+              <h2 className="lpv-display mt-8 text-[clamp(3.7rem,6vw,6.5rem)] leading-[0.9]">
+                Une bouteille
+                <br />
+                pour ce soir.
               </h2>
-              <p className="mt-8 max-w-xl text-lg leading-relaxed text-[#f3eadf]">
-                Une lecture plus sensible du vin : moins de performance, plus de table,
-                de lumière, de saison et d’instinct.
+
+              <p className="mt-8 max-w-lg text-base leading-8 text-[var(--lpv-muted)]">
+                Choisis selon le repas, l’ambiance ou simplement l’envie du
+                moment. Pas besoin de connaître tous les mots.
               </p>
-              <span className="mt-10 inline-block text-xs uppercase tracking-[0.28em] text-[#d9b783]">
-                Lire l’article →
-              </span>
             </div>
-          </Link>
 
-          <Link
-            href="/vins"
-            className="group flex flex-col overflow-hidden rounded-[36px] bg-[#75664f] text-[#fff8ee] shadow-[0_28px_90px_rgba(51,41,29,.15)]"
-          >
-            <Photo
-              src="/images/lpv/IMG_0049.JPG"
-              alt="Bouteille coup de coeur du mois"
-              className="h-[430px] transition duration-700 group-hover:scale-[1.03]"
-            />
-            <div className="flex flex-1 flex-col justify-between p-8 md:p-10">
-              <div>
-                <p className="mb-6 text-xs uppercase tracking-[0.34em] text-[#f1d8aa]">
-                  Bouteille du mois
-                </p>
-                <h2 className="lpv-display text-5xl leading-[.86] tracking-[-0.08em]">
-                  Le coup de cœur à ouvrir maintenant.
-                </h2>
-                <p className="mt-7 text-base leading-relaxed text-[#f6efe7]">
-                  Une bouteille qui accompagne un souper simple, une fin de journée
-                  lente ou un dimanche qui s’étire.
-                </p>
+            <div className="mt-14 border-t border-[var(--lpv-line)] pt-7">
+              <Link href="/ce-soir" className="lpv-text-link w-fit">
+                Ce soir, on boit quoi? <span>→</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SÉLECTION DU MOMENT */}
+      <section className="lpv-container py-20 md:py-28">
+        <div className="mb-10 flex flex-col gap-6 border-b border-[var(--lpv-line)] pb-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              Sélection du moment
+            </p>
+
+            <h2 className="lpv-display mt-6 max-w-4xl text-[clamp(3.15rem,13vw,4.2rem)] leading-[0.92] md:text-[clamp(3.6rem,6vw,6.5rem)] md:leading-[0.9]">
+              Trois bouteilles qu’on ouvrirait maintenant.
+            </h2>
+          </div>
+
+          <Link href="/vins" className="lpv-text-link w-fit">
+            Voir toute la sélection <span>→</span>
+          </Link>
+        </div>
+
+        <div className="grid gap-10 md:grid-cols-3">
+          {selectionWines.map((wine) => {
+            const image = wine.bottleImage
+              ? urlFor(wine.bottleImage)
+                  .width(700)
+                  .height(900)
+                  .fit("max")
+                  .url()
+              : null;
+
+            return (
+              <Link
+                key={wine.slug}
+                href={`/vins/${wine.slug}`}
+                className="group"
+              >
+                <div className="flex aspect-[4/5] items-center justify-center overflow-hidden bg-[var(--lpv-paper-light)] p-8">
+                  {image ? (
+                    <img
+                      src={image}
+                      alt={wine.name}
+                      className="max-h-full max-w-full object-contain transition duration-700 group-hover:scale-[1.025]"
+                    />
+                  ) : (
+                    <span className="text-sm text-[var(--lpv-muted)]">
+                      Image à venir
+                    </span>
+                  )}
+                </div>
+
+                <div className="border-t border-[var(--lpv-line)] pt-5">
+                  {wine.color ? (
+                    <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                      {wine.color}
+                    </p>
+                  ) : null}
+
+                  <h3 className="lpv-display mt-4 text-3xl leading-[0.95]">
+                    {wine.name}
+                  </h3>
+
+                  {wine.producer?.name ? (
+                    <p className="mt-3 text-sm leading-6 text-[var(--lpv-muted)]">
+                      {wine.producer.name}
+                      {wine.vintage ? ` · ${wine.vintage}` : ""}
+                    </p>
+                  ) : null}
+
+                  <span className="lpv-text-link mt-5">
+                    Voir la bouteille <span>→</span>
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* PRODUCTEUR À DÉCOUVRIR */}
+      <section className="border-t border-[var(--lpv-line)]">
+        <div className="lpv-container py-12 md:py-16">
+          <p className="lpv-kicker mb-6 text-[var(--lpv-cocoa)]">
+            Producteur à découvrir
+          </p>
+
+          <div className="grid gap-10 md:grid-cols-[1.1fr_0.9fr] md:items-center">
+            <Link
+              href={
+                featuredProducer
+                  ? `/producteurs/${featuredProducer.slug}`
+                  : "/producteurs"
+              }
+              className="group overflow-hidden"
+            >
+              {producerImage ? (
+                <img
+                  src={producerImage}
+                  alt={featuredProducer?.name || "Producteur à découvrir"}
+                  className="aspect-[4/3] h-full w-full object-cover transition duration-700 group-hover:scale-[1.015]"
+                />
+              ) : (
+                <div className="flex aspect-[4/3] items-center justify-center bg-[var(--lpv-paper-light)]">
+                  <p className="text-sm text-[var(--lpv-muted)]">
+                    Photo du producteur à venir
+                  </p>
+                </div>
+              )}
+            </Link>
+
+            <div className="md:pl-8 lg:pl-14">
+              <h2 className="lpv-display text-[clamp(3.6rem,5vw,5.8rem)] leading-[0.9]">
+                {featuredProducer?.name ||
+                  "À la rencontre de ceux qui font le vin."}
+              </h2>
+
+              <p className="mt-7 max-w-lg text-base leading-8 text-[var(--lpv-muted)]">
+                Derrière chaque bouteille, il y a un lieu, des gens et une façon
+                de voir le vin. On vous emmène à leur rencontre.
+              </p>
+
+              <div className="mt-10 border-t border-[var(--lpv-line)] pt-6">
+                <Link
+                  href={
+                    featuredProducer
+                      ? `/producteurs/${featuredProducer.slug}`
+                      : "/producteurs"
+                  }
+                  className="lpv-text-link w-fit"
+                >
+                  Découvrir le producteur <span>→</span>
+                </Link>
               </div>
-              <span className="mt-10 inline-block text-xs uppercase tracking-[0.28em] text-[#f1d8aa]">
-                Voir la recommandation →
-              </span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* GUIDE DU MOMENT */}
+      <section className="border-t border-[var(--lpv-line)]">
+        <div className="lpv-container grid gap-10 py-12 md:grid-cols-[0.75fr_1.25fr] md:items-center md:py-16">
+          <div className="md:pr-8 lg:pr-14">
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              Guide du moment
+            </p>
+
+            <h2 className="lpv-display mt-6 text-[clamp(3.1rem,12.5vw,4rem)] leading-[0.92] md:text-[clamp(3.5rem,5vw,5.6rem)] md:leading-[0.9]">
+              Des guides pour mieux choisir.
+            </h2>
+
+            <p className="mt-7 max-w-lg text-base leading-8 text-[var(--lpv-muted)]">
+              Régions, cépages, accords et conseils sans jargon inutile.
+            </p>
+
+            <div className="mt-10 border-t border-[var(--lpv-line)] pt-6">
+              <Link href="/guides" className="lpv-text-link w-fit">
+                Voir les guides <span>→</span>
+              </Link>
+            </div>
+          </div>
+
+          <Link href="/guides" className="group overflow-hidden">
+            <Photo
+              src="/images/lpv/guides.jpg"
+              alt="Guide et découverte autour du vin"
+              className="aspect-[4/3] transition duration-700 group-hover:scale-[1.015]"
+            />
           </Link>
         </div>
       </section>
 
-<section className="bg-[#6f5c48] px-8 py-24 text-[#fff8ee] md:px-14 md:py-32">
-        <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-12 md:items-center">
-          <div className="md:col-span-5">
-            <p className="mb-8 text-xs uppercase tracking-[0.34em] text-[#d9b783]">Sommelier</p>
-            <h2 className="lpv-display text-6xl leading-[.84] tracking-[-0.08em] md:text-8xl">
-              Une réponse qui goûte quelque chose.
-            </h2>
+      {/* ARTICLE À LA UNE */}
+      <section className="lpv-container py-20 md:py-28">
+        <div className="mb-10 flex items-end justify-between border-b border-[var(--lpv-line)] pb-5">
+          <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+            Le journal
+          </p>
+
+          <Link href="/blog" className="lpv-text-link hidden sm:inline-flex">
+            Tous les articles <span>→</span>
+          </Link>
+        </div>
+
+        <Link
+          href="/blog"
+          className="group grid gap-8 md:grid-cols-[1.25fr_0.75fr] md:items-end"
+        >
+          <div className="overflow-hidden">
+            <Photo
+              src="/images/lpv/home-article.jpg"
+              alt="Article éditorial du Premier Verre"
+              className="aspect-[4/3] transition duration-700 group-hover:scale-[1.015]"
+            />
           </div>
-          <div className="md:col-span-5 md:col-start-8">
-            <p className="text-2xl leading-relaxed text-[#f3eadf]">
-              Pas de notes froides. Pas de jargon inutile. Juste une façon plus
-              intuitive de trouver le bon vin pour le bon moment.
+
+          <div className="md:pb-4">
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              Article à la une
             </p>
-            <Link href="/sommelier" className="mt-10 inline-block rounded-full border border-[#f3eadf]/40 px-8 py-3 text-xs uppercase tracking-[0.28em]">
-              Essayer
+
+            <h2 className="lpv-display mt-6 text-[clamp(3.4rem,5vw,5.8rem)] leading-[0.91]">
+              Recevoir sans cérémonie.
+            </h2>
+
+            <p className="mt-7 max-w-lg text-base leading-8 text-[var(--lpv-muted)]">
+              Une façon plus simple de penser la table, la bouteille et les
+              gens qu’on rassemble autour.
+            </p>
+
+            <span className="lpv-text-link mt-9">
+              Lire l’article <span>→</span>
+            </span>
+          </div>
+        </Link>
+      </section>
+
+      {/* EXPLORER LES VINS */}
+      <section className="border-t border-[var(--lpv-line)]">
+        <div className="lpv-container py-16 md:py-24">
+          <div className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:items-end">
+            <div>
+              <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                Explorer
+              </p>
+
+              <h2 className="lpv-display mt-6 text-[clamp(3.8rem,6vw,6.8rem)] leading-[0.9]">
+                Trouver une bouteille à ta façon.
+              </h2>
+            </div>
+
+            <p className="max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
+              Par couleur, par envie, par budget ou simplement selon le moment.
+              Commence là où ça te parle.
+            </p>
+          </div>
+
+          <div className="mt-12 grid border-t border-[var(--lpv-line)] sm:grid-cols-2 lg:grid-cols-4">
+            <Link
+              href="/vins?color=rouge"
+              className="group border-b border-[var(--lpv-line)] py-6 sm:border-r sm:px-6 sm:first:pl-0 lg:border-b-0"
+            >
+              <span className="lpv-display text-3xl">Rouges</span>
+              <span className="ml-3 transition-transform duration-300 group-hover:translate-x-1">
+                →
+              </span>
+            </Link>
+
+            <Link
+              href="/vins?color=blanc"
+              className="group border-b border-[var(--lpv-line)] py-6 sm:px-6 lg:border-b-0 lg:border-r"
+            >
+              <span className="lpv-display text-3xl">Blancs</span>
+              <span className="ml-3 transition-transform duration-300 group-hover:translate-x-1">
+                →
+              </span>
+            </Link>
+
+            <Link
+              href="/vins?color=rose"
+              className="group border-b border-[var(--lpv-line)] py-6 sm:border-r sm:px-6 lg:border-b-0"
+            >
+              <span className="lpv-display text-3xl">Rosés</span>
+              <span className="ml-3 transition-transform duration-300 group-hover:translate-x-1">
+                →
+              </span>
+            </Link>
+
+            <Link
+              href="/vins?color=bulles"
+              className="group py-6 sm:px-6 lg:pr-0"
+            >
+              <span className="lpv-display text-3xl">Bulles</span>
+              <span className="ml-3 transition-transform duration-300 group-hover:translate-x-1">
+                →
+              </span>
+            </Link>
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-x-8 gap-y-4 border-t border-[var(--lpv-line)] pt-6">
+            <Link href="/vins" className="lpv-text-link">
+              Voir tous les vins <span>→</span>
+            </Link>
+
+            <Link href="/ce-soir" className="lpv-text-link">
+              Choisir pour ce soir <span>→</span>
+            </Link>
+
+            <Link href="/producteurs" className="lpv-text-link">
+              Explorer les producteurs <span>→</span>
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="lpv-paper px-8 py-24 md:px-14 md:py-32">
-        <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-12 md:items-center">
-          <div className="md:col-span-4">
-            <p className="mb-8 text-xs uppercase tracking-[0.34em] text-[#71735b]">Collections</p>
-            <h2 className="lpv-display text-6xl leading-[.84] tracking-[-0.08em]">
-              Des listes comme des carnets.
-            </h2>
+      {/* NEWSLETTER */}
+      <section className="bg-[var(--lpv-cocoa)] text-[var(--lpv-paper-light)]">
+        <div className="lpv-container grid gap-0 py-16 md:grid-cols-[0.8fr_1.2fr] md:py-24">
+          <div className="overflow-hidden">
+            <Photo
+              src="/images/lpv/infolettre.jpg"
+              alt="Paysage viticole du Premier Verre"
+              className="aspect-[4/5]"
+            />
           </div>
 
-          <Photo src="/images/lpv/IMG_0047.JPG" alt="Vignoble" className="aspect-[4/5] md:col-span-4" />
-
-          <div className="md:col-span-3 md:col-start-10">
-            <Photo src="/images/lpv/IMG_0048.JPG" alt="Bouteille" className="mb-8 aspect-square rounded-[28px]" />
-            <p className="text-lg leading-relaxed text-[#4b3a2c]">
-              Bulles de fin d’après-midi, rouges de chalet, blancs de comptoir,
-              bouteilles à moins de 25 $ qui ont de la tenue.
+          <div className="flex flex-col justify-center border-white/20 pt-10 md:border-l md:px-14 md:pt-0 lg:px-20">
+            <p className="lpv-kicker text-white/55">
+              L’infolettre
             </p>
-            <Link href="/vins" className="mt-8 inline-block text-xs uppercase tracking-[0.28em] underline underline-offset-8">
-              Voir les vins
-            </Link>
-          </div>
-        </div>
-      </section>
 
-      <section className="bg-[#3b3b2f] px-8 py-24 text-[#fff8ee] md:px-14 md:py-32">
-        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-3">
-          <Photo src="/images/lpv/IMG_0044.JPG" alt="Courrier" className="aspect-[4/5] md:col-span-1" />
-          <div className="flex flex-col justify-center md:col-span-2">
-            <p className="mb-8 text-xs uppercase tracking-[0.34em] text-[#d9b783]">Courrier</p>
-            <h2 className="lpv-display max-w-4xl text-6xl leading-[.84] tracking-[-0.08em] md:text-8xl">
-              Une lettre à ouvrir avant le week-end.
+            <h2 className="lpv-display mt-8 max-w-3xl text-[clamp(4rem,7vw,7.5rem)] leading-[0.86]">
+              Avant le
+              <br />
+              week-end.
             </h2>
-            <p className="mt-8 max-w-xl text-xl leading-relaxed text-[#efe6d7]">
-              Sélections, accords, producteurs, bouteilles à surveiller et petites
-              idées pour mieux boire, sans prétention.
+
+            <p className="mt-8 max-w-xl text-base leading-8 text-white/68">
+              Une bouteille, une adresse et une idée à garder sous la main.
             </p>
-            <Link href="/blog" className="mt-10 w-fit text-xs uppercase tracking-[0.28em] underline underline-offset-8">
-              Découvrir
+
+            <Link
+              href="/newsletter"
+              className="lpv-text-link mt-10 w-fit text-white"
+            >
+              S’inscrire <span>→</span>
             </Link>
           </div>
         </div>

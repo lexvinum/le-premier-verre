@@ -1,12 +1,19 @@
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
+import { client } from "@/sanity/lib/client";
 
 const FAVORITES_COOKIE = "lexvinum_favorites";
 
 function normalizeStringArray(input: unknown): string[] {
   if (!Array.isArray(input)) return [];
 
-  return [...new Set(input.filter((value): value is string => typeof value === "string" && value.trim().length > 0))];
+  return [
+    ...new Set(
+      input.filter(
+        (value): value is string =>
+          typeof value === "string" && value.trim().length > 0
+      )
+    ),
+  ];
 }
 
 async function readFavoriteSlugs(): Promise<string[]> {
@@ -16,8 +23,7 @@ async function readFavoriteSlugs(): Promise<string[]> {
   if (!raw) return [];
 
   try {
-    const parsed = JSON.parse(raw) as unknown;
-    return normalizeStringArray(parsed);
+    return normalizeStringArray(JSON.parse(raw));
   } catch {
     return [];
   }
@@ -41,17 +47,9 @@ export async function GET(req: Request) {
 
   const favorites = await readFavoriteSlugs();
 
-  if (slug) {
-    return Response.json({
-      ok: true,
-      active: favorites.includes(slug),
-      favorites,
-      count: favorites.length,
-    });
-  }
-
   return Response.json({
     ok: true,
+    active: slug ? favorites.includes(slug) : false,
     favorites,
     count: favorites.length,
   });
@@ -76,25 +74,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const payload = body as {
-    ids?: unknown;
-    slug?: unknown;
-  };
-
-  // --- Compatibilité avec ton route actuel ---
-  if (Array.isArray(payload.ids)) {
-    const ids = normalizeStringArray(payload.ids);
-
-    const wines = await prisma.wine.findMany({
-      where: {
-        id: { in: ids },
-      },
-    });
-
-    return Response.json(wines);
-  }
-
-  // --- Nouveau comportement : toggle favori par slug ---
+  const payload = body as { slug?: unknown };
   const slug =
     typeof payload.slug === "string" ? payload.slug.trim() : "";
 
@@ -105,10 +85,14 @@ export async function POST(req: Request) {
     );
   }
 
-  const existingWine = await prisma.wine.findUnique({
-    where: { slug },
-    select: { id: true, slug: true },
-  });
+  const existingWine = await client.fetch<{ _id: string } | null>(
+    `*[
+      _type == "wine" &&
+      slug.current == $slug &&
+      published == true
+    ][0]{ _id }`,
+    { slug }
+  );
 
   if (!existingWine) {
     return Response.json(

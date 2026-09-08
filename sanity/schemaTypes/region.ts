@@ -1,102 +1,306 @@
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
 
 export const region = defineType({
   name: "region",
-  title: "Région",
+  title: "Régions",
   type: "document",
+
+  groups: [
+    { name: "identity", title: "Identité", default: true },
+    { name: "lpv", title: "Le Premier Verre" },
+    { name: "map", title: "Localisation & carte" },
+    { name: "wine", title: "Climat & cépages" },
+    { name: "content", title: "Contenu lié" },
+    { name: "advanced", title: "Informations avancées" },
+    { name: "publication", title: "Publication" },
+  ],
+
   fields: [
     defineField({
       name: "name",
-      title: "Nom",
+      title: "Nom de la région",
       type: "string",
+      group: "identity",
       validation: (Rule) => Rule.required(),
     }),
+
     defineField({
       name: "slug",
       title: "Slug",
       type: "slug",
-      options: { source: "name", maxLength: 96 },
+      group: "identity",
+      options: {
+        source: "name",
+        maxLength: 96,
+      },
       validation: (Rule) => Rule.required(),
     }),
+
     defineField({
       name: "country",
       title: "Pays",
       type: "reference",
       to: [{ type: "country" }],
+      group: "identity",
+      validation: (Rule) => Rule.required(),
     }),
+
     defineField({
       name: "parentRegion",
       title: "Région parente",
       type: "reference",
       to: [{ type: "region" }],
-      description: "Exemple : Côte de Beaune peut être rattachée à Bourgogne.",
+      group: "identity",
+      description:
+        "À utiliser seulement lorsque la région appartient à une région viticole plus large.",
     }),
+
     defineField({
       name: "heroImage",
-      title: "Image héro",
+      title: "Photo principale",
       type: "image",
+      group: "identity",
       options: { hotspot: true },
     }),
+
     defineField({
-      name: "description",
-      title: "Description courte",
-      type: "text",
-      rows: 4,
-    }),
-    defineField({
-      name: "overview",
-      title: "Présentation détaillée",
+      name: "introduction",
+      title: "Introduction",
       type: "array",
+      group: "lpv",
+      description:
+        "Présentation de la région en environ 100 à 150 mots.",
       of: [{ type: "block" }],
+      validation: (Rule) => Rule.required(),
     }),
+
+    defineField({
+      name: "locationText",
+      title: "Localisation",
+      type: "text",
+      rows: 3,
+      group: "map",
+      description:
+        "Explication simple de l’emplacement de la région : où elle se trouve et ses principaux repères géographiques.",
+      validation: (Rule) => Rule.required(),
+    }),
+
+    defineField({
+      name: "latitude",
+      title: "Latitude de la mini-carte",
+      type: "number",
+      group: "map",
+      description:
+        "Coordonnée approximative du centre de la région.",
+      validation: (Rule) =>
+        Rule.required().min(-90).max(90),
+    }),
+
+    defineField({
+      name: "longitude",
+      title: "Longitude de la mini-carte",
+      type: "number",
+      group: "map",
+      description:
+        "Coordonnée approximative du centre de la région.",
+      validation: (Rule) =>
+        Rule.required().min(-180).max(180),
+    }),
+
+    defineField({
+      name: "mapZoom",
+      title: "Zoom de la mini-carte",
+      type: "number",
+      group: "map",
+      description:
+        "Valeur indicative pour cadrer la région. 7 à 9 convient généralement à une région viticole.",
+      initialValue: 8,
+      validation: (Rule) =>
+        Rule.min(1).max(15),
+    }),
+
+    defineField({
+      name: "mapPolygon",
+      title: "Zone de la région sur la carte",
+      type: "array",
+      group: "map",
+      description:
+        "Coordonnées qui dessinent la zone approximative de la région sur la carte.",
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "mapPoint",
+          title: "Point",
+          fields: [
+            defineField({
+              name: "latitude",
+              title: "Latitude",
+              type: "number",
+              validation: (Rule) =>
+                Rule.required().min(-90).max(90),
+            }),
+            defineField({
+              name: "longitude",
+              title: "Longitude",
+              type: "number",
+              validation: (Rule) =>
+                Rule.required().min(-180).max(180),
+            }),
+          ],
+          preview: {
+            select: {
+              latitude: "latitude",
+              longitude: "longitude",
+            },
+            prepare({ latitude, longitude }) {
+              return {
+                title: `${latitude ?? "—"}, ${longitude ?? "—"}`,
+              };
+            },
+          },
+        }),
+      ],
+    }),
+
     defineField({
       name: "climate",
       title: "Climat",
       type: "text",
       rows: 4,
+      group: "wine",
+      description:
+        "Les éléments climatiques qui ont une incidence réelle sur la vigne et les vins.",
+      validation: (Rule) => Rule.required(),
     }),
+
+    defineField({
+      name: "signatureGrapes",
+      title: "Principaux cépages",
+      type: "array",
+      group: "wine",
+      of: [{ type: "reference", to: [{ type: "grape" }] }],
+      validation: (Rule) =>
+        Rule.required().min(1),
+    }),
+
+    defineField({
+      name: "characteristics",
+      title: "Caractéristiques utiles",
+      type: "array",
+      group: "lpv",
+      description:
+        "3 à 5 choses concrètes à savoir pour comprendre rapidement la région.",
+      validation: (Rule) =>
+        Rule.required().min(3).max(5),
+      of: [
+        {
+          type: "object",
+          name: "regionCharacteristic",
+          title: "Caractéristique",
+          fields: [
+            defineField({
+              name: "title",
+              title: "Titre",
+              type: "string",
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: "text",
+              title: "Explication",
+              type: "text",
+              rows: 3,
+              validation: (Rule) =>
+                Rule.required().max(350),
+            }),
+          ],
+          preview: {
+            select: {
+              title: "title",
+              subtitle: "text",
+            },
+          },
+        },
+      ],
+    }),
+
+    defineField({
+      name: "guides",
+      title: "Guides liés",
+      type: "array",
+      group: "content",
+      description:
+        "Guides Le Premier Verre pertinents pour cette région.",
+      of: [{ type: "reference", to: [{ type: "guide" }] }],
+    }),
+
+    /*
+     * Les producteurs et les vins de la région ne sont volontairement
+     * pas enregistrés ici. Ils seront récupérés automatiquement sur
+     * la page publique à partir de leur référence vers cette région.
+     */
+
+    defineField({
+      name: "description",
+      title: "Ancienne description courte",
+      type: "text",
+      rows: 4,
+      group: "advanced",
+      description:
+        "Champ conservé pour compatibilité. Utiliser désormais « Introduction ».",
+    }),
+
+    defineField({
+      name: "overview",
+      title: "Ancienne présentation détaillée",
+      type: "array",
+      group: "advanced",
+      of: [{ type: "block" }],
+      description:
+        "Champ conservé pour compatibilité. Utiliser désormais « Introduction ».",
+    }),
+
     defineField({
       name: "soilTypes",
       title: "Types de sols",
       type: "array",
+      group: "advanced",
       of: [{ type: "string" }],
       options: { layout: "tags" },
     }),
+
     defineField({
       name: "mainWineStyles",
       title: "Styles de vins principaux",
       type: "array",
+      group: "advanced",
       of: [{ type: "string" }],
       options: { layout: "tags" },
     }),
-    defineField({
-      name: "signatureGrapes",
-      title: "Cépages emblématiques",
-      type: "array",
-      of: [{ type: "reference", to: [{ type: "grape" }] }],
-    }),
-    defineField({
-      name: "latitude",
-      title: "Latitude",
-      type: "number",
-    }),
-    defineField({
-      name: "longitude",
-      title: "Longitude",
-      type: "number",
-    }),
+
     defineField({
       name: "seoTitle",
       title: "Titre SEO",
       type: "string",
+      group: "publication",
     }),
+
     defineField({
       name: "seoDescription",
       title: "Description SEO",
       type: "text",
       rows: 3,
+      group: "publication",
+    }),
+
+    defineField({
+      name: "published",
+      title: "Publié",
+      type: "boolean",
+      group: "publication",
+      initialValue: false,
     }),
   ],
+
   preview: {
     select: {
       title: "name",
@@ -104,10 +308,14 @@ export const region = defineType({
       parent: "parentRegion.name",
       media: "heroImage",
     },
-    prepare({ title, country, parent }) {
+
+    prepare({ title, country, parent, media }) {
       return {
         title,
-        subtitle: [parent, country].filter(Boolean).join(" · "),
+        subtitle: [parent, country]
+          .filter(Boolean)
+          .join(" · "),
+        media,
       };
     },
   },

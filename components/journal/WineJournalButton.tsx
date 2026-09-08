@@ -4,131 +4,310 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 
 type Entry = {
-  favorite: boolean;
-  tasted: boolean;
+  _id?: string;
+  tastedAt: string;
+  appreciation: "liked" | "average" | "disliked";
+  note: string;
   buyAgain: boolean;
-  gift: boolean;
-  avoid: boolean;
-  rating: number | null;
-  note: string | null;
-  location: string | null;
-  tastedAt: string | null;
 };
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export function WineJournalButton({ wineId }: { wineId: string }) {
   const { isSignedIn } = useUser();
+
   const [entry, setEntry] = useState<Entry | null>(null);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [tastedAt, setTastedAt] = useState(today());
+  const [appreciation, setAppreciation] =
+    useState<Entry["appreciation"]>("liked");
+  const [note, setNote] = useState("");
+  const [buyAgain, setBuyAgain] = useState(true);
 
   useEffect(() => {
     if (!isSignedIn) return;
 
+    setLoading(true);
+
     fetch(`/api/journal/${wineId}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setEntry(data?.entry ?? null))
-      .catch(() => null);
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then((data) => {
+        const current = data?.entry ?? null;
+
+        setEntry(current);
+
+        if (current) {
+          setTastedAt(current.tastedAt || today());
+          setAppreciation(current.appreciation || "liked");
+          setNote(current.note || "");
+          setBuyAgain(Boolean(current.buyAgain));
+        }
+      })
+      .catch(() => null)
+      .finally(() => setLoading(false));
   }, [isSignedIn, wineId]);
 
-  async function save(next: Partial<Entry>) {
+  async function save() {
     if (!isSignedIn) {
-      window.location.href = "/sign-in";
+      window.location.href = "/connexion";
       return;
     }
 
     setSaving(true);
+    setError("");
 
-    const payload = {
-      favorite: next.favorite ?? entry?.favorite ?? false,
-      tasted: next.tasted ?? entry?.tasted ?? false,
-      buyAgain: next.buyAgain ?? entry?.buyAgain ?? false,
-      gift: next.gift ?? entry?.gift ?? false,
-      avoid: next.avoid ?? entry?.avoid ?? false,
-      rating: next.rating ?? entry?.rating ?? null,
-      note: next.note ?? entry?.note ?? null,
-      location: next.location ?? entry?.location ?? null,
-      tastedAt: next.tastedAt ?? entry?.tastedAt ?? null,
-    };
+    try {
+      const res = await fetch(`/api/journal/${wineId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tastedAt,
+          appreciation,
+          note,
+          buyAgain,
+        }),
+      });
 
-    const res = await fetch(`/api/journal/${wineId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      const data = await res.json();
 
-    const data = await res.json();
-    setEntry(data.entry);
-    setSaving(false);
+      if (!res.ok) {
+        setError(data?.error || "Impossible d’enregistrer cette entrée.");
+        return;
+      }
+
+      setEntry(data.entry);
+      setOpen(false);
+    } catch {
+      setError("Impossible d’enregistrer cette entrée.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function remove() {
+    if (!entry) return;
+
+    const confirmed = window.confirm(
+      "Retirer ce vin de ton carnet?"
+    );
+
+    if (!confirmed) return;
+
+    setSaving(true);
+    setError("");
+
+    try {
+      const res = await fetch(`/api/journal/${wineId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        setError("Impossible de retirer cette entrée.");
+        return;
+      }
+
+      setEntry(null);
+      setTastedAt(today());
+      setAppreciation("liked");
+      setNote("");
+      setBuyAgain(true);
+      setOpen(false);
+    } catch {
+      setError("Impossible de retirer cette entrée.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function toggleOpen() {
+    if (!isSignedIn) {
+      window.location.href = "/connexion";
+      return;
+    }
+
+    setOpen((value) => !value);
   }
 
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="rounded-full bg-[#caa06b] px-6 py-3 text-xs uppercase tracking-[0.24em] text-[#263227] transition hover:bg-[#dcc8b1]"
+        onClick={toggleOpen}
+        className="border-b border-[var(--lpv-ink)] pb-1 text-xs uppercase tracking-[0.2em] text-[var(--lpv-ink)] transition hover:opacity-55"
       >
-        {entry ? "Dans mon carnet" : "Ajouter au carnet"}
+        {entry ? "Dans mon carnet" : "Ajouter au carnet"} →
       </button>
 
-      {open && (
-        <div className="absolute right-0 z-50 mt-3 w-[320px] rounded-[28px] bg-[#2f2119] p-5 text-[#fff8ee] shadow-[0_24px_80px_rgba(0,0,0,.35)]">
-          <p className="mb-4 text-xs uppercase tracking-[0.28em] text-[#caa06b]">
-            Mon carnet
-          </p>
+      {open ? (
+        <div className="absolute right-0 z-50 mt-5 w-[min(360px,calc(100vw-2rem))] border border-[var(--lpv-line)] bg-[var(--lpv-paper)] p-6 text-[var(--lpv-ink)] shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
+          <div className="flex items-start justify-between gap-6">
+            <div>
+              <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                Mon carnet
+              </p>
 
-          <div className="grid gap-2">
-            {[
-              ["favorite", "❤️ Favori"],
-              ["tasted", "🍷 Goûté"],
-              ["buyAgain", "🔁 À racheter"],
-              ["gift", "🎁 À offrir"],
-              ["avoid", "👎 À éviter"],
-            ].map(([key, label]) => {
-              const active = Boolean(entry?.[key as keyof Entry]);
-
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => save({ [key]: !active } as Partial<Entry>)}
-                  disabled={saving}
-                  className={`rounded-full px-4 py-3 text-left text-sm transition ${
-                    active
-                      ? "bg-[#caa06b] text-[#263227]"
-                      : "bg-[#3b2a20] text-[#d7c3b1] hover:bg-[#4a372b]"
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-5">
-            <p className="mb-2 text-xs uppercase tracking-[0.22em] text-[#caa06b]">
-              Note
-            </p>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((rating) => (
-                <button
-                  key={rating}
-                  type="button"
-                  onClick={() => save({ rating })}
-                  disabled={saving}
-                  className={`text-2xl ${
-                    (entry?.rating ?? 0) >= rating
-                      ? "text-[#caa06b]"
-                      : "text-[#6f5c48]"
-                  }`}
-                >
-                  ★
-                </button>
-              ))}
+              <p className="mt-3 text-sm leading-6 text-[var(--lpv-muted)]">
+                Garde une trace de ce que tu as réellement bu.
+              </p>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="text-lg text-[var(--lpv-muted)] transition hover:text-[var(--lpv-ink)]"
+              aria-label="Fermer"
+            >
+              ×
+            </button>
           </div>
+
+          {loading ? (
+            <p className="mt-8 text-sm text-[var(--lpv-muted)]">
+              Chargement…
+            </p>
+          ) : (
+            <div className="mt-8 space-y-7">
+              <div>
+                <label className="lpv-kicker block text-[var(--lpv-cocoa)]">
+                  Date
+                </label>
+
+                <input
+                  type="date"
+                  value={tastedAt}
+                  onChange={(event) => setTastedAt(event.target.value)}
+                  className="mt-3 w-full border border-[var(--lpv-line)] bg-transparent px-4 py-3 text-sm outline-none transition focus:border-[var(--lpv-ink)]"
+                />
+              </div>
+
+              <div>
+                <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                  Appréciation
+                </p>
+
+                <div className="mt-3 grid grid-cols-3 border border-[var(--lpv-line)]">
+                  {[
+                    ["liked", "Aimé"],
+                    ["average", "Moyen"],
+                    ["disliked", "Pas aimé"],
+                  ].map(([value, label], index) => {
+                    const active = appreciation === value;
+
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() =>
+                          setAppreciation(
+                            value as Entry["appreciation"]
+                          )
+                        }
+                        className={`px-3 py-3 text-xs uppercase tracking-[0.12em] transition ${
+                          index < 2
+                            ? "border-r border-[var(--lpv-line)]"
+                            : ""
+                        } ${
+                          active
+                            ? "bg-[var(--lpv-ink)] text-[var(--lpv-paper)]"
+                            : "text-[var(--lpv-muted)] hover:text-[var(--lpv-ink)]"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="lpv-kicker block text-[var(--lpv-cocoa)]">
+                  Note
+                </label>
+
+                <textarea
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                  rows={4}
+                  placeholder="Ex. Super avec les pâtes aux champignons."
+                  className="mt-3 w-full resize-none border border-[var(--lpv-line)] bg-transparent px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-[var(--lpv-muted)] focus:border-[var(--lpv-ink)]"
+                />
+              </div>
+
+              <div>
+                <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                  Rachèterais
+                </p>
+
+                <div className="mt-3 grid grid-cols-2 border border-[var(--lpv-line)]">
+                  {[true, false].map((value, index) => (
+                    <button
+                      key={String(value)}
+                      type="button"
+                      onClick={() => setBuyAgain(value)}
+                      className={`px-4 py-3 text-xs uppercase tracking-[0.14em] transition ${
+                        index === 0
+                          ? "border-r border-[var(--lpv-line)]"
+                          : ""
+                      } ${
+                        buyAgain === value
+                          ? "bg-[var(--lpv-ink)] text-[var(--lpv-paper)]"
+                          : "text-[var(--lpv-muted)] hover:text-[var(--lpv-ink)]"
+                      }`}
+                    >
+                      {value ? "Oui" : "Non"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {error ? (
+                <p className="text-sm text-red-700">
+                  {error}
+                </p>
+              ) : null}
+
+              <div className="flex items-center justify-between gap-4 border-t border-[var(--lpv-line)] pt-5">
+                {entry ? (
+                  <button
+                    type="button"
+                    onClick={remove}
+                    disabled={saving}
+                    className="text-xs uppercase tracking-[0.15em] text-[var(--lpv-muted)] transition hover:text-[var(--lpv-ink)] disabled:opacity-40"
+                  >
+                    Retirer
+                  </button>
+                ) : (
+                  <span />
+                )}
+
+                <button
+                  type="button"
+                  onClick={save}
+                  disabled={saving || !tastedAt}
+                  className="lpv-button lpv-button-dark"
+                >
+                  {saving
+                    ? "Enregistrement…"
+                    : entry
+                      ? "Enregistrer"
+                      : "Ajouter au carnet"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type FavoriteButtonProps = {
-  slug: string;
+  wineId: string;
   className?: string;
   size?: "sm" | "md" | "lg";
 };
@@ -30,10 +30,10 @@ function HeartIcon({
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
       <path
-        d="M12 21s-6.716-4.35-9.193-7.5C.94 11.36 2.09 7.5 5.5 7.5c1.91 0 3.13 1.14 3.5 2 .37-.86 1.59-2 3.5-2 3.41 0 4.56 3.86 2.693 6C18.716 16.65 12 21 12 21z"
+        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"
         fill={filled ? "currentColor" : "none"}
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.65"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -42,7 +42,7 @@ function HeartIcon({
 }
 
 export default function FavoriteButton({
-  slug,
+  wineId,
   className = "",
   size = "md",
 }: FavoriteButtonProps) {
@@ -56,12 +56,17 @@ export default function FavoriteButton({
     async function loadFavoriteState() {
       try {
         const response = await fetch(
-          `/api/favorites?slug=${encodeURIComponent(slug)}`,
+          `/api/favorites/${encodeURIComponent(wineId)}`,
           {
             method: "GET",
             cache: "no-store",
           }
         );
+
+        if (response.status === 401) {
+          if (!cancelled) setLoading(false);
+          return;
+        }
 
         if (!response.ok) {
           if (!cancelled) setLoading(false);
@@ -69,11 +74,11 @@ export default function FavoriteButton({
         }
 
         const data = (await response.json()) as {
-          active?: boolean;
+          favorite?: boolean;
         };
 
         if (!cancelled) {
-          setActive(Boolean(data.active));
+          setActive(Boolean(data.favorite));
           setLoading(false);
         }
       } catch {
@@ -88,7 +93,7 @@ export default function FavoriteButton({
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [wineId]);
 
   async function toggleFavorite() {
     if (pending) return;
@@ -98,13 +103,25 @@ export default function FavoriteButton({
     setActive(!previous);
 
     try {
-      const response = await fetch("/api/favorites", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ slug }),
-      });
+      const response = await fetch(
+        `/api/favorites/${encodeURIComponent(wineId)}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            favorite: !previous,
+          }),
+        }
+      );
+
+      if (response.status === 401) {
+        setActive(previous);
+        setPending(false);
+        window.location.href = "/connexion";
+        return;
+      }
 
       if (!response.ok) {
         setActive(previous);
@@ -113,10 +130,10 @@ export default function FavoriteButton({
       }
 
       const data = (await response.json()) as {
-        active?: boolean;
+        favorite?: boolean;
       };
 
-      setActive(Boolean(data.active));
+      setActive(Boolean(data.favorite));
       setPending(false);
     } catch {
       setActive(previous);
@@ -135,18 +152,21 @@ export default function FavoriteButton({
       onClick={toggleFavorite}
       className={[
         "inline-flex items-center justify-center rounded-full border transition-all duration-300",
-        "backdrop-blur-md shadow-[0_10px_30px_rgba(17,24,19,0.10)]",
+        "border-[var(--lpv-line)] bg-[var(--lpv-paper-light)]/90 text-[var(--lpv-ink)]",
+        "hover:border-[var(--lpv-ink)] hover:bg-[var(--lpv-paper-light)]",
         buttonSizes[size],
-        active
-          ? "border-emerald-950/20 bg-emerald-950 text-amber-100"
-          : "border-black/10 bg-white/78 text-stone-700 hover:border-emerald-950/20 hover:bg-white hover:text-emerald-950",
-        disabled ? "opacity-80" : "",
+        active ? "border-[var(--lpv-ink)]" : "",
+        disabled ? "opacity-60" : "",
         className,
       ].join(" ")}
     >
       <HeartIcon
         filled={active}
-        className={["transition-all duration-300", iconSizes[size]].join(" ")}
+        className={[
+          "transition-all duration-300",
+          active ? "scale-[0.92]" : "",
+          iconSizes[size],
+        ].join(" ")}
       />
     </button>
   );

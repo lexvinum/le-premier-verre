@@ -114,7 +114,7 @@ export default function Home() {
 
               {status === "error" && (
                 <p className="mt-4 text-sm text-[#9a544a]">
-                  L’inscription n’est pas encore connectée à Beehiiv.
+                  L’inscription n’a pas fonctionné. Réessayez dans un instant.
                 </p>
               )}
             </section>

@@ -1,330 +1,202 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
-import { getArticle, getRelatedArticles } from "@/sanity/lib/queries";
+import type { SanityImageSource } from "@sanity/image-url";
+
+import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
+import { articleBySlugQuery } from "@/sanity/lib/queries";
 
 export const revalidate = 60;
 
-type PageProps = {
-  params: Promise<{
-    slug: string;
-  }>;
-};
-
 type Article = {
-  _id: string;
-  slug: string;
   title: string;
-  excerpt?: string | null;
-  content?: string | null;
-  category?: string | null;
-  coverImage?: unknown;
-  author?: string | null;
-  tags?: string[] | null;
-  tagsJson?: string | null;
-  publishedAt?: string | null;
-  _createdAt?: string | null;
-  seoTitle?: string | null;
-  seoDescription?: string | null;
+  excerpt?: string;
+  content?: string;
+  category?: string;
+  author?: string;
+  coverImage?: SanityImageSource;
+  tags?: string[];
+  tagsJson?: string;
+  publishedAt?: string;
+  _createdAt?: string;
 };
 
-function formatDate(date: string | Date | null | undefined) {
-  if (!date) return null;
+function formatDate(value?: string) {
+  if (!value) return null;
 
   return new Intl.DateTimeFormat("fr-CA", {
-    year: "numeric",
-    month: "long",
     day: "numeric",
-  }).format(new Date(date));
+    month: "long",
+    year: "numeric",
+  }).format(new Date(value));
 }
 
-function renderContent(content: string | null | undefined) {
-  if (!content) return [];
+function parseTags(article: Article) {
+  if (Array.isArray(article.tags)) return article.tags;
 
-  return content
-    .split(/\n\s*\n/g)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-}
-
-function getImageSrc(image: unknown, fallback: string) {
-  if (!image) return fallback;
-  if (typeof image === "string") return image;
+  if (!article.tagsJson) return [];
 
   try {
-    return urlFor(image).width(1400).height(900).fit("crop").url();
-  } catch {
-    return fallback;
-  }
-}
+    const parsed = JSON.parse(article.tagsJson);
 
-function parseTags(post: Article) {
-  if (post.tags) return post.tags;
-
-  if (!post.tagsJson) return [];
-
-  try {
-    const parsed = JSON.parse(post.tagsJson);
     return Array.isArray(parsed)
-      ? parsed.filter((tag): tag is string => typeof tag === "string")
+      ? parsed.filter((item): item is string => typeof item === "string")
       : [];
   } catch {
     return [];
   }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export default async function ArticlePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
-  const post = (await getArticle(slug)) as Article | null;
 
-  if (!post) {
-    return {
-      title: "Article introuvable | Le Premier Verre",
-      description: "Cet article est introuvable ou non publié.",
-    };
-  }
+  const article = await client.fetch<Article | null>(
+    articleBySlugQuery,
+    { slug }
+  );
 
-  return {
-    title: post.seoTitle || `${post.title} | Le Premier Verre`,
-    description:
-      post.seoDescription || post.excerpt || "Article Le Premier Verre",
-  };
-}
+  if (!article) notFound();
 
-export default async function BlogPostPage({ params }: PageProps) {
-  const { slug } = await params;
-  const post = (await getArticle(slug)) as Article | null;
+  const imageSrc = article.coverImage
+    ? urlFor(article.coverImage)
+        .width(2000)
+        .height(1400)
+        .fit("crop")
+        .url()
+    : null;
 
-  if (!post) {
-    notFound();
-  }
+  const tags = parseTags(article);
 
-  const relatedPosts = (await getRelatedArticles(
-    post.category ?? undefined,
-    post._id
-  )) as Article[];
-
-  const tags = parseTags(post);
-  const paragraphs = renderContent(post.content);
-  const publicationDate = formatDate(post.publishedAt ?? post._createdAt);
-
-  const heroImage = getImageSrc(post.coverImage, "/images/editorial-2.jpeg");
-  const mainImage = getImageSrc(post.coverImage, "/images/editorial-1.jpeg");
+  const paragraphs =
+    article.content
+      ?.split(/\n{2,}/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean) || [];
 
   return (
-    <main className="min-h-screen bg-[#0f1713] text-[#f6efe8]">
-      <article>
-        <section className="relative overflow-hidden border-b border-[rgba(111,143,122,0.22)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(120,150,120,0.18),transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.025),rgba(0,0,0,0.20))]" />
-          <div className="absolute inset-0 opacity-[0.09] mix-blend-soft-light bg-[url('/textures/velvet-olive.jpg')] bg-cover bg-center" />
+    <main className="min-h-screen bg-[var(--lpv-paper)] text-[var(--lpv-ink)]">
+      <article className="pb-24">
+        <div className="lpv-container pt-8 md:pt-10">
+          <Link href="/blog" className="lpv-text-link">
+            <span>←</span> Retour au journal
+          </Link>
+        </div>
 
-          <div className="relative mx-auto max-w-6xl px-6 py-14 md:px-10 lg:px-12">
-            <Link
-              href="/blog"
-              className="inline-flex items-center gap-2 text-sm text-[#d8c2b2] transition hover:text-[#dff1e5]"
-            >
-              <span aria-hidden>←</span>
-              Retour au blog
-            </Link>
-
-            <div className="mt-8 grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-end">
-              <div>
-                <div className="mb-5 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.24em] text-[#9ab3a1]">
-                  {post.category ? (
-                    <span className="rounded-full border border-[#6f8f7a] bg-[rgba(111,143,122,0.12)] px-3 py-1">
-                      {post.category}
-                    </span>
-                  ) : null}
-
-                  {publicationDate ? <span>{publicationDate}</span> : null}
-                  {post.author ? <span>• {post.author}</span> : null}
-                </div>
-
-                <h1 className="max-w-4xl text-4xl font-semibold leading-tight text-[#fff8f1] md:text-6xl">
-                  {post.title}
-                </h1>
-
-                {post.excerpt ? (
-                  <p className="mt-6 max-w-3xl text-lg leading-8 text-[#d7c2b5]">
-                    {post.excerpt}
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.02))] shadow-[0_24px_70px_rgba(0,0,0,0.28)]">
-                <div className="relative h-[280px]">
-                  <Image
-                    src={heroImage}
-                    alt={post.title}
-                    fill
-                    className="object-cover"
-                    priority
-                    unoptimized={heroImage.startsWith("/")}
-                  />
-                  <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(15,25,20,0.78),rgba(15,25,20,0.18))]" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-6 py-10 md:px-10 lg:px-12">
-          <div className="overflow-hidden rounded-[32px] border border-[rgba(111,143,122,0.22)] bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.015))] shadow-[0_28px_90px_rgba(0,0,0,0.34)] backdrop-blur">
-            <div className="grid gap-10 p-8 md:grid-cols-[minmax(0,1fr)_300px] md:p-10">
-              <div className="min-w-0">
-                <div className="mb-8 overflow-hidden rounded-[26px] border border-white/10">
-                  <div className="relative h-[280px] bg-[#1a221d] md:h-[460px]">
-                    <Image
-                      src={mainImage}
-                      alt={post.title}
-                      fill
-                      className="object-cover"
-                      priority
-                      unoptimized={mainImage.startsWith("/")}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#101613] via-transparent to-transparent" />
-                  </div>
-                </div>
-
-                <div className="max-w-none">
-                  {paragraphs.map((paragraph, index) => (
-                    <p
-                      key={`${post._id}-${index}`}
-                      className="mb-6 text-[1.03rem] leading-8 text-[#eadfd6]"
-                    >
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              </div>
-
-              <aside className="space-y-6">
-                <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.02))]">
-                  <div className="p-6">
-                    <p className="text-xs uppercase tracking-[0.24em] text-[#9ab3a1]">
-                      Fiche article
-                    </p>
-
-                    <div className="mt-5 space-y-4 text-sm text-[#d9c5b7]">
-                      <div>
-                        <p className="text-[#8fae9b]">Catégorie</p>
-                        <p className="mt-1 text-[#fff4ea]">
-                          {post.category || "Journal"}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-[#8fae9b]">Publication</p>
-                        <p className="mt-1 text-[#fff4ea]">
-                          {publicationDate || "À venir"}
-                        </p>
-                      </div>
-
-                      {post.author ? (
-                        <div>
-                          <p className="text-[#8fae9b]">Auteur</p>
-                          <p className="mt-1 text-[#fff4ea]">{post.author}</p>
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-
-                {tags.length > 0 ? (
-                  <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.02))] p-6">
-                    <p className="text-xs uppercase tracking-[0.24em] text-[#9ab3a1]">
-                      Thèmes
-                    </p>
-
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full border border-[#6f8f7a] bg-[rgba(111,143,122,0.12)] px-3 py-1 text-xs uppercase tracking-[0.18em] text-[#e1eee5]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </aside>
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-6 pb-16 md:px-10 lg:px-12">
-          <div className="mb-6">
-            <p className="text-xs uppercase tracking-[0.32em] text-[#90aa98]">
-              Lecture suivante
+        <header className="lpv-container grid gap-12 border-b border-[var(--lpv-line)] pb-16 pt-10 md:pb-24 md:pt-16 lg:grid-cols-[0.82fr_1.18fr]">
+          <div className="lg:sticky lg:top-24 lg:self-start">
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              {article.category || "Article"}
             </p>
-            <h2 className="mt-2 text-2xl font-semibold text-[#fff8f1] md:text-3xl">
-              Articles connexes
+
+            <h1 className="lpv-display mt-7 text-[clamp(4.4rem,8vw,8.5rem)] leading-[0.84]">
+              {article.title}
+            </h1>
+
+            {article.excerpt ? (
+              <p className="mt-8 max-w-lg text-lg leading-8 text-[var(--lpv-muted)]">
+                {article.excerpt}
+              </p>
+            ) : null}
+
+            <div className="mt-10 flex flex-wrap gap-4 border-t border-[var(--lpv-line)] pt-7 text-xs uppercase tracking-[0.16em] text-[var(--lpv-muted)]">
+              {article.author ? <span>{article.author}</span> : null}
+
+              {formatDate(article.publishedAt || article._createdAt) ? (
+                <span>
+                  · {formatDate(article.publishedAt || article._createdAt)}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="overflow-hidden bg-[var(--lpv-paper-light)]">
+            {imageSrc ? (
+              <img
+                src={imageSrc}
+                alt={article.title}
+                className="min-h-[620px] w-full object-cover md:min-h-[780px]"
+              />
+            ) : (
+              <div className="flex min-h-[620px] items-center justify-center">
+                <p className="text-sm text-[var(--lpv-muted)]">
+                  Image à ajouter dans Sanity.
+                </p>
+              </div>
+            )}
+          </div>
+        </header>
+
+        <section className="lpv-container grid gap-10 border-b border-[var(--lpv-line)] py-16 md:grid-cols-[0.3fr_0.7fr] md:py-24">
+          <div>
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              Le journal
+            </p>
+
+            <h2 className="lpv-display mt-6 text-5xl leading-[0.9] md:text-6xl">
+              L’article.
             </h2>
           </div>
 
-          {relatedPosts.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {relatedPosts.map((related) => {
-                const relatedImage = getImageSrc(
-                  related.coverImage,
-                  "/images/lifestyle-1.jpeg"
-                );
-
-                return (
-                  <Link
-                    key={related._id}
-                    href={`/blog/${related.slug}`}
-                    className="group overflow-hidden rounded-[26px] border border-[rgba(111,143,122,0.18)] bg-[linear-gradient(180deg,rgba(120,150,120,0.08),rgba(255,255,255,0.02))] shadow-[0_20px_60px_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-1 hover:border-[#6f8f7a]/70"
-                  >
-                    <div className="relative h-56 bg-[#1a221d]">
-                      <Image
-                        src={relatedImage}
-                        alt={related.title}
-                        fill
-                        className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                        unoptimized={relatedImage.startsWith("/")}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#101613] via-transparent to-transparent" />
-                    </div>
-
-                    <div className="p-6">
-                      {related.category ? (
-                        <div className="mb-3 text-xs uppercase tracking-[0.2em] text-[#90aa98]">
-                          {related.category}
-                        </div>
-                      ) : null}
-
-                      <h3 className="text-xl font-semibold leading-snug text-[#fff8f1]">
-                        {related.title}
-                      </h3>
-
-                      {related.excerpt ? (
-                        <p className="mt-4 line-clamp-3 text-sm leading-7 text-[#d5c0b3]">
-                          {related.excerpt}
-                        </p>
-                      ) : null}
-
-                      <div className="mt-6 flex items-center justify-between text-sm text-[#cab4a5]">
-                        <span>
-                          {formatDate(related.publishedAt ?? related._createdAt)}
-                        </span>
-                        <span className="inline-flex items-center gap-2 font-medium text-[#d8eadf] transition group-hover:translate-x-1">
-                          Lire <span aria-hidden>→</span>
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+          {paragraphs.length > 0 ? (
+            <div className="lpv-prose max-w-3xl">
+              {paragraphs.map((paragraph, index) => (
+                <p key={`${index}-${paragraph.slice(0, 24)}`}>
+                  {paragraph}
+                </p>
+              ))}
             </div>
           ) : (
-            <div className="rounded-[26px] border border-dashed border-white/10 bg-white/5 p-10 text-center text-[#d7c2b5]">
-              Aucun autre article publié pour le moment.
-            </div>
+            <p className="text-base leading-8 text-[var(--lpv-muted)]">
+              Le contenu détaillé de cet article est en préparation.
+            </p>
           )}
+        </section>
+
+        {tags.length > 0 ? (
+          <section className="lpv-container grid gap-10 border-b border-[var(--lpv-line)] py-16 md:grid-cols-[0.3fr_0.7fr]">
+            <div>
+              <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                Thèmes
+              </p>
+
+              <h2 className="lpv-display mt-6 text-5xl leading-[0.9]">
+                À retenir.
+              </h2>
+            </div>
+
+            <div className="border-b border-[var(--lpv-line)]">
+              {tags.map((tag) => (
+                <div
+                  key={tag}
+                  className="border-t border-[var(--lpv-line)] py-5 text-xl"
+                >
+                  {tag}
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="lpv-container py-16 md:py-24">
+          <div className="border-t border-[var(--lpv-line)] pt-8">
+            <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+              Continuer
+            </p>
+
+            <Link href="/blog" className="group mt-6 block">
+              <h2 className="lpv-display max-w-4xl text-5xl leading-[0.9] transition-opacity group-hover:opacity-60 md:text-7xl">
+                Lire les autres histoires.
+              </h2>
+
+              <span className="lpv-text-link mt-8">
+                Retour au journal <span>→</span>
+              </span>
+            </Link>
+          </div>
         </section>
       </article>
     </main>

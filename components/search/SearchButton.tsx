@@ -3,17 +3,21 @@
 export function SearchButton() {
   return (
     <button
-      onClick={() => window.dispatchEvent(new CustomEvent("open-search"))}
-      className="group flex w-full items-center justify-between rounded-full border border-[var(--lpv-border)] bg-white/45 px-5 py-3 text-left shadow-sm backdrop-blur-xl transition duration-500 hover:-translate-y-0.5 hover:bg-white/75 hover:shadow-md"
+      type="button"
+      onClick={() =>
+        window.dispatchEvent(new CustomEvent("open-search"))
+      }
+      aria-label="Ouvrir la recherche"
+      className="flex items-center gap-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] transition-opacity hover:opacity-50"
     >
-      <span className="flex items-center gap-3">
-        <span>🔍</span>
-        <span className="text-sm text-[var(--lpv-muted)]">
-          Rechercher
-        </span>
-      </span>
+      <span className="hidden sm:inline">Chercher</span>
 
-      <kbd className="rounded-full border border-[var(--lpv-border)] bg-[var(--lpv-surface)] px-2.5 py-1 text-[10px] text-[var(--lpv-muted)]">
+      <span
+        aria-hidden="true"
+        className="relative block h-4 w-4 rounded-full border border-current after:absolute after:-bottom-[3px] after:-right-[3px] after:h-[6px] after:w-px after:rotate-[-45deg] after:bg-current"
+      />
+
+      <kbd className="hidden border-b border-current pb-0.5 text-[0.58rem] font-normal tracking-normal opacity-45 lg:inline">
         ⌘K
       </kbd>
     </button>
