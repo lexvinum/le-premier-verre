@@ -233,7 +233,7 @@ export default async function ArticlePage({
                               href={href}
                               className="inline-flex w-fit max-w-full items-center gap-4 bg-[var(--lpv-ink)] px-5 py-4 text-base font-medium text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
                             >
-                              <span className="text-base font-medium text-[var(--lpv-paper)]">
+                              <span className="lpv-display block text-[1.4rem] leading-[1] text-[var(--lpv-paper)]">
                                 Trouver une bouteille
                               </span>
 
@@ -515,7 +515,7 @@ export default async function ArticlePage({
                                 href={href}
                                 className="inline-flex w-fit max-w-full items-center gap-4 bg-[var(--lpv-ink)] px-5 py-4 text-base font-medium text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
                               >
-                                <span className="text-base font-medium text-[var(--lpv-paper)]">
+                                <span>
                                   Trouver ma bouteille
                                 </span>
 

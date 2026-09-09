@@ -48,7 +48,7 @@ export const wine = defineType({
       title: "Millésime",
       type: "number",
       group: "identity",
-      validation: (Rule) => Rule.required().min(1900).max(2100),
+      validation: (Rule) => Rule.min(1900).max(2100),
     }),
 
     defineField({

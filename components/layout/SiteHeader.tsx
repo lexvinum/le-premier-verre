@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   SignOutButton,
@@ -43,6 +44,7 @@ function getInitials(
 }
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
 
@@ -88,6 +90,23 @@ export function SiteHeader() {
       document.removeEventListener("keydown", handleEscape);
     };
   }, []);
+
+  const prelaunchPages = [
+    "/disponible-bientot",
+    "/a-propos",
+    "/contact",
+    "/newsletter",
+    "/politique-confidentialite",
+  ];
+
+  const isLocal =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1");
+
+  if (prelaunchPages.includes(pathname) || (pathname === "/" && !isLocal)) {
+    return null;
+  }
 
   return (
     <>

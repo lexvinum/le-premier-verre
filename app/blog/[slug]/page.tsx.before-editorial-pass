@@ -123,7 +123,7 @@ export default async function ArticlePage({
     (block, index) =>
       index > wineSectionStart &&
       getBlockText(block).toLowerCase() ===
-        "une bouteille que tu n’aimes pas, ça compte aussi"
+        "le raccourci du premier verre"
   );
 
   const contentBeforeWines =
@@ -191,7 +191,7 @@ export default async function ArticlePage({
           </div>
         </header>
 
-        <section className="lpv-container grid gap-10 pt-16 pb-4 md:grid-cols-[0.3fr_0.7fr] md:pt-24 md:pb-6">
+        <section className="lpv-container grid gap-10 border-b border-[var(--lpv-line)] py-16 md:grid-cols-[0.3fr_0.7fr] md:py-24">
           <div>
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
               Le journal
@@ -217,42 +217,23 @@ export default async function ArticlePage({
                         .trim();
 
                       const isCTA = rawText?.startsWith("→");
-                      const isPrimaryCTA =
-                        rawText?.toLowerCase().includes("trouver une bouteille") ||
-                        rawText?.toLowerCase().includes("trouver ma bouteille");
-
-                      if (isCTA && isPrimaryCTA) {
-                        const href =
-                          value.markDefs?.find(
-                            (mark: any) => mark._type === "link"
-                          )?.href || "/ce-soir";
-
-                        return (
-                          <div className="my-8">
-                            <Link
-                              href={href}
-                              className="inline-flex w-fit max-w-full items-center gap-4 bg-[var(--lpv-ink)] px-5 py-4 text-base font-medium text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
-                            >
-                              <span className="text-base font-medium text-[var(--lpv-paper)]">
-                                Trouver une bouteille
-                              </span>
-
-                              <span
-                                aria-hidden="true"
-                                className="text-lg text-[var(--lpv-paper)]/75"
-                              >
-                                →
-                              </span>
-                            </Link>
-                          </div>
-                        );
-                      }
 
                       if (isCTA) {
                         return (
-                          <div className="my-8 max-w-[46rem]">
-                            <div className="inline-flex items-center gap-3 border-b border-[var(--lpv-ink)] pb-2 text-lg font-medium md:text-xl">
-                              {children}
+                          <div className="my-12">
+                            <div className="group border-y border-[var(--lpv-ink)] py-6 md:flex md:items-center md:justify-between md:gap-8">
+                              <div>
+                                <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                                  À découvrir
+                                </p>
+                                <div className="mt-3 text-xl leading-snug md:text-2xl">
+                                  {children}
+                                </div>
+                              </div>
+
+                              <span className="mt-5 inline-flex h-12 w-12 items-center justify-center rounded-full border border-[var(--lpv-ink)] text-xl transition-transform group-hover:translate-x-1 md:mt-0">
+                                →
+                              </span>
                             </div>
                           </div>
                         );
@@ -266,7 +247,7 @@ export default async function ArticlePage({
                     },
 
                     h2: ({ children }) => (
-                      <div className="mb-9 mt-20 pt-2 md:mt-24">
+                      <div className="mb-9 mt-20 border-t border-[var(--lpv-line)] pt-8 md:mt-28">
                         <h2 className="lpv-display max-w-3xl text-[clamp(3rem,6vw,5.5rem)] leading-[0.9]">
                           {children}
                         </h2>
@@ -306,8 +287,8 @@ export default async function ArticlePage({
                       }
 
                       return (
-                        <div className="my-10 max-w-[42rem] md:my-14">
-                          <p className="text-xl italic leading-[1.65] text-[var(--lpv-ink)] md:text-2xl">
+                        <div className="my-12 max-w-3xl md:my-16">
+                          <p className="lpv-display text-3xl leading-[1.05] md:text-5xl">
                             {children}
                           </p>
                         </div>
@@ -356,19 +337,22 @@ export default async function ArticlePage({
               />
 
               {wineSectionStart >= 0 ? (
-                <section className="mt-24 mb-4 md:mt-32 md:mb-6">
+                <section className="my-24 md:my-32">
                   <div className="mb-10 border-t border-[var(--lpv-line)] pt-8">
                     <p className="lpv-kicker text-[var(--lpv-cocoa)]">
                       Pour commencer
                     </p>
 
                     <h2 className="lpv-display mt-5 max-w-4xl text-[clamp(3rem,6vw,5.5rem)] leading-[0.9]">
-                      Six bouteilles pour commencer.
+                      Six bouteilles.
+                      <br />
+                      Six façons de commencer.
                     </h2>
 
                     <p className="mt-7 max-w-2xl text-lg leading-8 text-[var(--lpv-muted)]">
-                      Six styles assez différents pour commencer à voir ce que
-                      tu aimes — et ce que tu peux très bien laisser aux autres.
+                      Pas besoin d’une liste de cinquante vins. Ces bouteilles
+                      permettent déjà de goûter des styles très différents et
+                      de commencer à comprendre ce qui te plaît vraiment.
                     </p>
                   </div>
 
@@ -428,8 +412,8 @@ export default async function ArticlePage({
                                 </p>
                               ) : null}
 
-                              <span className="mt-5 inline-block border-b border-[var(--lpv-ink)] pb-1 text-sm">
-                                La fiche <span className="ml-1">↗</span>
+                              <span className="lpv-text-link mt-5">
+                                Voir la bouteille <span>→</span>
                               </span>
                             </div>
                           </Link>
@@ -458,124 +442,37 @@ export default async function ArticlePage({
                           .trim();
 
                         const isCTA = rawText?.startsWith("→");
-                        const lowerText = rawText?.toLowerCase() || "";
-
-                        const isNewsletter =
-                          lowerText.includes("s’inscrire à l’infolettre") ||
-                          lowerText.includes("s'inscrire à l'infolettre");
-
-                        const isPrimaryCTA =
-                          lowerText.includes("trouver une bouteille") ||
-                          lowerText.includes("trouver ma bouteille");
-
-                        const isPersonalCTA =
-                          lowerText.includes("ma cave") ||
-                          lowerText.includes("mon carnet");
-
-                        if (isNewsletter) {
-                          return (
-                            <div className="my-16 bg-[var(--lpv-paper-light)] px-7 py-10 md:my-20 md:px-10 md:py-12">
-                              <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                                L’infolettre
-                              </p>
-
-                              <div className="mt-5 grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
-                                <div>
-                                  <p className="lpv-display max-w-2xl text-[clamp(2.8rem,5vw,4.8rem)] leading-[0.9]">
-                                    On se reparle autour d’un verre?
-                                  </p>
-
-                                  <p className="mt-5 max-w-xl text-base leading-7 text-[var(--lpv-muted)]">
-                                    Des bouteilles qu’on a aimées, des producteurs à connaître
-                                    et quelques bonnes adresses. Pas tous les jours. Juste quand
-                                    on a quelque chose de bon à partager.
-                                  </p>
-                                </div>
-
-                                <div className="inline-flex w-fit items-center gap-4 bg-[var(--lpv-ink)] px-5 py-4 text-base font-medium text-[var(--lpv-paper)]">
-                                  <span>
-                                    {rawText.replace(/^→\s*/, "")}
-                                  </span>
-                                  <span aria-hidden="true">→</span>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        }
-
-                        if (isPrimaryCTA) {
-                          const href =
-                            value.markDefs?.find(
-                              (mark: any) => mark._type === "link"
-                            )?.href || "/ce-soir";
-
-                          return (
-                            <div className="my-8">
-                              <Link
-                                href={href}
-                                className="inline-flex w-fit max-w-full items-center gap-4 bg-[var(--lpv-ink)] px-5 py-4 text-base font-medium text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
-                              >
-                                <span className="text-base font-medium text-[var(--lpv-paper)]">
-                                  Trouver ma bouteille
-                                </span>
-
-                                <span
-                                  aria-hidden="true"
-                                  className="text-lg text-[var(--lpv-paper)]/75"
-                                >
-                                  →
-                                </span>
-                              </Link>
-                            </div>
-                          );
-                        }
-
-                        if (isCTA && isPersonalCTA) {
-                          return (
-                            <div className="my-2 mr-3 inline-block">
-                              <Link
-                                href={
-                                  value.markDefs?.find(
-                                    (mark: any) => mark._type === "link"
-                                  )?.href || "#"
-                                }
-                                className="group inline-flex items-center gap-3 border border-[var(--lpv-line)] px-4 py-2.5 text-sm font-medium transition-colors hover:border-[var(--lpv-ink)] md:text-base"
-                              >
-                                {rawText
-                                  .replace(/^→\s*/, "")
-                                  .replace(/^Ouvrir\s+/i, "")
-                                  .replace(/^Voir\s+/i, "")}
-
-                                <span
-                                  aria-hidden="true"
-                                  className="text-[var(--lpv-cocoa)] transition-transform group-hover:translate-x-0.5"
-                                >
-                                  →
-                                </span>
-                              </Link>
-                            </div>
-                          );
-                        }
 
                         if (isCTA) {
                           return (
-                            <div className="my-8 max-w-[46rem]">
-                              <div className="inline-flex items-center gap-3 border-b border-[var(--lpv-ink)] pb-2 text-lg font-medium">
-                                {children}
+                            <div className="my-12">
+                              <div className="group border-y border-[var(--lpv-ink)] py-6 md:flex md:items-center md:justify-between md:gap-8">
+                                <div>
+                                  <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                                    À découvrir
+                                  </p>
+                                  <div className="mt-3 text-xl leading-snug md:text-2xl">
+                                    {children}
+                                  </div>
+                                </div>
+
+                                <span className="mt-5 inline-flex h-12 w-12 items-center justify-center rounded-full border border-[var(--lpv-ink)] text-xl md:mt-0">
+                                  →
+                                </span>
                               </div>
                             </div>
                           );
                         }
 
                         return (
-                          <p className="mb-6 max-w-[46rem] text-[1.08rem] leading-[1.9] md:text-[1.14rem]">
+                          <p className="mb-7 max-w-[46rem] text-[1.08rem] leading-[1.9] md:text-[1.14rem]">
                             {children}
                           </p>
                         );
                       },
 
                       h2: ({ children }) => (
-                        <div className="mb-9 mt-20 pt-2 md:mt-24">
+                        <div className="mb-9 mt-20 border-t border-[var(--lpv-line)] pt-8 md:mt-28">
                           <h2 className="lpv-display max-w-3xl text-[clamp(3rem,6vw,5.5rem)] leading-[0.9]">
                             {children}
                           </h2>
@@ -605,8 +502,8 @@ export default async function ArticlePage({
                         }
 
                         return (
-                          <div className="my-10 max-w-[42rem] md:my-14">
-                            <p className="text-xl italic leading-[1.65] text-[var(--lpv-ink)] md:text-2xl">
+                          <div className="my-12 max-w-3xl">
+                            <p className="lpv-display text-3xl leading-[1.05] md:text-5xl">
                               {children}
                             </p>
                           </div>
@@ -660,47 +557,43 @@ export default async function ArticlePage({
         </section>
 
         {tags.length > 0 ? (
-          <section className="lpv-container py-8 md:py-10">
-            <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
-              <p className="lpv-kicker shrink-0 text-[var(--lpv-cocoa)]">
-                Dans cet article
+          <section className="lpv-container grid gap-10 border-b border-[var(--lpv-line)] py-16 md:grid-cols-[0.3fr_0.7fr]">
+            <div>
+              <p className="lpv-kicker text-[var(--lpv-cocoa)]">
+                Thèmes
               </p>
 
-              <div className="flex flex-wrap gap-x-3 gap-y-2">
-                {tags.map((tag, index) => (
-                  <span
-                    key={tag}
-                    className="text-base text-[var(--lpv-muted)]"
-                  >
-                    {tag}
-                    {index < tags.length - 1 ? (
-                      <span className="ml-3 text-[var(--lpv-line)]">•</span>
-                    ) : null}
-                  </span>
-                ))}
-              </div>
+              <h2 className="lpv-display mt-6 text-5xl leading-[0.9]">
+                À retenir.
+              </h2>
+            </div>
+
+            <div className="border-b border-[var(--lpv-line)]">
+              {tags.map((tag) => (
+                <div
+                  key={tag}
+                  className="border-t border-[var(--lpv-line)] py-5 text-xl"
+                >
+                  {tag}
+                </div>
+              ))}
             </div>
           </section>
         ) : null}
 
-        <section className="lpv-container pt-10 pb-20 md:pt-14 md:pb-24">
-          <div className="pt-4">
+        <section className="lpv-container py-16 md:py-24">
+          <div className="border-t border-[var(--lpv-line)] pt-8">
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              La suite
+              Continuer
             </p>
 
             <Link href="/blog" className="group mt-6 block">
               <h2 className="lpv-display max-w-4xl text-5xl leading-[0.9] transition-opacity group-hover:opacity-60 md:text-7xl">
-                À découvrir ensuite
+                Lire les autres histoires.
               </h2>
 
-              <p className="mt-6 max-w-xl text-lg leading-8 text-[var(--lpv-muted)]">
-                D’autres bouteilles, des producteurs, des endroits et quelques
-                détours pour continuer à découvrir le vin sans en faire un examen.
-              </p>
-
               <span className="lpv-text-link mt-8">
-                Continuer dans le journal <span>→</span>
+                Retour au journal <span>→</span>
               </span>
             </Link>
           </div>

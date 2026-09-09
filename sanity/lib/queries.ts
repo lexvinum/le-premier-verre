@@ -22,7 +22,22 @@ export const articleBySlugQuery = `*[_type == "article" && slug.current == $slug
   tags,
   tagsJson,
   publishedAt,
-  _createdAt
+  _createdAt,
+  relatedWines[]->{
+    _id,
+    name,
+    "slug": slug.current,
+    vintage,
+    color,
+    bottleImage,
+    approxPrice,
+    oneLiner,
+    producer->{
+      _id,
+      name,
+      "slug": slug.current
+    }
+  }
 }`;
 
 export const guidesQuery = `*[_type == "guide" && published == true] | order(publishedAt desc, _createdAt desc) {

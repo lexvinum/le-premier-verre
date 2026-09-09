@@ -231,17 +231,14 @@ export default async function ArticlePage({
                           <div className="my-8">
                             <Link
                               href={href}
-                              className="inline-flex w-fit max-w-full items-center gap-4 bg-[var(--lpv-ink)] px-5 py-4 text-base font-medium text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
+                              className="inline-block w-auto bg-[var(--lpv-ink)] px-5 py-4 text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
                             >
-                              <span className="text-base font-medium text-[var(--lpv-paper)]">
-                                Trouver une bouteille
+                              <span className="lpv-kicker text-[var(--lpv-paper)]/60">
+                                Ce soir
                               </span>
 
-                              <span
-                                aria-hidden="true"
-                                className="text-lg text-[var(--lpv-paper)]/75"
-                              >
-                                →
+                              <span className="mt-2 block whitespace-nowrap text-base font-medium leading-tight text-[var(--lpv-paper)] md:text-lg">
+                                Trouver une bouteille
                               </span>
                             </Link>
                           </div>
@@ -266,7 +263,10 @@ export default async function ArticlePage({
                     },
 
                     h2: ({ children }) => (
-                      <div className="mb-9 mt-20 pt-2 md:mt-24">
+                      <div className="mb-9 mt-20 grid pt-2 md:mt-24 md:grid-cols-[4rem_1fr] md:gap-5">
+                        <span className="hidden text-xs tabular-nums tracking-[0.14em] text-[var(--lpv-cocoa)] md:block">
+                          §
+                        </span>
                         <h2 className="lpv-display max-w-3xl text-[clamp(3rem,6vw,5.5rem)] leading-[0.9]">
                           {children}
                         </h2>
@@ -493,9 +493,7 @@ export default async function ArticlePage({
                                 </div>
 
                                 <div className="inline-flex w-fit items-center gap-4 bg-[var(--lpv-ink)] px-5 py-4 text-base font-medium text-[var(--lpv-paper)]">
-                                  <span>
-                                    {rawText.replace(/^→\s*/, "")}
-                                  </span>
+                                  {children}
                                   <span aria-hidden="true">→</span>
                                 </div>
                               </div>
@@ -513,46 +511,35 @@ export default async function ArticlePage({
                             <div className="my-8">
                               <Link
                                 href={href}
-                                className="inline-flex w-fit max-w-full items-center gap-4 bg-[var(--lpv-ink)] px-5 py-4 text-base font-medium text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
+                                className="inline-block w-auto bg-[var(--lpv-ink)] px-5 py-4 text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
                               >
-                                <span className="text-base font-medium text-[var(--lpv-paper)]">
-                                  Trouver ma bouteille
+                                <span className="lpv-kicker text-[var(--lpv-paper)]/60">
+                                  Ce soir
                                 </span>
 
-                                <span
-                                  aria-hidden="true"
-                                  className="text-lg text-[var(--lpv-paper)]/75"
-                                >
-                                  →
+                                <span className="mt-2 block whitespace-nowrap text-base font-medium leading-tight text-[var(--lpv-paper)] md:text-lg">
+                                  Trouver ma bouteille
                                 </span>
                               </Link>
                             </div>
                           );
                         }
 
-                        if (isCTA && isPersonalCTA) {
+                        if (isPersonalCTA) {
                           return (
-                            <div className="my-2 mr-3 inline-block">
-                              <Link
-                                href={
-                                  value.markDefs?.find(
-                                    (mark: any) => mark._type === "link"
-                                  )?.href || "#"
-                                }
-                                className="group inline-flex items-center gap-3 border border-[var(--lpv-line)] px-4 py-2.5 text-sm font-medium transition-colors hover:border-[var(--lpv-ink)] md:text-base"
-                              >
-                                {rawText
-                                  .replace(/^→\s*/, "")
-                                  .replace(/^Ouvrir\s+/i, "")
-                                  .replace(/^Voir\s+/i, "")}
+                            <div className="my-5 max-w-[46rem]">
+                              <div className="group flex items-center justify-between gap-8 bg-[var(--lpv-paper-light)] px-6 py-5">
+                                <div className="text-lg font-medium">
+                                  {children}
+                                </div>
 
                                 <span
                                   aria-hidden="true"
-                                  className="text-[var(--lpv-cocoa)] transition-transform group-hover:translate-x-0.5"
+                                  className="text-xl text-[var(--lpv-cocoa)] transition-transform group-hover:translate-x-1"
                                 >
                                   →
                                 </span>
-                              </Link>
+                              </div>
                             </div>
                           );
                         }
@@ -568,14 +555,17 @@ export default async function ArticlePage({
                         }
 
                         return (
-                          <p className="mb-6 max-w-[46rem] text-[1.08rem] leading-[1.9] md:text-[1.14rem]">
+                          <p className="mb-7 max-w-[46rem] text-[1.08rem] leading-[1.9] md:text-[1.14rem]">
                             {children}
                           </p>
                         );
                       },
 
                       h2: ({ children }) => (
-                        <div className="mb-9 mt-20 pt-2 md:mt-24">
+                        <div className="mb-9 mt-20 grid pt-2 md:mt-24 md:grid-cols-[4rem_1fr] md:gap-5">
+                          <span className="hidden text-xs tabular-nums tracking-[0.14em] text-[var(--lpv-cocoa)] md:block">
+                            §
+                          </span>
                           <h2 className="lpv-display max-w-3xl text-[clamp(3rem,6vw,5.5rem)] leading-[0.9]">
                             {children}
                           </h2>
@@ -686,12 +676,12 @@ export default async function ArticlePage({
         <section className="lpv-container pt-10 pb-20 md:pt-14 md:pb-24">
           <div className="pt-4">
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              La suite
+              Continuer
             </p>
 
             <Link href="/blog" className="group mt-6 block">
               <h2 className="lpv-display max-w-4xl text-5xl leading-[0.9] transition-opacity group-hover:opacity-60 md:text-7xl">
-                À découvrir ensuite
+                Encore un verre?
               </h2>
 
               <p className="mt-6 max-w-xl text-lg leading-8 text-[var(--lpv-muted)]">

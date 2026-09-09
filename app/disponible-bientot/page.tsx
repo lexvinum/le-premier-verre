@@ -1,127 +1,116 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 
-type Status = "idle" | "loading" | "success" | "error";
-
-export default function Home() {
+export default function DisponibleBientotPage() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<Status>("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!email.trim()) return;
+
     setStatus("loading");
 
     try {
       const response = await fetch("/api/newsletter", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email }),
       });
 
-      if (!response.ok) throw new Error();
+      if (!response.ok) {
+        throw new Error("Newsletter signup failed");
+      }
 
-      setStatus("success");
       setEmail("");
+      setStatus("success");
     } catch {
       setStatus("error");
     }
   }
 
   return (
-    <main className="min-h-screen bg-[#141f17] text-[#f6efe6]">
-      <section className="flex min-h-screen items-center justify-center px-0 py-0">
-        <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#102016] px-6 py-14">
+    <main className="min-h-screen bg-[#f3efe6] text-[#211d19]">
+      <div className="mx-auto flex min-h-screen w-full flex-col items-center justify-center px-7 py-16 text-center">
 
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(28,47,35,0.18),transparent_58%),linear-gradient(180deg,#112016_0%,#07110c_100%)]" />
+        <Image
+          src="/images/lpv/logo-complet.png"
+          alt="Le Premier Verre"
+          width={520}
+          height={220}
+          priority
+          className="h-auto w-[250px] sm:w-[310px]"
+        />
 
-          <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center text-center">
+        <div className="mt-16 sm:mt-20">
+          <h1 className="text-[1.35rem] font-medium tracking-[-0.025em] sm:text-[1.55rem]">
+            On ouvre le 15 octobre.
+          </h1>
 
-            <Image
-              src="/logo-lex-vinum-new.png"
-              alt="Lex Vinum"
-              width={520}
-              height={520}
-              priority
-              className="h-auto w-[132px] opacity-[0.20] brightness-0 invert contrast-110 md:w-[175px]"
-            />
+          <p className="mx-auto mt-5 max-w-[480px] text-[0.92rem] leading-7 text-[#686057] sm:text-[0.98rem]">
+            Des bouteilles, des lieux et des gens qu’on a envie de connaître.
+          </p>
+        </div>
 
-            <p className="mt-10 text-[10px] uppercase tracking-[0.34em] text-[#c7b897]/72">
-              Maison numérique du vin · Digital wine house
+        <div className="mt-20 w-full max-w-[360px] sm:mt-24">
+          {status === "success" ? (
+            <p className="text-[0.85rem] text-[#625a52]">
+              Merci. On se retrouve pour le premier verre.
             </p>
-
-            <h1 className="mt-7 font-serif text-[3.15rem] leading-[0.98] tracking-[-0.06em] text-[#f8f1e7] md:text-[4.8rem] lg:text-[5.4rem]">
-              Disponible
-              <span className="block italic font-light text-[#d8c8aa]">
-                bientôt.
-              </span>
-            </h1>
-
-            <p className="mt-7 max-w-lg text-[14px] leading-[2.05] text-[#d8cebf]/76 md:text-[14.5px]">
-              Une expérience éditoriale raffinée pour découvrir le vin avec
-              plus de justesse, de curiosité et d’élégance.
-            </p>
-
-            <p className="mt-3 max-w-xl text-sm italic leading-7 text-[#c6bba9]/68">
-              A refined digital wine experience — curated, intuitive and quietly elegant.
-            </p>
-
-            <section className="mt-12 w-full max-w-2xl overflow-hidden rounded-[34px] bg-[linear-gradient(180deg,#f9f4ec_0%,#f3eadc_100%)] p-8 shadow-[0_28px_80px_rgba(0,0,0,0.18)] md:p-10">
-
-              <p className="text-[10px] uppercase tracking-[0.34em] text-[#b88a55]">
-                Courrier Lex Vinum
-              </p>
-
-              <h2 className="mt-4 font-serif text-[1.95rem] leading-[1.02] tracking-[-0.045em] text-[#241c17] md:text-[2.45rem]">
-                Recevoir la première invitation.
-              </h2>
-
+          ) : (
+            <>
               <form
                 onSubmit={handleSubmit}
-                className="mt-7 flex flex-col gap-4 sm:flex-row"
+                className="flex items-center border-b border-[#9b9288]"
               >
+                <label htmlFor="email" className="sr-only">
+                  Votre courriel
+                </label>
+
                 <input
+                  id="email"
                   type="email"
                   required
-                  value={email ?? ""}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="votre@email.com"
-                  className="min-h-[62px] flex-1 rounded-full border border-[#c8a97a] bg-[#fffdfa] px-7 text-[15px] !text-[#102016] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.98)] transition-all duration-300 placeholder:!text-[#102016] placeholder:!opacity-100 focus:border-[#b88a55] focus:bg-white focus:shadow-[0_0_0_4px_rgba(184,138,85,0.12)]"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    if (status === "error") setStatus("idle");
+                  }}
+                  placeholder="Votre courriel"
+                  className="min-w-0 flex-1 bg-transparent py-3 pr-4 text-[0.82rem] outline-none placeholder:text-[#958c82]"
                 />
 
                 <button
                   type="submit"
                   disabled={status === "loading"}
-                  className="min-h-[58px] rounded-full bg-[#0d2015] px-10 text-sm uppercase tracking-[0.22em] text-[#f7efe4] shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:bg-[#173223] disabled:opacity-60"
+                  className="shrink-0 py-3 text-[0.7rem] font-medium uppercase tracking-[0.14em] transition-opacity hover:opacity-50 disabled:cursor-wait disabled:opacity-40"
                 >
-                  {status === "loading" ? "Inscription..." : "S'inscrire"}
+                  {status === "loading" ? "..." : "S’inscrire"}
                 </button>
               </form>
 
-              <p className="mt-7 text-sm leading-7 text-[#756555]">
-                Aucun bruit. Seulement les nouvelles importantes.
-                <span className="block italic text-[#8b7967]">
-                  No noise. Only meaningful updates.
-                </span>
+              <p className="mt-3 text-[0.68rem] text-[#948b81]">
+                Pour recevoir le premier verre.
               </p>
 
-              {status === "success" && (
-                <p className="mt-4 text-sm text-[#102116]">
-                  Merci — votre adresse a bien été inscrite.
-                </p>
-              )}
-
               {status === "error" && (
-                <p className="mt-4 text-sm text-[#9a544a]">
-                  L’inscription n’a pas fonctionné. Réessayez dans un instant.
+                <p className="mt-3 text-[0.72rem] text-[#7a3e32]">
+                  Une erreur est survenue. Réessayez dans un instant.
                 </p>
               )}
-            </section>
-
-          </div>
+            </>
+          )}
         </div>
-      </section>
+
+      </div>
     </main>
   );
 }

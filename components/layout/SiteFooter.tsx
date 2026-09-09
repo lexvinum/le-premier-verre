@@ -1,13 +1,5 @@
 import Link from "next/link";
 
-const explore = [
-  ["Les vins", "/vins"],
-  ["Producteurs", "/producteurs"],
-  ["Bonnes adresses", "/bonnes-adresses"],
-  ["Guides", "/guides"],
-  ["Journal", "/blog"],
-];
-
 const information = [
   ["À propos", "/a-propos"],
   ["Contact", "/contact"],
@@ -19,7 +11,7 @@ export function SiteFooter() {
   return (
     <footer className="bg-[var(--lpv-cocoa)] text-[var(--lpv-paper-light)]">
       <div className="lpv-container py-16 md:py-24">
-        <div className="grid gap-16 lg:grid-cols-[1.45fr_0.55fr_0.55fr]">
+        <div className="grid gap-16 lg:grid-cols-[1.6fr_0.4fr]">
           <div>
             <p className="lpv-kicker text-white/55">
               Le Premier Verre
@@ -33,24 +25,6 @@ export function SiteFooter() {
               Des bouteilles, des personnes et des endroits qui méritent
               qu’on s’y attarde.
             </p>
-          </div>
-
-          <div>
-            <p className="lpv-kicker text-white/40">
-              Explorer
-            </p>
-
-            <nav className="mt-7 flex flex-col gap-3">
-              {explore.map(([label, href]) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="w-fit text-sm text-white/68 transition-opacity hover:opacity-50"
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
           </div>
 
           <div>

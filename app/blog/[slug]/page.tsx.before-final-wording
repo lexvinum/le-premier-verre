@@ -231,9 +231,9 @@ export default async function ArticlePage({
                           <div className="my-8">
                             <Link
                               href={href}
-                              className="inline-flex w-fit max-w-full items-center gap-4 bg-[var(--lpv-ink)] px-5 py-4 text-base font-medium text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
+                              className="inline-flex w-fit max-w-full items-center justify-between gap-5 bg-[var(--lpv-ink)] px-5 py-4 text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
                             >
-                              <span className="text-base font-medium text-[var(--lpv-paper)]">
+                              <span className="lpv-display block text-[1.4rem] leading-[1] text-[var(--lpv-paper)]">
                                 Trouver une bouteille
                               </span>
 
@@ -513,9 +513,9 @@ export default async function ArticlePage({
                             <div className="my-8">
                               <Link
                                 href={href}
-                                className="inline-flex w-fit max-w-full items-center gap-4 bg-[var(--lpv-ink)] px-5 py-4 text-base font-medium text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
+                                className="inline-flex w-fit max-w-full items-center justify-between gap-5 bg-[var(--lpv-ink)] px-5 py-4 text-[var(--lpv-paper)] transition-opacity hover:opacity-85"
                               >
-                                <span className="text-base font-medium text-[var(--lpv-paper)]">
+                                <span className="lpv-display block text-[1.4rem] leading-[1] text-[var(--lpv-paper)]">
                                   Trouver ma bouteille
                                 </span>
 
@@ -686,12 +686,12 @@ export default async function ArticlePage({
         <section className="lpv-container pt-10 pb-20 md:pt-14 md:pb-24">
           <div className="pt-4">
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              La suite
+              Continuer
             </p>
 
             <Link href="/blog" className="group mt-6 block">
               <h2 className="lpv-display max-w-4xl text-5xl leading-[0.9] transition-opacity group-hover:opacity-60 md:text-7xl">
-                À découvrir ensuite
+                Encore un verre?
               </h2>
 
               <p className="mt-6 max-w-xl text-lg leading-8 text-[var(--lpv-muted)]">

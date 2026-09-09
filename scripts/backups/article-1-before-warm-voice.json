@@ -1,0 +1,1126 @@
+{
+  "_createdAt": "2026-09-09T12:03:19Z",
+  "_id": "article-comment-choisir-une-bouteille-quand-on-ne-connait-rien-au-vin",
+  "_rev": "mtUM9sqhoVPHNJvCHcoLG1",
+  "_system": {
+    "base": {
+      "id": "article-comment-choisir-une-bouteille-quand-on-ne-connait-rien-au-vin",
+      "rev": "y3eu7fTGI52s8UzoR7PKLq"
+    }
+  },
+  "_type": "article",
+  "_updatedAt": "2026-09-09T12:31:48Z",
+  "author": "Le Premier Verre",
+  "category": "Débuter avec le vin",
+  "content": [
+    {
+      "_key": "b-1",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-2",
+          "_type": "span",
+          "marks": [],
+          "text": "Choisir du vin quand on ne s’y connaît pas beaucoup peut vite devenir ridicule. Tu voulais simplement une bouteille pour ce soir et te voilà devant trois cents étiquettes à essayer de comprendre si tu es davantage Morgon, Rioja ou Côtes-du-Rhône."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-3",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-4",
+          "_type": "span",
+          "marks": [],
+          "text": "La bonne nouvelle : tu n’as pas besoin de savoir ça tout de suite."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-5",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-6",
+          "_type": "span",
+          "marks": [],
+          "text": "Au début, trois informations sont beaucoup plus utiles que le reste : ce que tu fais avec la bouteille, ce que tu aimes boire et combien tu veux payer."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-7",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-8",
+          "_type": "span",
+          "marks": [],
+          "text": "Commence par ce soir, pas par l’étiquette"
+        }
+      ],
+      "markDefs": [],
+      "style": "h2"
+    },
+    {
+      "_key": "b-9",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-10",
+          "_type": "span",
+          "marks": [],
+          "text": "Avant le cépage, la région ou le millésime, pense à ton souper. Un apéro sur la terrasse, les pâtes de mardi, un steak sur le BBQ, un souper chez des amis où tu arrives avec une bouteille : ce ne sont pas les mêmes besoins."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-11",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-12",
+          "_type": "span",
+          "marks": [],
+          "text": "Ça paraît évident, mais devant une tablette de vin on a tendance à l’oublier. On regarde les étiquettes avant de se demander ce qu’on veut réellement en faire."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-13",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-14",
+          "_type": "span",
+          "marks": [],
+          "text": "C’est exactement pour ça qu’on a créé « Ce soir » au Premier Verre. On commence par le moment, pas par un cours de géographie viticole."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-16",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-17",
+          "_type": "span",
+          "marks": [],
+          "text": "→ "
+        },
+        {
+          "_key": "s-18",
+          "_type": "span",
+          "marks": [
+            "link-15"
+          ],
+          "text": "Trouver une bouteille pour ce soir"
+        }
+      ],
+      "markDefs": [
+        {
+          "_key": "link-15",
+          "_type": "link",
+          "href": "/ce-soir"
+        }
+      ],
+      "style": "normal"
+    },
+    {
+      "_key": "b-19",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-20",
+          "_type": "span",
+          "marks": [],
+          "text": "Dis combien tu veux payer"
+        }
+      ],
+      "markDefs": [],
+      "style": "h2"
+    },
+    {
+      "_key": "b-21",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-22",
+          "_type": "span",
+          "marks": [],
+          "text": "À la SAQ, dire « je veux rester en bas de 25 $ » est probablement plus utile que la moitié du vocabulaire qu’on associe au vin."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-23",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-24",
+          "_type": "span",
+          "marks": [],
+          "text": "Une bouteille à 40 $ n’est pas automatiquement meilleure pour toi qu’une bouteille à 19 $. Il y a toutes sortes de raisons pour lesquelles un vin coûte plus cher — le lieu, le travail, la production, la rareté, la réputation — mais son prix ne sait absolument rien de tes goûts."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-25",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-26",
+          "_type": "span",
+          "marks": [],
+          "text": "Alors donne ton budget. 20 $ pour mercredi soir? Très bien. 35 $ parce que tu reçois samedi? Très bien aussi."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-27",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-28",
+          "_type": "span",
+          "marks": [],
+          "text": "Ça ne dit rien de ton niveau de connaissance. Ça évite simplement qu’on te recommande une bouteille à 47 $ quand tu voulais en dépenser 22."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-29",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-30",
+          "_type": "span",
+          "marks": [],
+          "text": "Parle normalement"
+        }
+      ],
+      "markDefs": [],
+      "style": "h2"
+    },
+    {
+      "_key": "b-31",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-32",
+          "_type": "span",
+          "marks": [],
+          "text": "C’est ici qu’on se complique souvent la vie. On cherche les « bons mots » alors qu’ils ne sont pas nécessaires."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-33",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-34",
+          "_type": "span",
+          "marks": [],
+          "text": "J’aime les blancs très frais. Je n’aime pas les rouges lourds. Je veux quelque chose de sec. J’aime quand ça goûte le fruit."
+        }
+      ],
+      "markDefs": [],
+      "style": "blockquote"
+    },
+    {
+      "_key": "b-35",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-36",
+          "_type": "span",
+          "marks": [],
+          "text": "Voilà. On peut déjà travailler avec ça."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-37",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-38",
+          "_type": "span",
+          "marks": [],
+          "text": "Tu apprendras peut-être un jour que ce que tu appelles « frais » correspond souvent à une acidité plus vive, ou que certains vins que tu trouves lourds ont davantage de corps ou de tannins. Tant mieux. Le vocabulaire viendra après le goût, pas l’inverse."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-39",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-40",
+          "_type": "span",
+          "marks": [],
+          "text": "Et si tu ne sais vraiment pas comment décrire ce que tu aimes, montre une bouteille que tu rachètes souvent. Même si elle est connue. Même si elle coûte 18 $. Même si ta seule explication est : « celle-là, je l’aime »."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-41",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-42",
+          "_type": "span",
+          "marks": [],
+          "text": "C’est une information beaucoup plus intéressante qu’elle en a l’air."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-43",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-44",
+          "_type": "span",
+          "marks": [],
+          "text": "L’étiquette : regarde seulement trois choses"
+        }
+      ],
+      "markDefs": [],
+      "style": "h2"
+    },
+    {
+      "_key": "b-45",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-46",
+          "_type": "span",
+          "marks": [],
+          "text": "Une étiquette peut contenir assez d’information pour te faire abandonner avant même d’avoir ouvert la bouteille. Au début, concentre-toi sur trois repères : le cépage, l’endroit et le producteur."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-47",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-48",
+          "_type": "span",
+          "marks": [],
+          "text": "Le cépage est la variété de raisin : Gamay, Riesling, Chardonnay, Pinot noir, Cabernet franc… Si tu réalises après quelques bouteilles que tu aimes souvent le Gamay, retiens-le. Pas besoin d’en faire davantage."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-49",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-50",
+          "_type": "span",
+          "marks": [],
+          "text": "Même chose pour les endroits. Deux Beaujolais que tu as adorés? Ça commence à devenir un indice. Plusieurs blancs d’Alsace qui te plaisent? Encore un indice."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-51",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-52",
+          "_type": "span",
+          "marks": [],
+          "text": "Puis regarde qui fait le vin. Quand une bouteille t’impressionne vraiment, le nom du producteur vaut la peine d’être retenu. C’est souvent une meilleure piste pour découvrir la suivante que de chercher aveuglément dans la même appellation."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-53",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-54",
+          "_type": "span",
+          "marks": [],
+          "text": "Le but n’est pas de mémoriser une carte. C’est simplement de commencer à reconnaître ce qui revient dans les bouteilles que tu aimes."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-55",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-56",
+          "_type": "span",
+          "marks": [],
+          "text": "À la SAQ, dis plutôt ceci"
+        }
+      ],
+      "markDefs": [],
+      "style": "h2"
+    },
+    {
+      "_key": "b-57",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-58",
+          "_type": "span",
+          "marks": [],
+          "text": "Le classique « je cherche un bon rouge » n’est pas une mauvaise demande. Elle est juste presque impossible à utiliser : il y en a beaucoup, des bons rouges."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-59",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-60",
+          "_type": "span",
+          "marks": [],
+          "text": "Essaie plutôt :"
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-61",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-62",
+          "_type": "span",
+          "marks": [],
+          "text": "On mange des pâtes à la sauce tomate. J’aime les rouges assez légers et fruités. Je veux rester autour de 25 $."
+        }
+      ],
+      "markDefs": [],
+      "style": "blockquote"
+    },
+    {
+      "_key": "b-63",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-64",
+          "_type": "span",
+          "marks": [],
+          "text": "Ou : « Je cherche un blanc très frais pour l’apéro, autour de 20 $. »"
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-65",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-66",
+          "_type": "span",
+          "marks": [],
+          "text": "Ou encore : « Je vais chez des amis, je ne sais pas ce qu’on mange et j’ai environ 30 $. »"
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-67",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-68",
+          "_type": "span",
+          "marks": [],
+          "text": "Là, la personne devant toi a quelque chose avec quoi travailler."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-69",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-70",
+          "_type": "span",
+          "marks": [],
+          "text": "Et si tu veux qu’elle t’emmène ailleurs que dans tes habitudes, ajoute : « Donne-moi quelque chose que je n’aurais probablement pas choisi moi-même. »"
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-71",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-72",
+          "_type": "span",
+          "marks": [],
+          "text": "Six bouteilles pour commencer"
+        }
+      ],
+      "markDefs": [],
+      "style": "h2"
+    },
+    {
+      "_key": "b-73",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-74",
+          "_type": "span",
+          "marks": [],
+          "text": "Pas un palmarès et certainement pas six bouteilles qu’il faut absolument aimer. Juste six points de départ très différents pour voir ce qui se passe dans ton verre."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-75",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-76",
+          "_type": "span",
+          "marks": [],
+          "text": "Le raccourci du Premier Verre"
+        }
+      ],
+      "markDefs": [],
+      "style": "h2"
+    },
+    {
+      "_key": "b-77",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-78",
+          "_type": "span",
+          "marks": [],
+          "text": "Devant le mur de bouteilles, reviens à ça :"
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-79",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-80",
+          "_type": "span",
+          "marks": [],
+          "text": "OCCASION + STYLE + BUDGET."
+        }
+      ],
+      "markDefs": [],
+      "style": "blockquote"
+    },
+    {
+      "_key": "b-81",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-82",
+          "_type": "span",
+          "marks": [],
+          "text": "Qu’est-ce qu’on fait avec la bouteille?"
+        }
+      ],
+      "level": 1,
+      "listItem": "bullet",
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-83",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-84",
+          "_type": "span",
+          "marks": [],
+          "text": "Qu’est-ce que j’ai envie de boire?"
+        }
+      ],
+      "level": 1,
+      "listItem": "bullet",
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-85",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-86",
+          "_type": "span",
+          "marks": [],
+          "text": "Combien est-ce que je veux payer?"
+        }
+      ],
+      "level": 1,
+      "listItem": "bullet",
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-87",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-88",
+          "_type": "span",
+          "marks": [],
+          "text": "Le reste peut attendre. Le cépage, l’appellation, le millésime, le type de sol et toutes les autres choses passionnantes du vin deviennent beaucoup plus intéressants quand on a d’abord quelques bouteilles auxquelles les rattacher."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-89",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-90",
+          "_type": "span",
+          "marks": [],
+          "text": "Tu vas parfois te tromper"
+        }
+      ],
+      "markDefs": [],
+      "style": "h2"
+    },
+    {
+      "_key": "b-91",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-92",
+          "_type": "span",
+          "marks": [],
+          "text": "Tu vas acheter une bouteille en pensant l’adorer et la trouver franchement ordinaire. Ça fait partie du jeu."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-93",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-94",
+          "_type": "span",
+          "marks": [],
+          "text": "À l’inverse, une bouteille choisie presque par hasard va parfois te faire chercher le nom du producteur avant même que ton verre soit terminé."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-95",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-96",
+          "_type": "span",
+          "marks": [],
+          "text": "Dans les deux cas, note-le. Pas besoin d’une fiche de dégustation : « très frais, adoré, à racheter » fait parfaitement le travail. Quelques mois plus tard, ce genre de note est beaucoup plus utile qu’on pense."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-97",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-98",
+          "_type": "span",
+          "marks": [],
+          "text": "C’est l’idée de Ma Cave et de Mon Carnet : garder tes propres repères au lieu d’essayer de retenir ceux de quelqu’un d’autre."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-100",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-101",
+          "_type": "span",
+          "marks": [],
+          "text": "→ "
+        },
+        {
+          "_key": "s-102",
+          "_type": "span",
+          "marks": [
+            "link-99"
+          ],
+          "text": "Ma Cave"
+        }
+      ],
+      "markDefs": [
+        {
+          "_key": "link-99",
+          "_type": "link",
+          "href": "/ma-cave"
+        }
+      ],
+      "style": "normal"
+    },
+    {
+      "_key": "b-104",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-105",
+          "_type": "span",
+          "marks": [],
+          "text": "→ "
+        },
+        {
+          "_key": "s-106",
+          "_type": "span",
+          "marks": [
+            "link-103"
+          ],
+          "text": "Mon Carnet"
+        }
+      ],
+      "markDefs": [
+        {
+          "_key": "link-103",
+          "_type": "link",
+          "href": "/mon-carnet"
+        }
+      ],
+      "style": "normal"
+    },
+    {
+      "_key": "b-107",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-108",
+          "_type": "span",
+          "marks": [],
+          "text": "Après quelques bouteilles, le mur de la SAQ change un peu. Tu reconnais un producteur. Le mot Gamay te rappelle un rouge que tu avais aimé. Une région commence à te dire quelque chose."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-109",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-110",
+          "_type": "span",
+          "marks": [],
+          "text": "Et la prochaine fois que tu te retrouves devant trois cents bouteilles, oublie les trois cents. Pense à ton souper, à ce que tu aimes et à ce que tu veux payer. Il ne t’en reste déjà plus tant que ça."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-111",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-112",
+          "_type": "span",
+          "marks": [],
+          "text": "Et ce soir?"
+        }
+      ],
+      "markDefs": [],
+      "style": "h2"
+    },
+    {
+      "_key": "b-113",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-114",
+          "_type": "span",
+          "marks": [],
+          "text": "Dis-nous ce que tu manges, ce dont tu as envie et ton budget. On part de là."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-116",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-117",
+          "_type": "span",
+          "marks": [],
+          "text": "→ "
+        },
+        {
+          "_key": "s-118",
+          "_type": "span",
+          "marks": [
+            "link-115"
+          ],
+          "text": "Trouver la bouteille de ce soir"
+        }
+      ],
+      "markDefs": [
+        {
+          "_key": "link-115",
+          "_type": "link",
+          "href": "/ce-soir"
+        }
+      ],
+      "style": "normal"
+    },
+    {
+      "_key": "b-119",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-120",
+          "_type": "span",
+          "marks": [],
+          "text": "Tu peux aussi parcourir les fiches du Premier Verre et garder les bouteilles qui t’intéressent pour plus tard."
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-121",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-122",
+          "_type": "span",
+          "marks": [],
+          "text": "Pour recevoir les nouvelles bouteilles, les producteurs qu’on aime et les endroits qui valent le détour :"
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    },
+    {
+      "_key": "b-123",
+      "_type": "block",
+      "children": [
+        {
+          "_key": "s-124",
+          "_type": "span",
+          "marks": [],
+          "text": "→ S’inscrire à l’infolettre"
+        }
+      ],
+      "markDefs": [],
+      "style": "normal"
+    }
+  ],
+  "coverImage": {
+    "_type": "image",
+    "asset": {
+      "_ref": "image-278e3cbe5264365dd4e9ed8645c229a4d59e0922-4932x3494-jpg",
+      "_type": "reference"
+    }
+  },
+  "excerpt": "Pas besoin de connaître les appellations par cœur. Occasion, goûts et budget : quelques repères simples suffisent pour choisir une bouteille avec beaucoup plus de confiance.",
+  "featured": true,
+  "published": true,
+  "relatedAppellations": [
+    {
+      "_key": "appellation-muscadet",
+      "_ref": "appellation-muscadet-sevre-et-maine",
+      "_type": "reference"
+    },
+    {
+      "_key": "appellation-kamptal",
+      "_ref": "appellation-kamptal-dac",
+      "_type": "reference"
+    },
+    {
+      "_key": "appellation-brouilly",
+      "_ref": "appellation-brouilly",
+      "_type": "reference"
+    },
+    {
+      "_key": "appellation-cotes-rhone",
+      "_ref": "appellation-cotes-du-rhone",
+      "_type": "reference"
+    },
+    {
+      "_key": "appellation-quebec",
+      "_ref": "appellation-igp-vin-du-quebec",
+      "_type": "reference"
+    },
+    {
+      "_key": "appellation-valpolicella",
+      "_ref": "appellation-valpolicella",
+      "_type": "reference"
+    }
+  ],
+  "relatedCountries": [
+    {
+      "_key": "country-france",
+      "_ref": "country-france",
+      "_type": "reference"
+    },
+    {
+      "_key": "country-autriche",
+      "_ref": "country-autriche",
+      "_type": "reference"
+    },
+    {
+      "_key": "country-canada",
+      "_ref": "d9fc0ce6-5f30-4e00-8bc5-63146a0a6407",
+      "_type": "reference"
+    },
+    {
+      "_key": "country-italie",
+      "_ref": "country-italie",
+      "_type": "reference"
+    }
+  ],
+  "relatedGrapes": [
+    {
+      "_key": "grape-melon",
+      "_ref": "grape-melon-de-bourgogne",
+      "_type": "reference"
+    },
+    {
+      "_key": "grape-gruner",
+      "_ref": "grape-gruner-veltliner",
+      "_type": "reference"
+    },
+    {
+      "_key": "grape-gamay",
+      "_ref": "grape-gamay",
+      "_type": "reference"
+    },
+    {
+      "_key": "grape-grenache",
+      "_ref": "grape-grenache",
+      "_type": "reference"
+    },
+    {
+      "_key": "grape-carignan",
+      "_ref": "grape-carignan",
+      "_type": "reference"
+    },
+    {
+      "_key": "grape-seyval",
+      "_ref": "grape-seyval",
+      "_type": "reference"
+    },
+    {
+      "_key": "grape-vidal",
+      "_ref": "grape-vidal",
+      "_type": "reference"
+    },
+    {
+      "_key": "grape-corvina",
+      "_ref": "grape-corvina-veronese",
+      "_type": "reference"
+    },
+    {
+      "_key": "grape-rondinella",
+      "_ref": "grape-rondinella",
+      "_type": "reference"
+    },
+    {
+      "_key": "grape-corvinone",
+      "_ref": "grape-corvinone",
+      "_type": "reference"
+    }
+  ],
+  "relatedPlaces": [],
+  "relatedProducers": [
+    {
+      "_key": "producer-marcel-martin",
+      "_ref": "producer-marcel-martin",
+      "_type": "reference"
+    },
+    {
+      "_key": "producer-loimer",
+      "_ref": "producer-weingut-loimer",
+      "_type": "reference"
+    },
+    {
+      "_key": "producer-duboeuf",
+      "_ref": "producer-georges-duboeuf",
+      "_type": "reference"
+    },
+    {
+      "_key": "producer-vidal-fleury",
+      "_ref": "producer-vidal-fleury",
+      "_type": "reference"
+    },
+    {
+      "_key": "producer-orpailleur",
+      "_ref": "producer-vignoble-de-l-orpailleur",
+      "_type": "reference"
+    },
+    {
+      "_key": "producer-zenato",
+      "_ref": "producer-zenato",
+      "_type": "reference"
+    }
+  ],
+  "relatedRegions": [
+    {
+      "_key": "region-loire",
+      "_ref": "region-vallee-de-la-loire",
+      "_type": "reference"
+    },
+    {
+      "_key": "region-basse-autriche",
+      "_ref": "region-basse-autriche-niederosterreich",
+      "_type": "reference"
+    },
+    {
+      "_key": "region-beaujolais",
+      "_ref": "region-beaujolais",
+      "_type": "reference"
+    },
+    {
+      "_key": "region-rhone",
+      "_ref": "region-vallee-du-rhone",
+      "_type": "reference"
+    },
+    {
+      "_key": "region-cantons",
+      "_ref": "55a9fe9a-b3fe-41d6-8145-6adca1a818a8",
+      "_type": "reference"
+    },
+    {
+      "_key": "region-venetie",
+      "_ref": "region-venetie",
+      "_type": "reference"
+    }
+  ],
+  "relatedVineyards": [
+    {
+      "_key": "vineyard-orpailleur",
+      "_ref": "vineyard-vignoble-de-l-orpailleur",
+      "_type": "reference"
+    }
+  ],
+  "relatedWines": [
+    {
+      "_key": "wine-sablette",
+      "_ref": "wine-la-sablette-muscadet-sevre-et-maine-sur-lie",
+      "_type": "reference"
+    },
+    {
+      "_key": "wine-loimer",
+      "_ref": "wine-loimer-lois-gruner-veltliner-2023",
+      "_type": "reference"
+    },
+    {
+      "_key": "wine-brouilly",
+      "_ref": "wine-georges-duboeuf-brouilly",
+      "_type": "reference"
+    },
+    {
+      "_key": "wine-vidal-fleury",
+      "_ref": "wine-vidal-fleury-cotes-du-rhone",
+      "_type": "reference"
+    },
+    {
+      "_key": "wine-orpailleur",
+      "_ref": "wine-l-orpailleur-brut",
+      "_type": "reference"
+    },
+    {
+      "_key": "wine-zenato",
+      "_ref": "wine-zenato-valpolicella-superiore",
+      "_type": "reference"
+    }
+  ],
+  "seoDescription": "Comment choisir un vin quand on n’y connaît rien? Occasion, goûts et budget : une méthode simple pour trouver une bouteille sans maîtriser le vocabulaire du vin.",
+  "seoTitle": "Comment choisir un vin quand on n’y connaît rien | Le Premier Verre",
+  "slug": {
+    "_type": "slug",
+    "current": "comment-choisir-une-bouteille-quand-on-ne-connait-rien-au-vin"
+  },
+  "tags": [
+    "Débuter",
+    "Choisir un vin",
+    "SAQ",
+    "Conseils",
+    "Budget",
+    "Accords"
+  ],
+  "title": "Comment choisir une bouteille quand on ne connaît rien au vin"
+}
