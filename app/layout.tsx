@@ -22,7 +22,7 @@ const sans = Manrope({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.lepremierverre.com"),
+  metadataBase: new URL("https://lepremierverre.com"),
 
   title: {
     default: "Le Premier Verre",
@@ -32,6 +32,10 @@ export const metadata: Metadata = {
   description:
     "Une plateforme québécoise pour découvrir des vins, des producteurs, des bonnes adresses et des guides avec simplicité.",
 
+  alternates: {
+    canonical: "/",
+  },
+
   verification: {
     google: "Sa-BZlUqEkzGY_W2pKwmF_q0Bf_sj8OfGxoJ0_2DN08",
   },
@@ -40,7 +44,7 @@ export const metadata: Metadata = {
     title: "Le Premier Verre",
     description:
       "Vins, producteurs, bonnes adresses, guides et articles pour découvrir le vin autrement.",
-    url: "https://www.lepremierverre.com",
+    url: "https://lepremierverre.com",
     siteName: "Le Premier Verre",
     locale: "fr_CA",
     type: "website",
