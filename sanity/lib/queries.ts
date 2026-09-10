@@ -1,3 +1,5 @@
+const wineVisibilityFilter = process.env.NODE_ENV === "development" ? "" : "&& published == true";
+
 export const articlesQuery = `*[_type == "article" && published == true] | order(publishedAt desc, _createdAt desc) {
   _id,
   title,
@@ -208,7 +210,7 @@ export const producerBySlugQuery = `*[_type == "producer" && slug.current == $sl
   guides[]->{_id, title, "slug": slug.current, excerpt, coverImage}
 }`;
 
-export const winesQuery = `*[_type == "wine" && published == true] | order(name asc) {
+export const winesQuery = `*[_type == "wine" ${wineVisibilityFilter}] | order(name asc) {
   _id,
   name,
   "slug": slug.current,
@@ -223,7 +225,7 @@ export const winesQuery = `*[_type == "wine" && published == true] | order(name 
   appellation->{name, "slug": slug.current}
 }`;
 
-export const wineBySlugQuery = `*[_type == "wine" && slug.current == $slug && published == true][0] {
+export const wineBySlugQuery = `*[_type == "wine" && slug.current == $slug ${wineVisibilityFilter}][0] {
   _id,
   name,
   "slug": slug.current,
