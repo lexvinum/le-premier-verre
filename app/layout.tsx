@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     "Une plateforme québécoise pour découvrir des vins, des producteurs, des bonnes adresses et des guides avec simplicité.",
 
   verification: {
-    google: "-ZkGDMvO096Fv0c2_Vb71lbrue-NOCRrWBpkSP6qdzo",
+    google: "Sa-BZlUqEkzGY_W2pKwmF_q0Bf_sj8OfGxoJ0_2DN08",
   },
 
   openGraph: {
