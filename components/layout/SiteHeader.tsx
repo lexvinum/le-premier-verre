@@ -110,7 +110,7 @@ export function SiteHeader() {
   }, []);
 
   if (
-    prelaunchPages.includes(pathname) ||
+    prelaunchPages.includes(pathname ?? "") ||
     (pathname === "/" && (!environmentChecked || !isLocal))
   ) {
     return null;
