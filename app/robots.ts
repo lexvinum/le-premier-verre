@@ -20,7 +20,7 @@ export default function robots(): MetadataRoute.Robots {
         "/recherche/",
       ],
     },
-    sitemap: "https://www.lepremierverre.com/sitemap.xml",
-    host: "https://www.lepremierverre.com",
+    sitemap: "https://lepremierverre.com/sitemap.xml",
+    host: "https://lepremierverre.com",
   };
 }
