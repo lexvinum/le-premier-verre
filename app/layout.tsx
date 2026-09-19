@@ -38,6 +38,9 @@ export const metadata: Metadata = {
 
   verification: {
     google: "Sa-BZlUqEkzGY_W2pKwmF_q0Bf_sj8OfGxoJ0_2DN08",
+    other: {
+      "p:domain_verify": "f09cdf4d00c314bdbd6c2b7c680bd11d",
+    },
   },
 
   openGraph: {
