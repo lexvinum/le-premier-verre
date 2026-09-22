@@ -95,6 +95,7 @@ export function SiteHeader() {
 
   const prelaunchPages = [
     "/disponible-bientot",
+    "/en/disponible-bientot",
     "/a-propos",
     "/contact",
     "/newsletter",
