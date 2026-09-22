@@ -29,6 +29,12 @@ export default clerkMiddleware(async (auth, req) => {
     );
   }
 
+  if (pathname === "/en" && !isLocal) {
+    return NextResponse.rewrite(
+      new URL("/en/disponible-bientot", req.url)
+    );
+  }
+
   if (isProtectedRoute(req) || isAdminRoute(req)) {
     await auth.protect();
   }
