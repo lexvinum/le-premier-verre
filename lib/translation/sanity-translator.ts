@@ -7,6 +7,8 @@ export const TRANSLATABLE_TYPES = [
   "food",
   "producer",
   "region",
+  "country",
+  "appellation",
   "grape",
   "place",
   "article",
@@ -60,6 +62,26 @@ const SIMPLE_FIELDS: Record<TranslatableType, Array<[string, string]>> = {
     ["seoDescription", "seoDescriptionEn"],
   ],
 
+  country: [
+    ["name", "nameEn"],
+    ["description", "descriptionEn"],
+    ["climate", "climateEn"],
+    ["wineSurface", "wineSurfaceEn"],
+    ["annualProduction", "annualProductionEn"],
+    ["mainWineStyles", "mainWineStylesEn"],
+    ["seoTitle", "seoTitleEn"],
+    ["seoDescription", "seoDescriptionEn"],
+  ],
+
+  appellation: [
+    ["climate", "climateEn"],
+    ["soilTypes", "soilTypesEn"],
+    ["authorizedWineStyles", "authorizedWineStylesEn"],
+    ["foodPairingNotes", "foodPairingNotesEn"],
+    ["seoTitle", "seoTitleEn"],
+    ["seoDescription", "seoDescriptionEn"],
+  ],
+
   grape: [
     ["oneLiner", "oneLinerEn"],
     ["aromas", "aromasEn"],
@@ -98,6 +120,8 @@ const SPECIAL_SOURCE_FIELDS: Record<TranslatableType, string[]> = {
   food: [],
   producer: ["bio", "approach"],
   region: ["characteristics", "overview"],
+  country: ["wineHistory"],
+  appellation: ["productionRules"],
   grape: ["history", "tryNext"],
   place: ["description"],
   article: ["content"],
@@ -165,6 +189,8 @@ function sourcePayload(document: SanityDocument, type: TranslatableType) {
       field === "bio" ||
       field === "overview" ||
       field === "history" ||
+      field === "wineHistory" ||
+      field === "productionRules" ||
       field === "description" ||
       field === "content" ||
       field === "editorialNote"
@@ -326,6 +352,20 @@ function buildPatch(
         translated.overview
       );
     }
+  }
+
+  if (type === "country" && translated.wineHistory !== undefined) {
+    patch.wineHistoryEn = rebuildPortableText(
+      document.wineHistory,
+      translated.wineHistory
+    );
+  }
+
+  if (type === "appellation" && translated.productionRules !== undefined) {
+    patch.productionRulesEn = rebuildPortableText(
+      document.productionRules,
+      translated.productionRules
+    );
   }
 
   if (type === "grape") {
