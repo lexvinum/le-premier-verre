@@ -43,13 +43,18 @@ type Wine = {
   approxPrice?: number;
   purchaseChannel?: string;
   purchaseChannelDetails?: string;
+  purchaseChannelDetailsEn?: string;
   purchaseUrl?: string;
   purchaseLastChecked?: string;
 
   oneLiner?: string;
+  oneLinerEn?: string;
   tastingKeywords?: string[];
+  tastingKeywordsEn?: string[];
   perfectFor?: string[];
+  perfectForEn?: string[];
   whyWeRecommend?: string;
+  whyWeRecommendEn?: string;
 
   body?: number;
   sweetness?: number;
@@ -61,18 +66,21 @@ type Wine = {
   foodPairings?: {
     _id?: string;
     name?: string;
+    nameEn?: string;
     slug?: string;
   }[];
 
   tastingNotes?: PortableTextBlock[];
+  tastingNotesEn?: PortableTextBlock[];
+  editorialNoteEn?: PortableTextBlock[];
 };
 
 function formatPurchaseChannel(value?: string) {
   const labels: Record<string, string> = {
     saq: "SAQ",
-    "private-import": "Importation privée",
-    producer: "Producteur",
-    other: "Autre",
+    "private-import": "Private import",
+    producer: "Producer",
+    other: "Other",
   };
 
   return value ? labels[value] || value : null;
@@ -81,7 +89,7 @@ function formatPurchaseChannel(value?: string) {
 function formatDate(value?: string) {
   if (!value) return null;
 
-  return new Intl.DateTimeFormat("fr-CA", {
+  return new Intl.DateTimeFormat("en-CA", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -99,7 +107,7 @@ export async function generateMetadata({
   return buildDynamicMetadata({
     entity: "wine",
     slug,
-    locale: "fr",
+    locale: "en",
   });
 }
 
@@ -124,10 +132,10 @@ export default async function WinePage({
       <article className="mx-auto max-w-[1500px] px-5 pb-24 pt-8 sm:px-8 md:px-12 lg:px-16">
         <div className="flex items-center justify-between gap-6 border-b border-[var(--lpv-line)] pb-5">
           <Link
-            href="/vins"
+            href="/en/wines"
             className="text-xs uppercase tracking-[0.22em] text-[var(--lpv-muted)] transition hover:text-[var(--lpv-ink)]"
           >
-            ← Retour aux bouteilles
+            ← Back to bottles
           </Link>
 
           <div className="flex items-center gap-3">
@@ -153,17 +161,18 @@ export default async function WinePage({
           beverageType={wine.beverageType ?? "wine"}
           alcoholFree={wine.alcoholFree ?? false}
           bottleImage={wine.bottleImage}
+          locale="en"
         />
 
-        {wine.oneLiner ? (
+        {wine.oneLinerEn ? (
           <section className="border-b border-[var(--lpv-line)] py-16 md:py-24">
             <div className="grid gap-10 md:grid-cols-[0.28fr_0.72fr]">
               <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                En une phrase
+                In one sentence
               </p>
 
               <p className="max-w-5xl text-[clamp(2.2rem,5vw,5rem)] font-medium leading-[1.06] tracking-[-0.035em]">
-                {wine.oneLiner}
+                {wine.oneLinerEn}
               </p>
             </div>
           </section>
@@ -173,21 +182,22 @@ export default async function WinePage({
           body={wine.body}
           sweetness={wine.sweetness}
           roundness={wine.roundness}
+          locale="en"
         />
 
-        {(wine.tastingKeywords?.length ||
-          wine.perfectFor?.length ||
+        {(wine.tastingKeywordsEn?.length ||
+          wine.perfectForEn?.length ||
           wine.grapes?.length ||
           wine.appleVarieties?.length) ? (
           <section className="border-b border-[var(--lpv-line)] py-16 md:py-24">
             <div className="grid gap-14 lg:grid-cols-3">
               <div>
                 <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                  On goûte
+                  What you’ll taste
                 </p>
 
                 <div className="mt-7 flex flex-wrap gap-x-3 gap-y-2">
-                  {wine.tastingKeywords?.map((item) => (
+                  {wine.tastingKeywordsEn?.map((item) => (
                     <span
                       key={item}
                       className="border-b border-[var(--lpv-line)] pb-1 text-xl"
@@ -200,11 +210,11 @@ export default async function WinePage({
 
               <div>
                 <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                  Parfait pour
+                  Perfect for
                 </p>
 
                 <div className="mt-7 space-y-3">
-                  {wine.perfectFor?.map((item) => (
+                  {wine.perfectForEn?.map((item) => (
                     <p
                       key={item}
                       className="border-t border-[var(--lpv-line)] pt-3 text-lg"
@@ -218,8 +228,8 @@ export default async function WinePage({
               <div>
                 <p className="lpv-kicker text-[var(--lpv-cocoa)]">
                   {wine.beverageType === "cider"
-                    ? "Variétés de pommes"
-                    : "Cépage ou assemblage"}
+                    ? "Apple varieties"
+                    : "Grape or blend"}
                 </p>
 
                 <div className="mt-7 space-y-3">
@@ -254,27 +264,27 @@ export default async function WinePage({
               </p>
 
               <h2 className="lpv-display mt-6 text-5xl leading-[0.9] md:text-6xl">
-                À table.
+                At the table.
               </h2>
             </div>
 
             <div className="grid gap-0 sm:grid-cols-2">
               <div className="border-t border-[var(--lpv-line)] py-5 sm:pr-8">
                 <p className="text-xs uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
-                  Température
+                  Temperature
                 </p>
                 <p className="mt-3 text-xl">
-                  {wine.servingTemperature || "À compléter"}
+                  {wine.servingTemperature || "To be added"}
                 </p>
               </div>
 
               {wine.beverageType !== "cider" ? (
                 <div className="border-t border-[var(--lpv-line)] py-5 sm:border-l sm:pl-8">
                   <p className="text-xs uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
-                    Carafe
+                    Decant
                   </p>
                   <p className="mt-3 text-xl">
-                    {wine.decant ? "Oui" : "Non"}
+                    {wine.decant ? "Yes" : "No"}
                   </p>
                 </div>
               ) : null}
@@ -289,12 +299,12 @@ export default async function WinePage({
             <div className="grid gap-14 lg:grid-cols-[0.44fr_0.56fr]">
               <div>
                 <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                  Où le trouver
+                  Where to find it
                 </p>
 
                 {typeof wine.approxPrice === "number" ? (
                   <p className="lpv-display mt-6 text-6xl leading-none md:text-7xl">
-                    {wine.approxPrice.toLocaleString("fr-CA", {
+                    {wine.approxPrice.toLocaleString("en-CA", {
                       style: "currency",
                       currency: "CAD",
                     })}
@@ -302,22 +312,22 @@ export default async function WinePage({
                 ) : null}
 
                 <p className="mt-4 text-sm text-[var(--lpv-muted)]">
-                  Prix approximatif
+                  Approximate price
                 </p>
               </div>
 
               <div>
                 <div className="border-t border-[var(--lpv-line)] py-5">
                   <p className="text-xs uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
-                    Circuit d’achat
+                    Where to buy
                   </p>
                   <p className="mt-3 text-xl">
-                    {purchaseLabel || "À compléter"}
+                    {purchaseLabel || "To be added"}
                   </p>
 
-                  {wine.purchaseChannelDetails ? (
+                  {wine.purchaseChannelDetailsEn ? (
                     <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--lpv-muted)]">
-                      {wine.purchaseChannelDetails}
+                      {wine.purchaseChannelDetailsEn}
                     </p>
                   ) : null}
                 </div>
@@ -325,7 +335,7 @@ export default async function WinePage({
                 {checkedDate ? (
                   <div className="border-t border-[var(--lpv-line)] py-5">
                     <p className="text-xs uppercase tracking-[0.2em] text-[var(--lpv-muted)]">
-                      Dernière vérification
+                      Last checked
                     </p>
                     <p className="mt-3 text-base">{checkedDate}</p>
                   </div>
@@ -339,7 +349,7 @@ export default async function WinePage({
                       rel="noreferrer"
                       className="inline-flex items-center gap-3 rounded-full bg-[var(--lpv-ink)] px-7 py-4 text-xs font-medium uppercase tracking-[0.2em] !text-white transition hover:opacity-80"
                     >
-                      Voir où l’acheter
+                      Where to buy
                       <span>↗</span>
                     </a>
                   </div>
@@ -349,19 +359,19 @@ export default async function WinePage({
           </section>
         ) : null}
 
-        {wine.whyWeRecommend ? (
+        {wine.whyWeRecommendEn ? (
           <section className="border-b border-[var(--lpv-line)] py-16 md:py-24">
             <div className="grid gap-10 md:grid-cols-[0.3fr_0.7fr]">
               <div>
                 <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                  Pourquoi on l’aime
+                  Why we love it
                 </p>
 
 
               </div>
 
               <p className="max-w-4xl text-xl leading-9 md:text-2xl md:leading-10">
-                {wine.whyWeRecommend}
+                {wine.whyWeRecommendEn}
               </p>
             </div>
           </section>
@@ -372,11 +382,11 @@ export default async function WinePage({
             <div className="grid gap-10 md:grid-cols-[0.3fr_0.7fr]">
               <div>
                 <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                  Accords
+                  Pairings
                 </p>
 
                 <h2 className="lpv-display mt-6 text-5xl leading-[0.9] md:text-6xl">
-                  Avec quoi?
+                  What with?
                 </h2>
               </div>
 
@@ -385,17 +395,17 @@ export default async function WinePage({
                   pairing.slug ? (
                     <Link
                       key={pairing._id || pairing.slug}
-                      href={`/accords/${pairing.slug}`}
+                      href={`/en/pairings/${pairing.slug}`}
                       className="border-t border-[var(--lpv-line)] py-4 text-lg transition hover:pl-2"
                     >
-                      {pairing.name} →
+                      {pairing.nameEn || pairing.name} →
                     </Link>
                   ) : (
                     <p
                       key={pairing._id || pairing.name}
                       className="border-t border-[var(--lpv-line)] py-4 text-lg"
                     >
-                      {pairing.name}
+                      {pairing.nameEn || pairing.name}
                     </p>
                   )
                 )}
@@ -404,21 +414,21 @@ export default async function WinePage({
           </section>
         ) : null}
 
-        {wine.tastingNotes?.length ? (
+        {wine.tastingNotesEn?.length ? (
           <section className="border-b border-[var(--lpv-line)] py-16 md:py-24">
             <div className="grid gap-10 md:grid-cols-[0.3fr_0.7fr]">
               <div>
                 <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                  Dégustation
+                  Tasting
                 </p>
 
                 <h2 className="lpv-display mt-6 text-5xl leading-[0.9] md:text-6xl">
-                  En détail.
+                  In detail.
                 </h2>
               </div>
 
               <div className="prose prose-stone max-w-none">
-                <PortableText value={wine.tastingNotes} />
+                <PortableText value={wine.tastingNotesEn} />
               </div>
             </div>
           </section>
@@ -428,7 +438,7 @@ export default async function WinePage({
           <section className="py-16 md:py-24">
             <div className="grid gap-10 md:grid-cols-[0.3fr_0.7fr]">
               <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                Le producteur
+                The producer
               </p>
 
               <div>
@@ -438,10 +448,10 @@ export default async function WinePage({
 
                 {wine.producer.slug ? (
                   <Link
-                    href={`/producteurs/${wine.producer.slug}`}
+                    href={`/en/producers/${wine.producer.slug}`}
                     className="lpv-text-link mt-8 w-fit"
                   >
-                    Découvrir le producteur <span>→</span>
+                    Discover the producer <span>→</span>
                   </Link>
                 ) : null}
               </div>

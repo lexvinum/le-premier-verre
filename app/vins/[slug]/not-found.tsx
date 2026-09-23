@@ -9,17 +9,17 @@ export default function WineNotFound() {
         </p>
 
         <h1 className="mt-4 text-3xl font-semibold text-white">
-          Cette fiche vin n’existe pas
+          Cette fiche bouteille n’existe pas
         </h1>
 
         <p className="mt-4 leading-8 text-[#d7c2b5]">
-          Le vin demandé est introuvable ou son slug ne correspond pas à une
+          La bouteille demandée est introuvable ou son slug ne correspond pas à une
           bouteille existante.
         </p>
 
         <div className="mt-8 flex items-center justify-center gap-4">
           <Link
-            href="/repertoire"
+            href="/vins"
             className="rounded-full border border-[#6f4b3b] bg-[#a56a43] px-6 py-3 text-sm font-medium text-white transition hover:opacity-90"
           >
             Retour au répertoire

@@ -3,13 +3,19 @@
 type Props = {
   value: string;
   onChange: (value: string) => void;
+  locale?: "fr" | "en";
 };
 
-export function SearchInput({ value, onChange }: Props) {
+export function SearchInput({
+  value,
+  onChange,
+  locale = "fr",
+}: Props) {
+  const isEn = locale === "en";
   return (
     <div className="px-5 py-8 md:px-8 md:py-10">
       <label htmlFor="global-search" className="sr-only">
-        Rechercher
+        {isEn ? "Search" : "Rechercher"}
       </label>
 
       <div className="flex items-end gap-5">
@@ -26,7 +32,7 @@ export function SearchInput({ value, onChange }: Props) {
           type="search"
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="Vin, producteur, région…"
+          placeholder={isEn ? "Bottle, producer, region…" : "Bouteille, producteur, région…"}
           className="lpv-display min-w-0 flex-1 border-0 bg-transparent py-2 text-[clamp(2.8rem,7vw,7rem)] leading-[0.95] text-[var(--lpv-ink)] outline-none placeholder:text-[var(--lpv-muted)]/35"
         />
       </div>

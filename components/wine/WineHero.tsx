@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { SanityImageSource } from "@sanity/image-url";
 
-import { urlFor } from "@/sanity/lib/image";
+import BottleStage from "@/components/wine/BottleStage";
 
 type Props = {
   name: string;
@@ -12,13 +12,16 @@ type Props = {
   appellation?: string;
   color?: string;
   vintage?: number;
+  beverageType?: "wine" | "cider";
+  alcoholFree?: boolean;
   bottleImage?: SanityImageSource;
+  locale?: "fr" | "en";
 };
 
-function formatLabel(value?: string) {
+function formatLabel(value?: string, locale: "fr" | "en" = "fr") {
   if (!value) return null;
 
-  const labels: Record<string, string> = {
+  const labelsFr: Record<string, string> = {
     red: "Rouge",
     white: "Blanc",
     rose: "Rosé",
@@ -26,6 +29,17 @@ function formatLabel(value?: string) {
     sparkling: "Effervescent",
     fortified: "Fortifié",
   };
+
+  const labelsEn: Record<string, string> = {
+    red: "Red",
+    white: "White",
+    rose: "Rosé",
+    orange: "Orange",
+    sparkling: "Sparkling",
+    fortified: "Fortified",
+  };
+
+  const labels = locale === "en" ? labelsEn : labelsFr;
 
   return labels[value] || value.replace(/-/g, " ");
 }
@@ -39,22 +53,32 @@ export default function WineHero({
   appellation,
   color,
   vintage,
+  beverageType = "wine",
+  alcoholFree = false,
   bottleImage,
+  locale = "fr",
 }: Props) {
-  const imageSrc = bottleImage
-    ? urlFor(bottleImage)
-        .width(1200)
-        .height(1600)
-        .fit("max")
-        .url()
-    : null;
-
+  const isEnglish = locale === "en";
   return (
     <section className="border-b border-[var(--lpv-line)] pb-16 pt-10 md:pb-24 md:pt-16">
       <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
         <div className="lg:sticky lg:top-24">
           <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-            {[formatLabel(color), vintage].filter(Boolean).join(" · ") || "Vin"}
+            {[
+              beverageType === "cider"
+                ? isEnglish
+                  ? "Cider"
+                  : "Cidre"
+                : formatLabel(color, locale) || (isEnglish ? "Wine" : "Vin"),
+              alcoholFree
+                ? isEnglish
+                  ? "Alcohol-free"
+                  : "Sans alcool"
+                : null,
+              vintage,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
 
           <h1 className="lpv-display mt-7 max-w-3xl text-[clamp(4.2rem,8vw,8rem)] leading-[0.84]">
@@ -64,7 +88,7 @@ export default function WineHero({
           {producer ? (
             producerSlug ? (
               <Link
-                href={`/producteurs/${producerSlug}`}
+                href={`${isEnglish ? "/en/producers" : "/producteurs"}/${producerSlug}`}
                 className="lpv-text-link mt-8 w-fit"
               >
                 {producer} <span>→</span>
@@ -80,23 +104,20 @@ export default function WineHero({
             <p className="max-w-md text-sm leading-7 text-[var(--lpv-muted)]">
               {[appellation, region, country]
                 .filter(Boolean)
-                .join(" · ") || "Origine à compléter"}
+                .join(" · ") ||
+                (isEnglish ? "Origin to be added" : "Origine à compléter")}
             </p>
           </div>
         </div>
 
-        <div className="flex min-h-[620px] items-center justify-center bg-[var(--lpv-paper-light)] px-8 py-12 md:min-h-[760px] md:px-16">
-          {imageSrc ? (
-            <img
-              src={imageSrc}
-              alt={name}
-              className="max-h-[660px] max-w-full object-contain"
-            />
-          ) : (
-            <p className="text-sm text-[var(--lpv-muted)]">
-              Photo à ajouter dans Sanity.
-            </p>
-          )}
+        <div className="min-h-[620px] md:min-h-[760px]">
+          <BottleStage
+            image={bottleImage}
+            alt={name}
+            color={color}
+            variant="hero"
+            className="min-h-[620px] md:min-h-[760px]"
+          />
         </div>
       </div>
     </section>

@@ -1,27 +1,137 @@
 const wineVisibilityFilter = process.env.NODE_ENV === "development" ? "" : "&& published == true";
 
-export const articlesQuery = `*[_type == "article" && published == true] | order(publishedAt desc, _createdAt desc) {
+export const articlesQuery = `*[_type == "article" && !(_id in path("drafts.**"))] | order(publishedAt desc, _createdAt desc) {
   _id,
   title,
+  titleEn,
   "slug": slug.current,
   excerpt,
+  excerptEn,
   category,
+  categoryEn,
   coverImage,
   author,
   publishedAt,
   _createdAt
 }`;
 
-export const articleBySlugQuery = `*[_type == "article" && slug.current == $slug && published == true][0] {
+export const articleBySlugQuery = `*[_type == "article" && slug.current == $slug && !(_id in path("drafts.**"))][0] {
   _id,
   title,
+  titleEn,
   "slug": slug.current,
   excerpt,
-  content,
+  excerptEn,
+  content[]{
+    ...,
+    _type == "articleWineCard" => {
+      _key,
+      _type,
+      wine->{
+        _id,
+        name,
+        "slug": slug.current,
+        vintage,
+        color,
+        bottleImage,
+        approxPrice,
+        oneLiner,
+        producer->{
+          _id,
+          name,
+          "slug": slug.current
+        }
+      }
+    },
+    _type == "articleProducerCard" => {
+      _key,
+      _type,
+      producer->{
+        _id,
+        name,
+        "slug": slug.current,
+        municipality,
+        heroImage,
+        oneLiner,
+        openToVisitors
+      }
+    },
+    _type == "articlePlaceCard" => {
+      _key,
+      _type,
+      place->{
+        _id,
+        name,
+        "slug": slug.current,
+        type,
+        city,
+        region,
+        address,
+        website,
+        coverImage,
+        published
+      }
+    }
+  },
+  contentEn[]{
+    ...,
+    _type == "articleWineCard" => {
+      _key,
+      _type,
+      wine->{
+        _id,
+        name,
+        "slug": slug.current,
+        vintage,
+        color,
+        bottleImage,
+        approxPrice,
+        oneLiner,
+        oneLinerEn,
+        producer->{
+          _id,
+          name,
+          "slug": slug.current
+        }
+      }
+    },
+    _type == "articleProducerCard" => {
+      _key,
+      _type,
+      producer->{
+        _id,
+        name,
+        "slug": slug.current,
+        municipality,
+        heroImage,
+        oneLiner,
+        oneLinerEn,
+        openToVisitors
+      }
+    },
+    _type == "articlePlaceCard" => {
+      _key,
+      _type,
+      place->{
+        _id,
+        name,
+        "slug": slug.current,
+        type,
+        city,
+        region,
+        address,
+        website,
+        coverImage,
+        published
+      }
+    }
+  },
   category,
+  categoryEn,
   coverImage,
   author,
   tags,
+  tagsEn,
   tagsJson,
   publishedAt,
   _createdAt,
@@ -34,6 +144,7 @@ export const articleBySlugQuery = `*[_type == "article" && slug.current == $slug
     bottleImage,
     approxPrice,
     oneLiner,
+    oneLinerEn,
     producer->{
       _id,
       name,
@@ -45,12 +156,15 @@ export const articleBySlugQuery = `*[_type == "article" && slug.current == $slug
 export const guidesQuery = `*[_type == "guide" && published == true] | order(publishedAt desc, _createdAt desc) {
   _id,
   title,
+  titleEn,
   "slug": slug.current,
   excerpt,
+  excerptEn,
   coverImage,
   guideType,
   difficulty,
   estimatedReadingTime,
+  estimatedReadingTimeEn,
   publishedAt,
   _createdAt
 }`;
@@ -58,13 +172,17 @@ export const guidesQuery = `*[_type == "guide" && published == true] | order(pub
 export const guideBySlugQuery = `*[_type == "guide" && slug.current == $slug && published == true][0] {
   _id,
   title,
+  titleEn,
   "slug": slug.current,
   excerpt,
+  excerptEn,
   content,
+  contentEn,
   coverImage,
   guideType,
   difficulty,
   estimatedReadingTime,
+  estimatedReadingTimeEn,
   publishedAt,
   _createdAt,
   relatedCountries[]->{_id, name, "slug": slug.current},
@@ -135,8 +253,12 @@ export const producersQuery = `*[_type == "producer" && published == true] | ord
   logo,
   photo,
   heroImage,
+  mediaPermissionStatus,
+  mediaCredit,
   oneLiner,
+  oneLinerEn,
   shortBio,
+  shortBioEn,
   country->{name, "slug": slug.current},
   region->{name, "slug": slug.current}
 }`;
@@ -155,11 +277,25 @@ export const producerBySlugQuery = `*[_type == "producer" && slug.current == $sl
   photo,
   heroImage,
 
+  mediaPermissionStatus,
+  mediaCredit,
+  mediaPermissionDate,
+  mediaPermissionNote,
+
   oneLiner,
+  oneLinerEn,
   shortBio,
+  shortBioEn,
   bio,
+  bioEn,
 
   approach[]{
+    _key,
+    title,
+    text
+  },
+
+  approachEn[]{
     _key,
     title,
     text
@@ -172,9 +308,11 @@ export const producerBySlugQuery = `*[_type == "producer" && slug.current == $sl
   },
 
   whyWeFollow,
+  whyWeFollowEn,
 
   openToVisitors,
   visitDetails,
+  visitDetailsEn,
   address,
   reservationRequired,
   website,
@@ -215,8 +353,11 @@ export const winesQuery = `*[_type == "wine" ${wineVisibilityFilter}] | order(na
   name,
   "slug": slug.current,
   vintage,
+  beverageType,
+  alcoholFree,
   color,
   style,
+  appleVarieties,
   bottleImage,
   producer->{name, "slug": slug.current},
   vineyard->{name, "slug": slug.current},
@@ -230,8 +371,11 @@ export const wineBySlugQuery = `*[_type == "wine" && slug.current == $slug ${win
   name,
   "slug": slug.current,
   vintage,
+  beverageType,
+  alcoholFree,
   color,
   style,
+  appleVarieties,
   bottleImage,
   labelImage,
   producer->{_id, name, "slug": slug.current, logo},
@@ -255,20 +399,27 @@ export const wineBySlugQuery = `*[_type == "wine" && slug.current == $slug ${win
   isNatural,
   isBiodynamic,
   isVegan,
-  foodPairings[]->{_id, name, "slug": slug.current, category, image},
+  foodPairings[]->{_id, name, nameEn, "slug": slug.current, category, image},
   articles[]->{_id, title, "slug": slug.current, excerpt, coverImage},
   tastingNotes,
 
   approxPrice,
   purchaseChannel,
   purchaseChannelDetails,
+  purchaseChannelDetailsEn,
   purchaseUrl,
   purchaseLastChecked,
 
   oneLiner,
+  oneLinerEn,
   tastingKeywords,
+  tastingKeywordsEn,
   perfectFor,
+  perfectForEn,
   whyWeRecommend,
+  whyWeRecommendEn,
+  tastingNotesEn,
+  editorialNoteEn,
 
   sweetness,
   roundness,
@@ -299,6 +450,8 @@ export const placesQuery = `*[_type == "place" && published == true] | order(nam
   type,
   city,
   region,
+  highlights,
+  highlightsEn,
   coverImage
 }`;
 
@@ -309,10 +462,47 @@ export const placeBySlugQuery = `*[_type == "place" && slug.current == $slug && 
   type,
   city,
   region,
+  highlights,
+  highlightsEn,
   address,
   website,
+  instagram,
+  instagramPosts[]{url},
   description,
-  coverImage
+  descriptionEn,
+  coverImage,
+
+  producer->{
+    _id,
+    name,
+    "slug": slug.current
+  },
+
+  availableWines[]->{
+    _id,
+    name,
+    "slug": slug.current,
+    vintage,
+    color,
+    bottleImage,
+    approxPrice,
+    producer->{_id, name, "slug": slug.current}
+  },
+
+  "producerWines": *[
+    _type == "wine" &&
+    published == true &&
+    producer._ref == ^.producer._ref
+  ] | order(vintage desc, name asc) {
+    _id,
+    name,
+    "slug": slug.current,
+    vintage,
+    color,
+    bottleImage,
+    approxPrice,
+    producer->{_id, name, "slug": slug.current}
+  }
 }`;
 
 export const pageBySlugQuery = `*[_type == "page" && slug.current == $slug && published == true][0] {
@@ -353,7 +543,7 @@ export async function getArticle(slug: string) {
 export async function getRelatedArticles(category?: string, currentId?: string) {
   if (!category || !currentId) {
     return client.fetch(
-      `*[_type == "article" && published == true][0...3] {
+      `*[_type == "article" && !(_id in path("drafts.**"))][0...3] {
         _id,
         title,
         "slug": slug.current,
@@ -367,7 +557,7 @@ export async function getRelatedArticles(category?: string, currentId?: string) 
   }
 
   return client.fetch(
-    `*[_type == "article" && published == true && category == $category && _id != $currentId][0...3] {
+    `*[_type == "article" && !(_id in path("drafts.**")) && category == $category && _id != $currentId][0...3] {
       _id,
       title,
       "slug": slug.current,
@@ -386,7 +576,8 @@ export const countriesQuery = `*[_type == "country"] | order(name asc) {
   _id,
   name,
   "slug": slug.current,
-  description
+  description,
+  descriptionEn
 }`;
 
 export const countryBySlugQuery = `*[_type == "country" && slug.current == $slug][0] {
@@ -394,6 +585,21 @@ export const countryBySlugQuery = `*[_type == "country" && slug.current == $slug
   name,
   "slug": slug.current,
   description,
+  descriptionEn,
+  wineHistory,
+  wineHistoryEn,
+  climate,
+  climateEn,
+  wineSurface,
+  wineSurfaceEn,
+  annualProduction,
+  annualProductionEn,
+  mainWineStyles,
+  mainWineStylesEn,
+  seoTitle,
+  seoTitleEn,
+  seoDescription,
+  seoDescriptionEn,
   "regionCount": count(*[_type == "region" && references(^._id)]),
   "appellationCount": count(*[_type == "appellation" && references(^._id)]),
   "producerCount": count(*[_type == "producer" && published == true && references(^._id)]),
@@ -443,6 +649,9 @@ export const regionsQuery = `*[_type == "region"] | order(name asc) {
   name,
   "slug": slug.current,
   description,
+  descriptionEn,
+  introduction,
+  introductionEn,
   heroImage,
   country->{name, "slug": slug.current}
 }`;
@@ -450,15 +659,18 @@ export const regionsQuery = `*[_type == "region"] | order(name asc) {
 export const regionBySlugQuery = `*[_type == "region" && slug.current == $slug][0] {
   _id,
   name,
+  nameEn,
   "slug": slug.current,
 
-  country->{name, "slug": slug.current},
-  parentRegion->{name, "slug": slug.current},
+  country->{name, nameEn, "slug": slug.current},
+  parentRegion->{name, nameEn, "slug": slug.current},
 
   heroImage,
 
   introduction,
+  introductionEn,
   locationText,
+  locationTextEn,
 
   latitude,
   longitude,
@@ -471,14 +683,22 @@ export const regionBySlugQuery = `*[_type == "region" && slug.current == $slug][
   },
 
   climate,
+  climateEn,
 
   signatureGrapes[]->{
     _id,
     name,
+    nameEn,
     "slug": slug.current
   },
 
   characteristics[]{
+    _key,
+    title,
+    text
+  },
+
+  characteristicsEn[]{
     _key,
     title,
     text
@@ -493,9 +713,17 @@ export const regionBySlugQuery = `*[_type == "region" && slug.current == $slug][
   },
 
   description,
+  descriptionEn,
   overview,
+  overviewEn,
   soilTypes,
+  soilTypesEn,
   mainWineStyles,
+  mainWineStylesEn,
+  seoTitle,
+  seoTitleEn,
+  seoDescription,
+  seoDescriptionEn,
 
   "appellations": *[
     _type == "appellation" &&
@@ -516,6 +744,7 @@ export const regionBySlugQuery = `*[_type == "region" && slug.current == $slug][
     "slug": slug.current,
     municipality,
     oneLiner,
+    oneLinerEn,
     logo,
     photo,
     heroImage
@@ -559,7 +788,9 @@ export const appellationsQuery = `*[_type == "appellation"] | order(name asc) {
   "slug": slug.current,
   country->{name, "slug": slug.current},
   region->{name, "slug": slug.current},
-  grapes[]->{name, "slug": slug.current}
+  grapes[]->{name, "slug": slug.current},
+  description,
+  descriptionEn
 }`;
 
 export const appellationBySlugQuery = `*[_type == "appellation" && slug.current == $slug][0] {
@@ -567,6 +798,21 @@ export const appellationBySlugQuery = `*[_type == "appellation" && slug.current 
   name,
   "slug": slug.current,
   description,
+  descriptionEn,
+  climate,
+  climateEn,
+  soilTypes,
+  soilTypesEn,
+  authorizedWineStyles,
+  authorizedWineStylesEn,
+  productionRules,
+  productionRulesEn,
+  foodPairingNotes,
+  foodPairingNotesEn,
+  seoTitle,
+  seoTitleEn,
+  seoDescription,
+  seoDescriptionEn,
   country->{name, "slug": slug.current},
   region->{name, "slug": slug.current},
   grapes[]->{name, "slug": slug.current},
@@ -587,31 +833,45 @@ export const appellationBySlugQuery = `*[_type == "appellation" && slug.current 
   }
 }`;
 
-export const grapesQuery = `*[_type == "grape"] | order(name asc) {
+export const grapesQuery = `*[_type == "grape" && slug.current != "assemblage-cepages-hybrides"] | order(name asc) {
   _id,
   name,
   "slug": slug.current,
   color,
   heroImage,
   oneLiner,
+  oneLinerEn,
+  aromas,
+  aromasEn,
   body,
   acidity,
   tannins
 }`;
 
-export const grapeBySlugQuery = `*[_type == "grape" && slug.current == $slug][0] {
+export const grapeBySlugQuery = `*[_type == "grape" && slug.current == $slug && slug.current != "assemblage-cepages-hybrides"][0] {
   _id,
   name,
   "slug": slug.current,
   color,
   heroImage,
   oneLiner,
+  oneLinerEn,
   aromas,
+  aromasEn,
   body,
   acidity,
   tannins,
   servingTemperature,
   simplePairings,
+  simplePairingsEn,
+  description,
+  descriptionEn,
+  history,
+  historyEn,
+  flavors,
+  flavorsEn,
+  agingPotential,
+  agingPotentialEn,
   mainRegions[]->{
     _id,
     name,
@@ -622,13 +882,15 @@ export const grapeBySlugQuery = `*[_type == "grape" && slug.current == $slug][0]
   tryNext[]{
     _key,
     reason,
+    reasonEn,
     grape->{
       _id,
       name,
       "slug": slug.current,
       color,
       heroImage,
-      oneLiner
+      oneLiner,
+      oneLinerEn
     }
   },
   "wines": *[
@@ -646,6 +908,30 @@ export const grapeBySlugQuery = `*[_type == "grape" && slug.current == $slug][0]
     producer->{name, "slug": slug.current}
   },
   seoTitle,
+  seoTitleEn,
   seoDescription,
+  seoDescriptionEn,
   published
 }`;
+
+export const foodsQuery = `
+  *[
+    _type == "food" &&
+    published == true &&
+    !(_id in path("drafts.**"))
+  ]
+  | order(name asc) {
+    _id,
+    name,
+    nameEn,
+    "slug": slug.current,
+    category,
+    image,
+    oneLiner,
+    oneLinerEn,
+    wineStyles,
+    wineStylesEn,
+    servingTip,
+    servingTipEn
+  }
+`;

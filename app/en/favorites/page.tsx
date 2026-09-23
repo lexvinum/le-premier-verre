@@ -14,7 +14,7 @@ export const revalidate = 0;
 function formatPrice(value?: number) {
   if (typeof value !== "number") return null;
 
-  return new Intl.NumberFormat("fr-CA", {
+  return new Intl.NumberFormat("en-CA", {
     style: "currency",
     currency: "CAD",
   }).format(value);
@@ -24,12 +24,12 @@ function formatLabel(value?: string) {
   if (!value) return null;
 
   const labels: Record<string, string> = {
-    red: "Rouge",
-    white: "Blanc",
+    red: "Red",
+    white: "White",
     rose: "Rosé",
     orange: "Orange",
-    sparkling: "Effervescent",
-    fortified: "Fortifié",
+    sparkling: "Sparkling",
+    fortified: "Fortified",
   };
 
   return labels[value] || value.replace(/[-_]/g, " ");
@@ -46,15 +46,15 @@ type FavoriteWine = {
   bottleImage?: SanityImageSource;
   approxPrice?: number;
   producer?: { name?: string };
-  country?: { name?: string };
-  region?: { name?: string };
+  country?: { name?: string; nameEn?: string };
+  region?: { name?: string; nameEn?: string };
 };
 
-export default async function FavoritesPage() {
+export default async function EnglishFavoritesPage() {
   const { userId } = await auth();
 
   if (userId) {
-    await enforceAccountLanguage(userId, "fr", "favorites");
+    await enforceAccountLanguage(userId, "en", "favorites");
   }
 
   const orderedWines = userId
@@ -76,8 +76,8 @@ export default async function FavoritesPage() {
             bottleImage,
             approxPrice,
             producer->{name},
-            country->{name},
-            region->{name}
+            country->{name, nameEn},
+            region->{name, nameEn}
           }
         }.wine`,
         { userId }
@@ -90,22 +90,21 @@ export default async function FavoritesPage() {
         <div className="lpv-container grid gap-10 py-16 md:grid-cols-[0.68fr_0.32fr] md:items-end md:py-24">
           <div>
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              Collection personnelle
+              Personal collection
             </p>
 
             <h1 className="lpv-display mt-7 max-w-5xl text-[clamp(4.8rem,10vw,10rem)] leading-[0.82]">
-              Mes favoris.
+              My favourites.
             </h1>
           </div>
 
           <div className="border-t border-[var(--lpv-line)] pt-6 md:border-t-0 md:pb-2">
             <p className="max-w-md text-base leading-8 text-[var(--lpv-muted)]">
-              Les bouteilles mises de côté au fil des découvertes.
+              The bottles saved along the way.
             </p>
 
             <p className="mt-7 text-xs uppercase tracking-[0.18em] text-[var(--lpv-cocoa)]">
-              {orderedWines.length} favori
-              {orderedWines.length > 1 ? "s" : ""}
+              {orderedWines.length} favourite{orderedWines.length === 1 ? "" : "s"}
             </p>
           </div>
         </div>
@@ -115,16 +114,16 @@ export default async function FavoritesPage() {
         <div className="flex items-end justify-between border-b border-[var(--lpv-line)] pb-6">
           <div>
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              À garder
+              Worth keeping
             </p>
 
             <h2 className="lpv-display mt-5 text-5xl leading-none md:text-7xl">
-              Les bouteilles.
+              The bottles.
             </h2>
           </div>
 
-          <Link href="/vins" className="lpv-text-link hidden sm:inline-flex">
-            Explorer <span>→</span>
+          <Link href="/en/wines" className="lpv-text-link hidden sm:inline-flex">
+            Explore <span>→</span>
           </Link>
         </div>
 
@@ -140,12 +139,12 @@ const price = wine.approxPrice;
                 >
                   <div className="relative">
                     <Link
-                      href={`/vins/${wine.slug}`}
+                      href={`/en/wines/${wine.slug}`}
                       className="block w-full"
                     >
                       <BottleStage
                         image={wine.bottleImage}
-                        alt={wine.name ?? "Bouteille"}
+                        alt={wine.name ?? "Bottle"}
                         color={
                           wine.beverageType === "cider"
                             ? undefined
@@ -166,9 +165,9 @@ const price = wine.approxPrice;
                       <p className="lpv-kicker text-[var(--lpv-cocoa)]">
                         {[
                           wine.beverageType === "cider"
-                            ? "Cidre"
-                            : formatLabel(wine.color) || "Vin",
-                          wine.alcoholFree ? "Sans alcool" : null,
+                            ? "Cider"
+                            : formatLabel(wine.color) || "Wine",
+                          wine.alcoholFree ? "Alcohol-free" : null,
                           wine.vintage,
                         ]
                           .filter(Boolean)
@@ -180,7 +179,7 @@ const price = wine.approxPrice;
                       </span>
                     </div>
 
-                    <Link href={`/vins/${wine.slug}`}>
+                    <Link href={`/en/wines/${wine.slug}`}>
                       <h2 className="lpv-display mt-5 text-4xl leading-[0.92] transition-opacity group-hover:opacity-60 md:text-5xl">
                         {wine.name}
                       </h2>
@@ -195,7 +194,7 @@ const price = wine.approxPrice;
                     <div className="mt-7 flex items-end justify-between gap-6 border-t border-[var(--lpv-line)] pt-5">
                       <div>
                         <p className="text-xs leading-6 text-[var(--lpv-muted)]">
-                          {[wine.region?.name, wine.country?.name]
+                          {[wine.region?.nameEn || wine.region?.name, wine.country?.nameEn || wine.country?.name]
                             .filter(Boolean)
                             .join(" · ")}
                         </p>
@@ -208,10 +207,10 @@ const price = wine.approxPrice;
                       </div>
 
                       <Link
-                        href={`/vins/${wine.slug}`}
+                        href={`/en/wines/${wine.slug}`}
                         className="lpv-text-link"
                       >
-                        Voir <span>→</span>
+                        View <span>→</span>
                       </Link>
                     </div>
                   </div>
@@ -222,19 +221,19 @@ const price = wine.approxPrice;
         ) : (
           <div className="py-24 text-center">
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              Rien pour le moment
+              Nothing yet
             </p>
 
             <h2 className="lpv-display mt-6 text-5xl md:text-7xl">
-              Ta sélection est vide.
+              Your selection is empty.
             </h2>
 
             <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
-              Ajoute des bouteilles depuis le répertoire ou une fiche bouteille.
+              Save bottles from the directory or from any bottle page.
             </p>
 
-            <Link href="/vins" className="lpv-button lpv-button-dark mt-9">
-              Explorer les bouteilles
+            <Link href="/en/wines" className="lpv-button lpv-button-dark mt-9">
+              Explore bottles
             </Link>
           </div>
         )}

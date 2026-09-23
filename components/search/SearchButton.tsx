@@ -1,16 +1,24 @@
 "use client";
 
-export function SearchButton() {
+type SearchButtonProps = {
+  locale?: "fr" | "en";
+};
+
+export function SearchButton({ locale = "fr" }: SearchButtonProps) {
+  const isEnglish = locale === "en";
+
   return (
     <button
       type="button"
       onClick={() =>
         window.dispatchEvent(new CustomEvent("open-search"))
       }
-      aria-label="Ouvrir la recherche"
+      aria-label={isEnglish ? "Open search" : "Ouvrir la recherche"}
       className="flex items-center gap-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] transition-opacity hover:opacity-50"
     >
-      <span className="hidden sm:inline">Chercher</span>
+      <span className="hidden sm:inline">
+        {isEnglish ? "Search" : "Chercher"}
+      </span>
 
       <span
         aria-hidden="true"

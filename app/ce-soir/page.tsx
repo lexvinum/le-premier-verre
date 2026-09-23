@@ -7,7 +7,7 @@ const moments = [
     title: "Je cuisine.",
     description:
       "Trouver une bouteille selon le plat, la sauce, la saison ou simplement ce qu’il reste dans le frigo.",
-    href: "/sommelier?prompt=Je cuisine ce soir. Aide-moi à choisir un vin.",
+    href: "/accords",
   },
   {
     number: "02",
@@ -15,7 +15,7 @@ const moments = [
     title: "Je reçois.",
     description:
       "Une bouteille rassembleuse qui accompagne la table sans prendre toute la place.",
-    href: "/sommelier?prompt=Je reçois des invités. Quel vin devrais-je servir ?",
+    href: "/guides",
   },
   {
     number: "03",
@@ -23,7 +23,7 @@ const moments = [
     title: "J’arrive avec une bouteille.",
     description:
       "Trouver une valeur sûre selon le budget, l’occasion et les personnes autour de la table.",
-    href: "/sommelier?prompt=Je cherche une bouteille à apporter en cadeau.",
+    href: "/vins",
   },
   {
     number: "04",
@@ -47,7 +47,15 @@ const moments = [
     title: "Je ne sais pas.",
     description:
       "Quelques questions simples pour trouver la bouteille qui correspond au moment.",
-    href: "/sommelier?prompt=Je ne sais pas quoi boire ce soir.",
+    href: "/vins",
+  },
+  {
+    number: "07",
+    eyebrow: "Sans alcool",
+    title: "Je ne bois pas ce soir.",
+    description:
+      "Des bouteilles choisies pour ce qu’elles ont à offrir dans le verre, avec ou sans occasion particulière.",
+    href: "/sans-alcool",
   },
 ];
 
@@ -75,10 +83,10 @@ export default function CeSoirPage() {
             </p>
 
             <Link
-              href="/sommelier"
+              href="/accords"
               className="lpv-text-link mt-8"
             >
-              Demander au sommelier <span>→</span>
+              Partir de ce qu’on mange <span>→</span>
             </Link>
           </div>
         </div>
@@ -132,27 +140,28 @@ export default function CeSoirPage() {
         <div className="lpv-container grid gap-12 py-16 md:grid-cols-[0.38fr_0.62fr] md:items-end md:py-24">
           <div>
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              Recommandation rapide
+              À table
             </p>
 
             <h2 className="lpv-display mt-6 text-5xl leading-[0.9] md:text-7xl">
-              Une bouteille
+              Qu’est-ce
               <br />
-              pour l’humeur.
+              qu’on mange?
             </h2>
           </div>
 
           <div>
             <p className="max-w-2xl text-lg leading-8 text-[var(--lpv-muted)]">
-              Le vin du soir dépend rarement d’une seule chose. Il dépend de la
-              faim, de l’énergie, de la lumière et de ce qu’il reste à raconter.
+              Pizza, sushis, pâtes, grillades ou quelque chose de plus précis.
+              Pars de ce qu’il y a dans l’assiette et trouve les styles de vins
+              qui fonctionnent vraiment avec le repas.
             </p>
 
             <Link
-              href="/sommelier?prompt=Je veux une recommandation rapide pour ce soir."
+              href="/accords"
               className="lpv-button lpv-button-dark mt-9"
             >
-              Me recommander un vin
+              Trouver un accord
             </Link>
           </div>
         </div>

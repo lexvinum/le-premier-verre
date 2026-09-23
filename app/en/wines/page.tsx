@@ -50,24 +50,24 @@ type SearchParams = Promise<{
 }>;
 
 function normalize(value?: string) {
-  return value?.trim().toLocaleLowerCase("fr-CA") ?? "";
+  return value?.trim().toLocaleLowerCase("en-CA") ?? "";
 }
 
 function formatLabel(value?: string) {
   if (!value) return null;
 
   const labels: Record<string, string> = {
-    red: "Rouge",
-    white: "Blanc",
+    red: "Red",
+    white: "White",
     rose: "Rosé",
     orange: "Orange",
-    sparkling: "Effervescent",
-    fortified: "Fortifié",
-    dry: "Sec",
-    "off-dry": "Demi-sec",
-    sweet: "Doux",
-    natural: "Nature",
-    classic: "Classique",
+    sparkling: "Sparkling",
+    fortified: "Fortified",
+    dry: "Dry",
+    "off-dry": "Off-dry",
+    sweet: "Sweet",
+    natural: "Natural",
+    classic: "Classic",
   };
 
   return labels[value] || value.replace(/[-_]/g, " ");
@@ -128,8 +128,8 @@ export default async function VinsPage({
         wine.color,
         wine.style,
         ...(wine.appleVarieties ?? []),
-        wine.beverageType === "cider" ? "cidre" : "vin",
-        wine.alcoholFree ? "sans alcool" : "",
+        wine.beverageType === "cider" ? "cider" : "wine",
+        wine.alcoholFree ? "alcohol free" : "",
       ]
         .filter(Boolean)
         .join(" ")
@@ -190,7 +190,7 @@ export default async function VinsPage({
 
     const queryString = nextParams.toString();
 
-    return queryString ? `/vins?${queryString}` : "/vins";
+    return queryString ? `/en/wines?${queryString}` : "/en/wines";
   }
 
   const hasFilters = Boolean(
@@ -209,39 +209,41 @@ export default async function VinsPage({
         <div className="lpv-container grid gap-10 py-16 md:grid-cols-[0.68fr_0.32fr] md:items-end md:py-24">
           <div>
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              Répertoire
+              Directory
             </p>
 
             <h1 className="lpv-display mt-7 max-w-5xl text-[clamp(4.8rem,10vw,10rem)] leading-[0.82]">
-              Les bouteilles
+              Bottles from
               <br />
-              de la bibliothèque.
+              the library.
             </h1>
           </div>
 
           <div className="border-t border-[var(--lpv-line)] pt-6 md:border-t-0 md:pb-2">
             <p className="max-w-md text-base leading-8 text-[var(--lpv-muted)]">
-              Une sélection de bouteilles à découvrir, à garder sous la main
-              et à ouvrir au bon moment.
+              A selection of bottles to discover, keep close
+              and open at the right moment.
             </p>
 
             <p className="mt-7 text-xs uppercase tracking-[0.18em] text-[var(--lpv-cocoa)]">
-              {wines.length} bouteille{wines.length > 1 ? "s" : ""} dans la collection
+              {wines.length} bottle{wines.length > 1 ? "s" : ""} in the collection
             </p>
           </div>
         </div>
       </section>
 
-      {/* TYPES DE BOUTEILLES */}
+      {/* BOTTLE TYPES */}
       <section className="border-b border-[var(--lpv-line)]">
         <div className="lpv-container flex flex-wrap gap-x-8 gap-y-3 py-6">
           {[
-            { label: "Tout", value: "" },
-            { label: "Vins", value: "wine" },
-            { label: "Cidres", value: "cider" },
-            { label: "Sans alcool", value: "alcohol-free" },
+            { label: "All", value: "" },
+            { label: "Wines", value: "wine" },
+            { label: "Ciders", value: "cider" },
+            { label: "Alcohol-free", value: "alcohol-free" },
           ].map((item) => {
-            const href = item.value ? `/vins?type=${item.value}` : "/vins";
+            const href = item.value
+              ? `/en/wines?type=${item.value}`
+              : "/en/wines";
             const active = selectedType === item.value;
 
             return (
@@ -274,21 +276,21 @@ export default async function VinsPage({
           <div className="grid gap-px bg-[var(--lpv-line)] md:grid-cols-2 xl:grid-cols-6">
             <label className="bg-[var(--lpv-paper)] p-4 md:col-span-2 xl:col-span-2">
               <span className="mb-3 block text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[var(--lpv-muted)]">
-                Rechercher
+                Search
               </span>
 
               <input
                 type="search"
                 name="q"
                 defaultValue={params.q ?? ""}
-                placeholder="Bouteille, producteur, région…"
+                placeholder="Bottle, producer, region…"
                 className="w-full border-0 bg-transparent py-1 text-base outline-none placeholder:text-[var(--lpv-muted)]/55"
               />
             </label>
 
             <label className="bg-[var(--lpv-paper)] p-4">
               <span className="mb-3 block text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[var(--lpv-muted)]">
-                Couleur
+                Colour
               </span>
 
               <select
@@ -296,7 +298,7 @@ export default async function VinsPage({
                 defaultValue={selectedColor}
                 className="w-full appearance-none border-0 bg-transparent py-1 text-base outline-none"
               >
-                <option value="">Toutes</option>
+                <option value="">All</option>
 
                 {colors.map((color) => (
                   <option key={color} value={color}>
@@ -308,7 +310,7 @@ export default async function VinsPage({
 
             <label className="bg-[var(--lpv-paper)] p-4">
               <span className="mb-3 block text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[var(--lpv-muted)]">
-                Pays
+                Country
               </span>
 
               <select
@@ -316,7 +318,7 @@ export default async function VinsPage({
                 defaultValue={selectedCountry}
                 className="w-full appearance-none border-0 bg-transparent py-1 text-base outline-none"
               >
-                <option value="">Tous</option>
+                <option value="">All</option>
 
                 {countries.map((country) => (
                   <option key={country} value={country}>
@@ -328,7 +330,7 @@ export default async function VinsPage({
 
             <label className="bg-[var(--lpv-paper)] p-4">
               <span className="mb-3 block text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[var(--lpv-muted)]">
-                Région
+                Region
               </span>
 
               <select
@@ -336,7 +338,7 @@ export default async function VinsPage({
                 defaultValue={selectedRegion}
                 className="w-full appearance-none border-0 bg-transparent py-1 text-base outline-none"
               >
-                <option value="">Toutes</option>
+                <option value="">All</option>
 
                 {regions.map((region) => (
                   <option key={region} value={region}>
@@ -348,7 +350,7 @@ export default async function VinsPage({
 
             <label className="bg-[var(--lpv-paper)] p-4">
               <span className="mb-3 block text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[var(--lpv-muted)]">
-                Prix
+                Price
               </span>
 
               <select
@@ -356,24 +358,24 @@ export default async function VinsPage({
                 defaultValue={selectedPrice}
                 className="w-full appearance-none border-0 bg-transparent py-1 text-base outline-none"
               >
-                <option value="">Tous les prix</option>
-                <option value="under-20">Moins de 20 $</option>
-                <option value="20-30">20 à 30 $</option>
-                <option value="30-40">30 à 40 $</option>
-                <option value="40-60">40 à 60 $</option>
-                <option value="60-plus">60 $ et +</option>
+                <option value="">All prices</option>
+                <option value="under-20">Under $20</option>
+                <option value="20-30">$20 to $30</option>
+                <option value="30-40">$30 to $40</option>
+                <option value="40-60">$40 to $60</option>
+                <option value="60-plus">$60+</option>
               </select>
             </label>
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-5">
             <button type="submit" className="lpv-button lpv-button-dark">
-              Appliquer les filtres
+              Apply filters
             </button>
 
             {hasFilters ? (
-              <Link href="/vins" className="lpv-text-link">
-                Réinitialiser
+              <Link href="/en/wines" className="lpv-text-link">
+                Reset
               </Link>
             ) : null}
           </div>
@@ -389,12 +391,12 @@ export default async function VinsPage({
             </p>
 
             <h2 className="lpv-display mt-5 text-5xl leading-none md:text-7xl">
-              À ouvrir.
+              Worth opening.
             </h2>
           </div>
 
           <p className="text-xs uppercase tracking-[0.18em] text-[var(--lpv-muted)]">
-            {filteredWines.length} résultat
+            {filteredWines.length} result
             {filteredWines.length > 1 ? "s" : ""}
           </p>
         </div>
@@ -417,7 +419,7 @@ export default async function VinsPage({
                   >
                     <div className="relative">
                       <Link
-                        href={`/vins/${wine.slug}`}
+                        href={`/en/wines/${wine.slug}`}
                         className="block w-full"
                       >
                         <BottleStage
@@ -442,9 +444,9 @@ export default async function VinsPage({
                         <p className="lpv-kicker min-w-0 text-[var(--lpv-cocoa)]">
                           {[
                             wine.beverageType === "cider"
-                              ? "Cidre"
-                              : formatLabel(wine.color) || "Vin",
-                            wine.alcoholFree ? "Sans alcool" : null,
+                              ? "Cider"
+                              : formatLabel(wine.color) || "Wine",
+                            wine.alcoholFree ? "Alcohol-free" : null,
                             wine.vintage,
                           ]
                             .filter(Boolean)
@@ -457,7 +459,7 @@ export default async function VinsPage({
                       </div>
 
                       <Link
-                        href={`/vins/${wine.slug}`}
+                        href={`/en/wines/${wine.slug}`}
                         className="mt-5 block"
                       >
                         <h3 className="lpv-display min-h-[5.6rem] text-4xl leading-[0.92] transition-opacity group-hover:opacity-60 md:text-5xl xl:min-h-[6.6rem]">
@@ -469,7 +471,7 @@ export default async function VinsPage({
                         {wine.producer?.name ? (
                           wine.producer.slug ? (
                             <Link
-                              href={`/producteurs/${wine.producer.slug}`}
+                              href={`/en/producers/${wine.producer.slug}`}
                               className="block w-fit text-sm text-[var(--lpv-muted)] transition-opacity hover:opacity-50"
                             >
                               {wine.producer.name}
@@ -498,10 +500,10 @@ export default async function VinsPage({
                         </div>
 
                         <Link
-                          href={`/vins/${wine.slug}`}
+                          href={`/en/wines/${wine.slug}`}
                           className="lpv-text-link shrink-0"
                         >
-                          Voir <span>→</span>
+                          View <span>→</span>
                         </Link>
                       </div>
                     </div>
@@ -512,7 +514,7 @@ export default async function VinsPage({
 
             {totalPages > 1 ? (
               <nav
-                aria-label="Pagination des bouteilles"
+                aria-label="Bottle pagination"
                 className="mt-12 flex flex-wrap items-center justify-between gap-6 border-t border-[var(--lpv-line)] pt-8"
               >
                 <div>
@@ -521,11 +523,11 @@ export default async function VinsPage({
                       href={pageHref(currentPage - 1)}
                       className="lpv-text-link"
                     >
-                      ← Précédent
+                      ← Previous
                     </Link>
                   ) : (
                     <span className="text-sm text-[var(--lpv-muted)]/40">
-                      ← Précédent
+                      ← Previous
                     </span>
                   )}
                 </div>
@@ -555,11 +557,11 @@ export default async function VinsPage({
                       href={pageHref(currentPage + 1)}
                       className="lpv-text-link"
                     >
-                      Suivant →
+                      Next →
                     </Link>
                   ) : (
                     <span className="text-sm text-[var(--lpv-muted)]/40">
-                      Suivant →
+                      Next →
                     </span>
                   )}
                 </div>
@@ -569,22 +571,22 @@ export default async function VinsPage({
         ) : (
           <div className="py-20 text-center">
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              Aucun résultat
+              No results
             </p>
 
             <h2 className="lpv-display mt-6 text-5xl">
-              Rien pour le moment.
+              Nothing here for now.
             </h2>
 
             <p className="mx-auto mt-5 max-w-lg text-base leading-8 text-[var(--lpv-muted)]">
-              Essaie une autre recherche ou retire certains filtres.
+              Try another search or remove some filters.
             </p>
 
             <Link
-              href="/vins"
+              href="/en/wines"
               className="lpv-button mt-8"
             >
-              Voir toutes les bouteilles
+              View all bottles
             </Link>
           </div>
         )}

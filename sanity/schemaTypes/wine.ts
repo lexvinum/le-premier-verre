@@ -16,7 +16,41 @@ export const wine = defineType({
   ],
 
   fields: [
+    {
+      name: "translationSourceHash",
+      title: "Translation source hash",
+      type: "string",
+      hidden: true,
+      readOnly: true,
+    },
+
     // IDENTITÉ
+    defineField({
+      name: "beverageType",
+      title: "Type de bouteille",
+      type: "string",
+      group: "identity",
+      initialValue: "wine",
+      options: {
+        layout: "radio",
+        list: [
+          { title: "Vin", value: "wine" },
+          { title: "Cidre", value: "cider" },
+        ],
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+
+    defineField({
+      name: "alcoholFree",
+      title: "Sans alcool",
+      type: "boolean",
+      group: "identity",
+      initialValue: false,
+      description: "Activez pour une bouteille présentée dans la sélection sans alcool.",
+      validation: (Rule) => Rule.required(),
+    }),
+
     defineField({
       name: "name",
       title: "Nom de la cuvée",
@@ -66,7 +100,24 @@ export const wine = defineType({
           { title: "Fortifié", value: "fortified" },
         ],
       },
-      validation: (Rule) => Rule.required(),
+      hidden: ({ parent }) => parent?.beverageType === "cider",
+      validation: (Rule) =>
+        Rule.custom((value, context) => {
+          const parent = context.parent as { beverageType?: string } | undefined;
+          if (parent?.beverageType === "cider") return true;
+          return value ? true : "La couleur est requise pour un vin.";
+        }),
+    }),
+
+    defineField({
+      name: "appleVarieties",
+      title: "Variétés de pommes",
+      type: "array",
+      group: "identity",
+      of: [{ type: "string" }],
+      options: { layout: "tags" },
+      description: "Une ou plusieurs variétés, lorsqu’elles sont connues.",
+      hidden: ({ parent }) => parent?.beverageType !== "cider",
     }),
 
     defineField({
@@ -93,7 +144,13 @@ export const wine = defineType({
       type: "reference",
       group: "identity",
       to: [{ type: "appellation" }],
-      validation: (Rule) => Rule.required(),
+      hidden: ({ parent }) => parent?.beverageType === "cider",
+      validation: (Rule) =>
+        Rule.custom((value, context) => {
+          const parent = context.parent as { beverageType?: string } | undefined;
+          if (parent?.beverageType === "cider") return true;
+          return value ? true : "L’appellation est requise pour un vin.";
+        }),
     }),
 
     defineField({
@@ -102,7 +159,15 @@ export const wine = defineType({
       type: "array",
       group: "identity",
       of: [{ type: "reference", to: [{ type: "grape" }] }],
-      validation: (Rule) => Rule.required().min(1),
+      hidden: ({ parent }) => parent?.beverageType === "cider",
+      validation: (Rule) =>
+        Rule.custom((value, context) => {
+          const parent = context.parent as { beverageType?: string } | undefined;
+          if (parent?.beverageType === "cider") return true;
+          return Array.isArray(value) && value.length > 0
+            ? true
+            : "Au moins un cépage est requis pour un vin.";
+        }),
     }),
 
     defineField({
@@ -165,6 +230,14 @@ export const wine = defineType({
     }),
 
     defineField({
+      name: "purchaseChannelDetailsEn",
+      title: "Précision sur le circuit d’achat — EN",
+      type: "string",
+      group: "purchase",
+      description: "Version anglaise de la précision sur le circuit d’achat.",
+    }),
+
+    defineField({
       name: "purchaseUrl",
       title: "Lien d’achat",
       type: "url",
@@ -193,6 +266,16 @@ export const wine = defineType({
     }),
 
     defineField({
+      name: "oneLinerEn",
+      title: "En une phrase — EN",
+      type: "text",
+      rows: 3,
+      group: "lpv",
+      description: "Version anglaise de « En une phrase ».",
+      validation: (Rule) => Rule.max(220),
+    }),
+
+    defineField({
       name: "tastingKeywords",
       title: "On goûte",
       type: "array",
@@ -201,6 +284,17 @@ export const wine = defineType({
       options: { layout: "tags" },
       description: "3 à 5 mots maximum. Exemple : cerise, poivre, herbes, terre.",
       validation: (Rule) => Rule.required().min(3).max(5),
+    }),
+
+    defineField({
+      name: "tastingKeywordsEn",
+      title: "On goûte — EN",
+      type: "array",
+      group: "lpv",
+      of: [{ type: "string" }],
+      options: { layout: "tags" },
+      description: "Version anglaise des mots-clés de dégustation.",
+      validation: (Rule) => Rule.max(5),
     }),
 
     defineField({
@@ -215,6 +309,17 @@ export const wine = defineType({
     }),
 
     defineField({
+      name: "perfectForEn",
+      title: "Parfait pour — EN",
+      type: "array",
+      group: "lpv",
+      of: [{ type: "string" }],
+      options: { layout: "tags" },
+      description: "Version anglaise des occasions ou plats.",
+      validation: (Rule) => Rule.max(3),
+    }),
+
+    defineField({
       name: "whyWeRecommend",
       title: "Pourquoi Le Premier Verre le recommande",
       type: "text",
@@ -222,6 +327,15 @@ export const wine = defineType({
       group: "lpv",
       description: "2 à 4 phrases.",
       validation: (Rule) => Rule.required(),
+    }),
+
+    defineField({
+      name: "whyWeRecommendEn",
+      title: "Pourquoi Le Premier Verre le recommande — EN",
+      type: "text",
+      rows: 5,
+      group: "lpv",
+      description: "Version anglaise.",
     }),
 
     // PROFIL
@@ -398,6 +512,128 @@ export const wine = defineType({
     }),
 
     defineField({
+      name: "dnaMetadata",
+      title: "Fiabilité du Wine DNA",
+      type: "object",
+      group: "advanced",
+      description:
+        "Métadonnées internes utilisées par le moteur de recommandation.",
+      options: { collapsible: true, collapsed: true },
+      fields: [
+        defineField({
+          name: "fruitIntensity",
+          title: "Expression du fruit",
+          type: "object",
+          fields: [
+            defineField({
+              name: "confidence",
+              title: "Confiance",
+              type: "number",
+              validation: (Rule) => Rule.min(0).max(1),
+            }),
+            defineField({
+              name: "source",
+              title: "Source",
+              type: "string",
+              options: {
+                list: [
+                  { title: "Donnée technique", value: "technical" },
+                  { title: "Dégustation", value: "tasting" },
+                  { title: "Éditorial LPV", value: "editorial" },
+                  { title: "Inférence", value: "inferred" },
+                ],
+              },
+            }),
+          ],
+        }),
+
+        defineField({
+          name: "minerality",
+          title: "Minéralité",
+          type: "object",
+          fields: [
+            defineField({
+              name: "confidence",
+              title: "Confiance",
+              type: "number",
+              validation: (Rule) => Rule.min(0).max(1),
+            }),
+            defineField({
+              name: "source",
+              title: "Source",
+              type: "string",
+              options: {
+                list: [
+                  { title: "Donnée technique", value: "technical" },
+                  { title: "Dégustation", value: "tasting" },
+                  { title: "Éditorial LPV", value: "editorial" },
+                  { title: "Inférence", value: "inferred" },
+                ],
+              },
+            }),
+          ],
+        }),
+
+        defineField({
+          name: "savory",
+          title: "Caractère savoureux",
+          type: "object",
+          fields: [
+            defineField({
+              name: "confidence",
+              title: "Confiance",
+              type: "number",
+              validation: (Rule) => Rule.min(0).max(1),
+            }),
+            defineField({
+              name: "source",
+              title: "Source",
+              type: "string",
+              options: {
+                list: [
+                  { title: "Donnée technique", value: "technical" },
+                  { title: "Dégustation", value: "tasting" },
+                  { title: "Éditorial LPV", value: "editorial" },
+                  { title: "Inférence", value: "inferred" },
+                ],
+              },
+            }),
+          ],
+        }),
+      ],
+    }),
+
+    defineField({
+      name: "fruitIntensity",
+      title: "Expression du fruit",
+      type: "number",
+      group: "advanced",
+      description:
+        "1 = très peu fruité · 5 = fruit très présent. Mesure l’importance du fruit dans le profil, pas la sucrosité.",
+      validation: (Rule) => Rule.min(1).max(5),
+    }),
+
+    defineField({
+      name: "minerality",
+      title: "Minéralité",
+      type: "number",
+      group: "advanced",
+      description:
+        "1 = très peu minéral · 5 = caractère minéral très marqué (pierre, craie, salinité, silex).",
+      validation: (Rule) => Rule.min(1).max(5),
+    }),
+
+    defineField({
+      name: "savory",
+      title: "Fruité ↔ savoureux",
+      type: "number",
+      group: "advanced",
+      description:
+        "1 = dominé par le fruit · 5 = très savoureux (herbes, épices, terre, sous-bois, umami).",
+      validation: (Rule) => Rule.min(1).max(5),
+    }),
+
+    defineField({
       name: "intensity",
       title: "Intensité aromatique",
       type: "number",
@@ -538,8 +774,24 @@ export const wine = defineType({
     }),
 
     defineField({
+      name: "tastingNotesEn",
+      title: "Notes de dégustation — EN",
+      type: "array",
+      group: "advanced",
+      of: [{ type: "block" }],
+    }),
+
+    defineField({
       name: "editorialNote",
       title: "Note éditoriale",
+      type: "array",
+      group: "advanced",
+      of: [{ type: "block" }],
+    }),
+
+    defineField({
+      name: "editorialNoteEn",
+      title: "Note éditoriale — EN",
       type: "array",
       group: "advanced",
       of: [{ type: "block" }],

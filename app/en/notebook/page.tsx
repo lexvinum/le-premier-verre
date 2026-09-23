@@ -28,13 +28,13 @@ type JournalEntry = {
 };
 
 const appreciationLabels: Record<JournalEntry["appreciation"], string> = {
-  liked: "Aimé",
-  average: "Moyen",
-  disliked: "Pas aimé",
+  liked: "Liked",
+  average: "Average",
+  disliked: "Didn’t like",
 };
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("fr-CA", {
+  return new Intl.DateTimeFormat("en-CA", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -42,7 +42,7 @@ function formatDate(value: string) {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
-export default async function MonCarnetPage() {
+export default async function NotebookPage() {
   const { userId } = await auth();
 
   if (!userId) {
@@ -51,44 +51,43 @@ export default async function MonCarnetPage() {
         <section className="border-b border-[var(--lpv-line)]">
           <div className="lpv-container py-20 md:py-28">
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              Mon espace
+              My space
             </p>
 
             <h1 className="lpv-display mt-7 max-w-5xl text-[clamp(4.8rem,10vw,10rem)] leading-[0.82]">
-              Mon carnet
+              My wine
               <br />
-              de vin.
+              notebook.
             </h1>
 
             <p className="mt-8 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
-              Les bouteilles bues. Les impressions qu’on veut garder.
+              The bottles you’ve tried. The impressions worth remembering.
             </p>
           </div>
         </section>
 
         <section className="lpv-container py-24 text-center">
           <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-            Connexion requise
+            Sign in required
           </p>
 
           <h2 className="lpv-display mt-6 text-5xl md:text-7xl">
-            Ton carnet t’attend.
+            Your notebook is waiting.
           </h2>
 
           <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
-            Connecte-toi pour retrouver les bouteilles que tu as bues et les
-            notes que tu veux garder.
+            Sign in to find the bottles you’ve tried and the notes you want to keep.
           </p>
 
-          <Link href="/connexion" className="lpv-button lpv-button-dark mt-9">
-            Se connecter
+          <Link href="/en/sign-in" className="lpv-button lpv-button-dark mt-9">
+            Sign in
           </Link>
         </section>
       </main>
     );
   }
 
-  await enforceAccountLanguage(userId, "fr", "notebook");
+  await enforceAccountLanguage(userId, "en", "notebook");
 
   const entries = await client.fetch<JournalEntry[]>(
     `*[
@@ -131,27 +130,27 @@ export default async function MonCarnetPage() {
         <div className="lpv-container grid gap-12 py-16 md:grid-cols-[1fr_0.42fr] md:items-end md:py-24">
           <div>
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              Mon espace
+              My space
             </p>
 
             <h1 className="lpv-display mt-7 text-[clamp(4.8rem,10vw,10rem)] leading-[0.8]">
-              Mon carnet
+              My wine
               <br />
-              de vin.
+              notebook.
             </h1>
           </div>
 
           <div className="border-t border-[var(--lpv-line)] pt-6 md:border-t-0 md:pb-2">
             <p className="max-w-sm text-base leading-8 text-[var(--lpv-muted)]">
-              Les bouteilles bues. Les impressions qu’on veut garder.
-              Rien de plus compliqué.
+              The bottles you’ve tried. The impressions worth remembering.
+              Nothing more complicated than that.
             </p>
 
             <Link
-              href="/vins"
+              href="/en/wines"
               className="lpv-text-link mt-7 inline-flex"
             >
-              Ajouter une bouteille <span>→</span>
+              Add a bottle <span>→</span>
             </Link>
           </div>
         </div>
@@ -161,9 +160,9 @@ export default async function MonCarnetPage() {
       <section className="border-b border-[var(--lpv-line)]">
         <div className="lpv-container grid md:grid-cols-3">
           {[
-            ["Bouteilles bues", entries.length],
-            ["Aimées", likedCount],
-            ["À racheter", buyAgainCount],
+            ["Bottles tried", entries.length],
+            ["Liked", likedCount],
+            ["Buy again", buyAgainCount],
           ].map(([label, value], index) => (
             <div
               key={label}
@@ -191,11 +190,11 @@ export default async function MonCarnetPage() {
       <section className="lpv-container py-16 md:py-24">
         <div className="border-b border-[var(--lpv-line)] pb-7">
           <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-            Mon historique
+            My history
           </p>
 
           <h2 className="lpv-display mt-5 text-5xl leading-[0.9] md:text-7xl">
-            À retenir.
+            Worth remembering.
           </h2>
         </div>
 
@@ -226,13 +225,13 @@ export default async function MonCarnetPage() {
 
                   {/* BOUTEILLE */}
                   <Link
-                    href={wine?.slug ? `/vins/${wine.slug}` : "/vins"}
+                    href={wine?.slug ? `/en/wines/${wine.slug}` : "/en/wines"}
                     className="flex h-48 items-center justify-center md:h-60"
                   >
                     {imageSrc ? (
                       <img
                         src={imageSrc}
-                        alt={wine?.name || "Bouteille"}
+                        alt={wine?.name || "Bottle"}
                         className="h-full w-auto object-contain transition-transform duration-500 hover:-translate-y-1"
                       />
                     ) : (
@@ -259,10 +258,10 @@ export default async function MonCarnetPage() {
                         </div>
 
                         <Link
-                          href={wine?.slug ? `/vins/${wine.slug}` : "/vins"}
+                          href={wine?.slug ? `/en/wines/${wine.slug}` : "/en/wines"}
                         >
                           <h3 className="lpv-display mt-5 text-5xl leading-[0.86] transition-opacity hover:opacity-60 md:text-6xl">
-                            {wine?.name || "Bouteille"}
+                            {wine?.name || "Bottle"}
                           </h3>
                         </Link>
 
@@ -276,13 +275,13 @@ export default async function MonCarnetPage() {
                       {/* SOUVENIR */}
                       <div className="border-t border-[var(--lpv-line)] pt-5 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
                         <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                          Ce que j’en retiens
+                          What I remember
                         </p>
 
                         <p className="mt-5 max-w-md text-base leading-7 text-[var(--lpv-ink)]">
                           {entry.note?.trim() || (
                             <span className="text-[var(--lpv-muted)]">
-                              Aucune note pour cette bouteille.
+                              No notes for this bottle.
                             </span>
                           )}
                         </p>
@@ -292,17 +291,17 @@ export default async function MonCarnetPage() {
                     {/* BAS */}
                     <div className="mt-10 flex flex-wrap items-center justify-between gap-6 border-t border-[var(--lpv-line)] pt-5">
                       <p className="text-xs uppercase tracking-[0.16em] text-[var(--lpv-muted)]">
-                        Rachèterais{" "}
+                        Buy again{" "}
                         <span className="ml-2 text-[var(--lpv-ink)]">
-                          {entry.buyAgain ? "Oui" : "Non"}
+                          {entry.buyAgain ? "Yes" : "No"}
                         </span>
                       </p>
 
                       <Link
-                        href={wine?.slug ? `/vins/${wine.slug}` : "/vins"}
+                        href={wine?.slug ? `/en/wines/${wine.slug}` : "/en/wines"}
                         className="lpv-text-link"
                       >
-                        Voir la bouteille <span>→</span>
+                        View bottle <span>→</span>
                       </Link>
                     </div>
                   </div>
@@ -313,20 +312,19 @@ export default async function MonCarnetPage() {
         ) : (
           <div className="py-24 text-center">
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              Première bouteille
+              First bottle
             </p>
 
             <h2 className="lpv-display mt-6 text-5xl md:text-7xl">
-              Le carnet est encore vide.
+              Your notebook is still empty.
             </h2>
 
             <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
-              Après avoir bu une bouteille, ajoute-la ici pour garder une trace de
-              ce que tu en as pensé.
+              After trying a bottle, add it here to keep track of what you thought.
             </p>
 
-            <Link href="/vins" className="lpv-button lpv-button-dark mt-9">
-              Découvrir les bouteilles
+            <Link href="/en/wines" className="lpv-button lpv-button-dark mt-9">
+              Discover bottles
             </Link>
           </div>
         )}

@@ -24,11 +24,11 @@ const typeOrder: SearchResult["_type"][] = [
 ];
 
 const typeLabels: Record<SearchResult["_type"], string> = {
-  wine: "Bouteilles",
-  producer: "Producteurs",
-  country: "Pays",
-  region: "Régions",
-  grape: "Cépages",
+  wine: "Bottles",
+  producer: "Producers",
+  country: "Countries",
+  region: "Regions",
+  grape: "Grapes",
   article: "Journal",
   guide: "Guides",
 };
@@ -51,7 +51,9 @@ async function getResults(q: string): Promise<SearchResult[]> {
         ) &&
         (
           name match $search + "*" ||
-          title match $search + "*"
+          title match $search + "*" ||
+          nameEn match $search + "*" ||
+          titleEn match $search + "*"
         ) &&
         (
           !defined(published) ||
@@ -60,7 +62,7 @@ async function getResults(q: string): Promise<SearchResult[]> {
       ][0...50] {
         _id,
         _type,
-        "title": coalesce(title, name),
+        "title": coalesce(titleEn, nameEn, title, name),
         "slug": slug.current
       }
     `,
@@ -89,28 +91,28 @@ export default async function SearchPage({
         <div className="lpv-container grid gap-10 py-16 md:grid-cols-[0.68fr_0.32fr] md:items-end md:py-24">
           <div>
             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-              Bibliothèque
+              Library
             </p>
 
             <h1 className="lpv-display mt-7 text-[clamp(4.8rem,10vw,10rem)] leading-[0.82]">
-              Rechercher.
+              Search.
             </h1>
           </div>
 
           <p className="max-w-md text-base leading-8 text-[var(--lpv-muted)]">
-            Explore les bouteilles, les producteurs, les régions, les cépages, les
-            guides et les articles du Premier Verre.
+            Explore bottles, producers, regions, grapes,
+            guides and stories from Le Premier Verre.
           </p>
         </div>
       </section>
 
       <section className="lpv-container py-12 md:py-16">
-        <form method="GET" action="/recherche">
+        <form method="GET" action="/en/search">
           <label
             htmlFor="search-page-input"
             className="lpv-kicker text-[var(--lpv-cocoa)]"
           >
-            Que cherches-tu?
+            What are you looking for?
           </label>
 
           <div className="mt-7 flex flex-col gap-6 border-y border-[var(--lpv-line)] py-7 md:flex-row md:items-center">
@@ -119,13 +121,13 @@ export default async function SearchPage({
               name="q"
               type="search"
               defaultValue={query}
-              placeholder="Bouteille, producteur, région…"
+              placeholder="Bottle, producer, region…"
               autoComplete="off"
               className="lpv-display min-w-0 flex-1 border-0 bg-transparent py-2 text-[clamp(3rem,6vw,6rem)] leading-[0.95] outline-none placeholder:text-[var(--lpv-muted)]/35"
             />
 
             <button type="submit" className="lpv-button lpv-button-dark">
-              Rechercher
+              Search
             </button>
           </div>
         </form>
@@ -134,16 +136,16 @@ export default async function SearchPage({
       {!query ? (
         <section className="lpv-container pb-24 md:pb-32">
           <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-            Commencer
+            Start here
           </p>
 
           <h2 className="lpv-display mt-6 max-w-4xl text-5xl leading-[0.9] md:text-7xl">
-            Toute la bibliothèque.
+            The whole library.
           </h2>
 
           <p className="mt-6 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
-            Recherche une bouteille, un producteur, une région, un cépage, un guide ou
-            un article.
+            Search for a bottle, producer, region, grape, guide or
+            article.
           </p>
         </section>
       ) : (
@@ -151,7 +153,7 @@ export default async function SearchPage({
           <div className="lpv-container flex flex-col gap-5 py-10 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                Résultats
+                Results
               </p>
 
               <h2 className="lpv-display mt-5 text-5xl leading-[0.9] md:text-7xl">
@@ -160,23 +162,23 @@ export default async function SearchPage({
             </div>
 
             <p className="text-xs uppercase tracking-[0.16em] text-[var(--lpv-muted)]">
-              {results.length} résultat{results.length > 1 ? "s" : ""}
+              {results.length} result{results.length !== 1 ? "s" : ""}
             </p>
           </div>
 
           {results.length === 0 ? (
             <div className="lpv-container border-t border-[var(--lpv-line)] py-20 md:py-28">
               <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                Aucun résultat
+                No results
               </p>
 
               <h3 className="lpv-display mt-6 max-w-3xl text-5xl leading-[0.9] md:text-7xl">
-                Rien dans la bibliothèque.
+                Nothing in the library.
               </h3>
 
               <p className="mt-6 max-w-xl text-base leading-8 text-[var(--lpv-muted)]">
-                Essaie avec une bouteille, un producteur, une région ou un terme
-                plus général.
+                Try a bottle, producer, region or a
+                broader search term.
               </p>
             </div>
           ) : (
@@ -201,7 +203,7 @@ export default async function SearchPage({
                       {items.map((item, index) => (
                         <Link
                           key={item._id}
-                          href={buildSearchHref(item)}
+                          href={buildSearchHref(item, "en")}
                           className="group grid grid-cols-[42px_1fr_24px] items-center gap-4 border-b border-[var(--lpv-line)] px-0 py-7 transition-opacity last:border-b-0 hover:opacity-55 md:px-8"
                         >
                           <span className="text-[0.6rem] tracking-[0.16em] text-[var(--lpv-muted)]">
@@ -210,7 +212,7 @@ export default async function SearchPage({
 
                           <div>
                             <p className="lpv-kicker text-[var(--lpv-cocoa)]">
-                              {getSearchTypeLabel(item._type)}
+                              {getSearchTypeLabel(item._type, "en")}
                             </p>
 
                             <h3 className="lpv-display mt-3 text-3xl leading-[0.92] md:text-4xl">
