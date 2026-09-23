@@ -121,7 +121,7 @@ const SPECIAL_SOURCE_FIELDS: Record<TranslatableType, string[]> = {
   producer: ["bio", "approach"],
   region: ["characteristics", "overview"],
   country: ["wineHistory"],
-  appellation: ["productionRules"],
+  appellation: ["description", "productionRules"],
   grape: ["history", "tryNext"],
   place: ["description"],
   article: ["content"],
@@ -361,11 +361,20 @@ function buildPatch(
     );
   }
 
-  if (type === "appellation" && translated.productionRules !== undefined) {
-    patch.productionRulesEn = rebuildPortableText(
-      document.productionRules,
-      translated.productionRules
-    );
+  if (type === "appellation") {
+    if (translated.description !== undefined) {
+      patch.descriptionEn = rebuildPortableText(
+        document.description,
+        translated.description
+      );
+    }
+
+    if (translated.productionRules !== undefined) {
+      patch.productionRulesEn = rebuildPortableText(
+        document.productionRules,
+        translated.productionRules
+      );
+    }
   }
 
   if (type === "grape") {
